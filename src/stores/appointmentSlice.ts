@@ -1,0 +1,132 @@
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
+import { create } from "zustand";
+import { db } from "../context/firebase";
+import { Appointment } from "../types/appointment";
+
+interface AppointmentState {
+  appointments: Appointment[];
+  loading: boolean;
+  getAppointmentsByTailor: (email: string) => Promise<void>;
+  saveAppointment(appointment: Appointment): Promise<void>;
+  getAppointmentById(id: string): Promise<Appointment | null>;
+  getAppointmentsByDate(email: string, date: string): Promise<Appointment[]>;
+  deleteAppointment(appointmentId: string): Promise<void>;
+}
+
+export const useAppointmentStore = create<AppointmentState>((set, get) => ({
+  appointments: [],
+  loading: false,
+  async getAppointmentsByTailor(email) {
+    set({ loading: true });
+    try {
+      const appointmentsRef = collection(db, "fashiontally_appointments");
+      const q = query(
+        appointmentsRef,
+        where("tailorId", "==", email),
+        orderBy("date", "asc"),
+        orderBy("time", "asc")
+      );
+      const querySnapshot = await getDocs(q);
+
+      const appointments = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Appointment[];
+
+      //   console.log("appointments", JSON.stringify(appointments, null, 2));
+
+      set({ appointments });
+    } catch (error) {
+      console.error("Error getting appointments:", error);
+    } finally {
+      set({ loading: false });
+    }
+  },
+  async saveAppointment(appointment) {
+    set({ loading: true });
+    try {
+      const appointmentRef = doc(
+        db,
+        "fashiontally_appointments",
+        appointment.id
+      );
+      await setDoc(appointmentRef, {
+        ...appointment,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Error saving appointment:", error);
+    } finally {
+      set({ loading: false });
+    }
+  },
+  async getAppointmentById(id) {
+    set({ loading: true });
+    try {
+      const appointmentRef = doc(db, "fashiontally_appointments", id);
+      const appointmentDoc = await getDoc(appointmentRef);
+
+      if (appointmentDoc.exists()) {
+        return {
+          id: appointmentDoc.id,
+          ...appointmentDoc.data(),
+        } as Appointment;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error getting appointment:", error);
+      return null;
+    } finally {
+      set({ loading: false });
+    }
+  },
+  async getAppointmentsByDate(email, date) {
+    set({ loading: true });
+    try {
+      const appointmentsRef = collection(db, "fashiontally_appointments");
+      const q = query(
+        appointmentsRef,
+        where("tailorId", "==", email),
+        where("date", "==", date),
+        orderBy("time", "asc")
+      );
+      const querySnapshot = await getDocs(q);
+
+      return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Appointment[];
+    } catch (error) {
+      console.error("Error getting appointments by date:", error);
+      return [];
+    } finally {
+      set({ loading: false });
+    }
+  },
+  async deleteAppointment(appointmentId: string) {
+    set({ loading: true });
+    try {
+      const appointmentRef = doc(
+        db,
+        "fashiontally_appointments",
+        appointmentId
+      );
+      await deleteDoc(appointmentRef);
+      console.log(`Appointment ${appointmentId} successfully deleted`);
+    } catch (error) {
+      console.error("Error deleting appointment:", error);
+    } finally {
+      set({ loading: false });
+    }
+  },
+}));
