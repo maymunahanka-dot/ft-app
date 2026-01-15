@@ -3,6 +3,7 @@ import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useClientStore } from "@/src/stores/clientSlice";
 import { scale, spacing } from "@/src/utils/random";
+import { router } from "expo-router";
 import { Plus, Search } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
@@ -78,7 +79,10 @@ const ClientsScreen = () => {
         />
       </View>
 
-      <Pressable style={styles.floatingBtn}>
+      <Pressable
+        style={styles.floatingBtn}
+        onPress={() => router.push("/protected/form/create-client")}
+      >
         <Plus size={scale(20)} color={"white"} />
       </Pressable>
     </SafeAreaView>

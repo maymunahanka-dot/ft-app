@@ -17,7 +17,8 @@ const GlassCard: React.FC<GlassCardProps> = ({ children, style }) => {
       <View style={styles.overlay} />
 
       {/* Content */}
-      <View style={styles.content}>{children}</View>
+      {/* <View style={styles.content}>{children}</View> */}
+      {children}
     </View>
   );
 };
@@ -42,6 +43,7 @@ const styles = StyleSheet.create({
   },
 
   content: {
+    flex: 1,
     padding: 16,
   },
 });

@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import {
   confirmPasswordReset,
   createUserWithEmailAndPassword,
@@ -23,8 +24,10 @@ export function useAuth() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      setLoading(true);
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       const userDocRef = doc(db, "fashiontally_users", user.uid);
       try {
         const docSnap = await getDoc(userDocRef);
@@ -91,6 +94,7 @@ export function useAuth() {
     try {
       await auth.signOut();
       console.log("user details", auth.name);
+      router.replace("/(auth)/sign-in");
     } catch (error) {
       console.error("Error signing out:", error);
       //   throw error;

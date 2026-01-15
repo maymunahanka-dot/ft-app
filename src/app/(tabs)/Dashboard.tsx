@@ -7,6 +7,7 @@ import ActionItem from "@/src/components/shared/action/item";
 import TabImageBackground from "@/src/components/shared/TabScreenBg";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useAuth } from "@/src/hooks/auth";
 import { useTimeSince } from "@/src/hooks/timeSince";
 import { useFinanceStore } from "@/src/stores/financeSlice";
 import { useOrderStore } from "@/src/stores/orderSlice";
@@ -30,7 +31,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const GraphValue = SCREEN_WIDTH / 3 - 25;
 
 const DashboardScreen = () => {
-  // const { loading, signOut } = useAuth();
+  const { loading, signOut } = useAuth();
 
   // const user = useUserStore((state) => state.user);
 
@@ -56,6 +57,10 @@ const DashboardScreen = () => {
   //   fetchData();
   // }, [fetchData]);
 
+  // useEffect(() => {
+  //   signOut();
+  // }, []);
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "white" }}
@@ -78,17 +83,17 @@ const DashboardScreen = () => {
             <View style={styles.actions}>
               <ActionItem
                 label="New Order"
-                onPress={() => {}}
+                onPress={() => router.push("/protected/form/create-order")}
                 icon={FileText}
               />
               <ActionItem
                 label="New Client"
-                onPress={() => {}}
+                onPress={() => router.push("/protected/form/create-client")}
                 icon={UserRoundPlus}
               />
               <ActionItem
                 label="Add Inventory"
-                onPress={() => {}}
+                onPress={() => router.push("/protected/form/create-stock")}
                 icon={Plus}
               />
               <ActionItem
@@ -102,15 +107,15 @@ const DashboardScreen = () => {
           </View>
 
           <View style={styles.section}>
-            <View style={styles.row}>
+            <View style={[styles.row, { justifyContent: "flex-start" }]}>
               <Text style={[Styles.med14, { color: Colors.text.black }]}>
                 Today&apos;s Schedule
               </Text>
-              <HapticTab>
+              {/* <HapticTab>
                 <Text style={[Styles.reg14, { color: Colors.secondary }]}>
                   See More
                 </Text>
-              </HapticTab>
+              </HapticTab> */}
             </View>
 
             {/* schedules for today */}

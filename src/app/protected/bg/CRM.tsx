@@ -1,13 +1,11 @@
 import CampaignItem from "@/src/components/campaign/Item";
 import GlassCard from "@/src/components/dashboard/boxes/GlassBox";
-import { HapticTab } from "@/src/components/haptic-tab";
 import CrmItem from "@/src/components/member/Item";
 import BGScreenBG from "@/src/components/shared/BGScreenBG";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useCrmStore } from "@/src/stores/crmSlice";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
-import { Entypo } from "@expo/vector-icons";
 import { Gift, Mail, Search, UsersIcon } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -143,9 +141,10 @@ const CRMScreen = () => {
         title="CRM"
         canGoBack
         rightIcon={() => (
-          <HapticTab style={{}}>
-            <Entypo name="notification" size={24} color="white" />
-          </HapticTab>
+          // <HapticTab style={{}}>
+          //   <Entypo name="notification" size={24} color="white" />
+          // </HapticTab>
+          <View></View>
         )}
         headerChildren={RowBoxes}
       >
@@ -254,6 +253,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     gap: spacing(15),
+    paddingVertical: spacing(26),
   },
   row: {
     flexDirection: "row",
@@ -262,6 +262,7 @@ const styles = StyleSheet.create({
   box: {
     width: BOXWIDTH,
     height: 120,
+    padding: spacing(16),
   },
   startRow: {
     flexDirection: "row",

@@ -31,26 +31,50 @@ export default function RootLayout() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || !loaded) return;
 
     const inTab = segments[0] === "(tabs)";
     const inProtected = segments[0] === "protected";
     const inAuth = segments[0] === "(auth)";
 
+    const inForgetPassword =
+      pathname.split("?")[0] === "/screen/forget-password";
+
     const isInsideAuthArea = inTab || inProtected;
 
     if (user) {
-      if (!isInsideAuthArea) {
+      if (!isInsideAuthArea && !inForgetPassword) {
         router.replace("/(tabs)/Dashboard");
         console.log("Redirecting logged-in user to Dashboard");
       }
     } else {
       if (!inAuth) {
         router.replace("/(auth)/sign-in");
-        console.log("Redirecting guest to Sign-In");
+        console.log("Redirecting guest to Sign-In", loaded, loading);
       }
     }
-  }, [loading, router, segments, user]);
+  }, [loading, router, segments, user, loaded, pathname]);
+
+  // Expo OTA Updates once app starts
+  // useEffect(() => {
+  //   const checkForUpdates = async () => {
+  //     try {
+  //       const update = await Updates.checkForUpdateAsync();
+  //       if (update.isAvailable) {
+  //         console.info("New update available, fetching...");
+  //         await Updates.fetchUpdateAsync();
+  //         console.info("Update fetched, reloading app...");
+  //         await Updates.reloadAsync();
+  //       } else {
+  //         console.info("No updates found.");
+  //       }
+  //     } catch (err) {
+  //       console.error("Update check failed:", err);
+  //     }
+  //   };
+
+  //   checkForUpdates();
+  // }, []);
 
   useEffect(() => {
     if (!pathname) return;

@@ -1,7 +1,7 @@
 export interface Design {
   id: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   name: string;
   category:
     | "Uniforms"

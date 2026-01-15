@@ -1,7 +1,12 @@
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { Client } from "@/src/types/client";
-import { scale, scaleFontSize, spacing } from "@/src/utils/random";
+import {
+  FormatOrderDate,
+  scale,
+  scaleFontSize,
+  spacing,
+} from "@/src/utils/random";
 import { router } from "expo-router";
 import { ChevronRight, Mail, Phone } from "lucide-react-native";
 import React from "react";
@@ -55,7 +60,7 @@ const ClientItem = ({ item }: Props) => {
         <View style={[styles.gapRow, { gap: spacing(20) }]}>
           <Text style={[Styles.reg12, { lineHeight: 16, color: Colors.grey }]}>
             Last order:{"\n"}
-            {item.lastVisit}
+            {FormatOrderDate(item.lastVisit, true)}
           </Text>
 
           <ChevronRight size={scale(18)} color={Colors.iconGrey} />

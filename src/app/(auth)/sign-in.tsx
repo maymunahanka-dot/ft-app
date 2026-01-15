@@ -26,6 +26,7 @@ const SignInScreen = () => {
   const paddingTop = useSafeAreaInsets().top;
 
   const { signIn, loading } = useAuth();
+  console.log("auth loading", loading);
 
   const [loginData, setLoginData] = useState({
     email: "",
@@ -93,6 +94,7 @@ const SignInScreen = () => {
     if (!validateForm()) return;
     try {
       await signIn(loginData.email, loginData.password);
+      router.push("/(tabs)/Dashboard");
     } catch (error) {
       console.error("error in sign in", error);
     }

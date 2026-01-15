@@ -25,6 +25,7 @@ export type Client = {
   phone: string;
   lastVisit: string;
   measurements?: ClientMeasurements;
+  notes?: string;
   tailorId: string;
   createdAt: string;
 };

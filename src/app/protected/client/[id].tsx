@@ -1,4 +1,5 @@
 import ClientCard from "@/src/components/clients/clientCard";
+import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useClientStore } from "@/src/stores/clientSlice";
@@ -14,7 +15,7 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
-import { Box, Calendar, ChevronLeft, Plus, Ruler } from "lucide-react-native";
+import { Box, Calendar, ChevronLeft, Ruler } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   Dimensions,
@@ -170,14 +171,14 @@ const MeasurementsTab = ({ client }: TabProps) => {
           </Text>
         </View>
 
-        <View
+        {/* <View
           style={[
             styles.iconWrapper,
             { backgroundColor: Colors.primary, borderRadius: 100 },
           ]}
         >
           <Plus size={scale(18)} color={"white"} strokeWidth={2} />
-        </View>
+        </View> */}
       </View>
 
       <View style={styles.measurements}>
@@ -253,7 +254,17 @@ const ClientDetailsScreen = () => {
           <Pressable hitSlop={20} onPress={() => router.back()}>
             <ChevronLeft size={scale(20)} color={"black"} />
           </Pressable>
-          <View style={styles.gapRow}>
+          <HapticTab
+            style={styles.gapRow}
+            onPress={() => {
+              router.push({
+                pathname: "/protected/clientAppt/[phone]",
+                params: {
+                  phone: client?.phone ?? "",
+                },
+              });
+            }}
+          >
             <Calendar size={scale(18)} color={"black"} />
             <Text
               style={[
@@ -263,7 +274,7 @@ const ClientDetailsScreen = () => {
             >
               Appt.
             </Text>
-          </View>
+          </HapticTab>
         </View>
 
         <View style={styles.content}>

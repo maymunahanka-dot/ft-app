@@ -1,6 +1,6 @@
 import { Styles } from "@/src/constants/styles";
 import { Client } from "@/src/types/client";
-import { scale, spacing } from "@/src/utils/random";
+import { FormatOrderDate, scale, spacing } from "@/src/utils/random";
 import { LinearGradient } from "expo-linear-gradient";
 import { Calendar, Mail, Phone } from "lucide-react-native";
 import React from "react";
@@ -54,7 +54,8 @@ const ClientCard = ({ item }: Props) => {
         <View style={[styles.gapRow, { gap: spacing(4) }]}>
           <Calendar size={scale(15)} color={"white"} />
           <Text style={[Styles.reg14, { color: "white", lineHeight: 20 }]}>
-            Last Order: {item?.lastVisit ?? "N/A"}
+            {" "}
+            {FormatOrderDate(item?.lastVisit ?? "N/A", true)}
           </Text>
         </View>
       </View>

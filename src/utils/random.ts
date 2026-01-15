@@ -311,3 +311,69 @@ export const FormatMeasurementsForUI = (measurements?: ClientMeasurements) => {
       };
     });
 };
+
+/**
+ * Formats a value into a currency string with the Naira symbol and commas.
+ * @param value - The number or string to format (e.g., 25000 or "25000")
+ * @returns A formatted string (e.g., ₦25,000)
+ */
+export const FormatCurrency = (value: string | number): string => {
+  // 1. If it's a string, remove any non-numeric characters (like existing commas)
+  const numericValue =
+    typeof value === "string"
+      ? parseFloat(value.replace(/[^0-9.]/g, ""))
+      : value;
+
+  // 2. Handle invalid numbers
+  if (isNaN(numericValue)) {
+    return "₦0";
+  }
+
+  // 3. Use the Intl formatter for Nigeria
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 0, // Set to 0 if you don't want kobo (.00)
+    maximumFractionDigits: 0,
+  })
+    .format(numericValue)
+    .replace("NGN", "₦"); // Replace the currency code with the symbol if necessary
+};
+
+/**
+ * Returns the current date in "Month Year" format.
+ * @returns A string like "December 2025"
+ */
+export const GetCurrentMonthYear = (): string => {
+  const now = new Date();
+
+  // We use 'en-GB' or 'en-US' for English month names
+  return new Intl.DateTimeFormat("en-GB", {
+    month: "long",
+    year: "numeric",
+  }).format(now);
+};
+
+export const GetDetailedDate = (date: Date | string): string => {
+  const now = new Date(date);
+
+  // We use 'en-GB' or 'en-US' for English month names
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(now);
+};
+
+/**
+ * Takes an ISO string and returns the date in YYYY-MM-DD format
+ * @param isoString - e.g., "2025-12-16T21:13:04.778Z"
+ * @returns "2025-12-16"
+ */
+export const FormatDateToYYYYMMDD = (isoString: string): string => {
+  if (!isoString) return "";
+
+  // ISO strings are always formatted as YYYY-MM-DDTHH:mm:ss...
+  // We simply split at the "T" and take the first part.
+  return isoString.split("T")[0];
+};
