@@ -43,7 +43,7 @@ const RowBoxes = () => {
 
   const lowStock = stocks.map((prev) => prev.status === "low-stock").length;
   const outOfStock = stocks.map(
-    (prev) => prev.status === "out-of-stock"
+    (prev) => prev.status === "out-of-stock",
   ).length;
   const inventoryValue = GetTotalInventoryValue(stocks);
 
@@ -135,6 +135,7 @@ const InventoryScreen = () => {
             <Plus size={24} color={Colors.primary} />
           </HapticTab>
         )}
+        drawer
         headerChildren={RowBoxes}
       >
         {/* <ScrollView

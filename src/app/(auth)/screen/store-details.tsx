@@ -1,11 +1,12 @@
 import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import { scale, spacing } from "@/src/utils/random";
+import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -24,8 +25,9 @@ import {
 import PrimaryButton from "@/src/components/button/PrimaryButton";
 import CountryModal from "@/src/components/shared/modal/CountryModal";
 import { Roles, RolesType } from "@/src/constants/data";
+import { useUserImage } from "@/src/hooks/useUserImage";
 import { useAuthStore } from "@/src/stores/authSlice";
-import { ChevronDown, MoveLeft } from "lucide-react-native";
+import { ChevronDown, MoveLeft, Upload } from "lucide-react-native";
 
 const StoreDetailsScreen = () => {
   const insets = useSafeAreaInsets();
@@ -34,11 +36,18 @@ const StoreDetailsScreen = () => {
   const [showCountry, setShowCountry] = useState(false);
   const toggleCountryModal = () => setShowCountry((prev) => !prev);
 
+  const { image, pickImage } = useUserImage({
+    returnBase64: true,
+    maxWidth: 256,
+    compress: 0.4,
+  });
+
   const [selectedCountry, setSelectedCountry] = useState("Nigeria");
 
   const [error, setError] = useState({
     storeName: "",
     country: "",
+    logo: "",
   });
 
   const userData = useAuthStore((state) => state.userData);
@@ -51,16 +60,37 @@ const StoreDetailsScreen = () => {
     }
   };
 
+  useEffect(() => {
+    if (image) {
+      handleDataChange("logo", image);
+      //   console.log("image", image);
+    }
+  }, [image]);
+
+  const handlePickImage = async () => {
+    try {
+      await pickImage();
+    } catch (error) {
+      console.error("error handling image", error);
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {
       storeName: "",
       country: "",
+      logo: "",
     };
     let isValid = true;
 
     // store Name validation
     if (!userData.storeName?.trim() && userData.storeName.length < 5) {
       newErrors.storeName = "Store name is required";
+      isValid = false;
+    }
+    // logo validation
+    if (!userData.logo) {
+      newErrors.logo = "Logo image is required";
       isValid = false;
     }
 
@@ -76,7 +106,7 @@ const StoreDetailsScreen = () => {
       Alert.alert(
         "Validation Error",
         "Please fix the errors in the form before continuing.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
     }
   };
@@ -177,7 +207,9 @@ const StoreDetailsScreen = () => {
 
                   {/* store Name */}
                   <View style={Styles.inputContainer}>
-                    <Text style={Styles.label}>Store Name</Text>
+                    <Text style={Styles.label}>
+                      Store Name<Text style={styles.red}> *</Text>
+                    </Text>
                     <TextInput
                       value={userData.storeName}
                       onChangeText={(value) =>
@@ -192,6 +224,55 @@ const StoreDetailsScreen = () => {
                     />
                     {error.storeName ? (
                       <Text style={Styles.errorText}>{error.storeName}</Text>
+                    ) : null}
+                  </View>
+
+                  {/* logo image */}
+                  <View style={[Styles.inputContainer, { gap: spacing(12) }]}>
+                    <Text style={[styles.reg14]}>
+                      Logo<Text style={styles.red}> *</Text>
+                    </Text>
+
+                    <HapticTab
+                      style={styles.imagePicker}
+                      onPress={handlePickImage}
+                    >
+                      {image ? (
+                        <Image
+                          source={{ uri: `data:image/jpeg;base64,${image}` }}
+                          style={{
+                            width: "100%",
+                            height: styles.imagePicker.height,
+                            borderRadius: styles.imagePicker.borderRadius,
+                          }}
+                        />
+                      ) : (
+                        <>
+                          <Upload size={scale(20)} color={"#99A1AF"} />
+
+                          <View
+                            style={[
+                              styles.col,
+                              {
+                                justifyContent: "center",
+                                alignItems: "center",
+                              },
+                            ]}
+                          >
+                            <Text style={styles.reg14}>
+                              Click to Select Favicon
+                            </Text>
+                            {/* <Text style={styles.reg12}>PNG, JPG up to 10MB</Text> */}
+                          </View>
+                        </>
+                      )}
+                    </HapticTab>
+                    {error.logo ? (
+                      <Text
+                        style={{ ...Styles.reg12, color: "red", marginTop: 4 }}
+                      >
+                        {error.logo}
+                      </Text>
                     ) : null}
                   </View>
 
@@ -287,6 +368,29 @@ const styles = StyleSheet.create({
   },
   textBtn: {
     fontFamily: "regular",
+  },
+  reg12: {
+    fontFamily: "regular",
+    fontSize: scaleFontSize(12),
+    color: "#99A1AF",
+  },
+  reg14: {
+    fontFamily: "regular",
+    fontSize: scaleFontSize(14),
+    color: "#4A5565",
+  },
+  red: {
+    color: "rgba(251, 44, 54, 1)",
+  },
+  imagePicker: {
+    height: 100,
+    gap: spacing(12),
+    backgroundColor: "#F2F2F2",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#D1D5DC",
+    borderRadius: 16,
   },
   footer: {
     flex: 1,

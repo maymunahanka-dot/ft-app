@@ -84,7 +84,7 @@ export const spacing = (size: number): number => {
 export const GetInitials = (
   name: string | null | undefined,
   maxInitials: number = 2,
-  fallback: string = "N/A"
+  fallback: string = "N/A",
 ): string => {
   // Return fallback if name is null, undefined, or empty after trimming
   if (!name?.trim()) {
@@ -251,7 +251,7 @@ export const FormatNairaShorthand = (value: string): string => {
  */
 export const FormatOrderDate = (
   dateString: string,
-  showYear: boolean = true
+  showYear: boolean = true,
 ): string => {
   // 1. Remove the word "at" which often breaks the Date parser
   const sanitizedDate = dateString.replace(/\bat\b/g, "");
@@ -376,4 +376,34 @@ export const FormatDateToYYYYMMDD = (isoString: string): string => {
   // ISO strings are always formatted as YYYY-MM-DDTHH:mm:ss...
   // We simply split at the "T" and take the first part.
   return isoString.split("T")[0];
+};
+
+export const formatPrice = (value: string) => {
+  if (!value) return "";
+
+  // remove everything except digits and dot
+  const cleaned = value.replace(/[^0-9.]/g, "");
+
+  // prevent multiple dots
+  const parts = cleaned.split(".");
+  const integerPart = parts[0];
+  const decimalPart = parts[1]?.slice(0, 2); // max 2 decimals
+
+  const formattedInt = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  return decimalPart !== undefined
+    ? `${formattedInt}.${decimalPart}`
+    : formattedInt;
+};
+
+export const formatInvoiceDate = (dateString: string): string => {
+  const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) return dateString; // fallback if invalid
+
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 };

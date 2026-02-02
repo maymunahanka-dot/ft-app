@@ -12,7 +12,7 @@ type Props = {
   onPress: () => void;
 };
 
-const WIDTH = CalculateBoxWidth({ gap: 12, padding: 16, boxCount: 4 });
+const WIDTH = CalculateBoxWidth({ gap: 12, padding: 16, boxCount: 3 });
 
 const ActionItem: React.FC<Props> = ({ label, icon, onPress }) => {
   const Icon = icon;

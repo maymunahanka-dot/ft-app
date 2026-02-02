@@ -1,7 +1,7 @@
 import { Styles } from "@/src/constants/styles";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
-import { router } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { router, useNavigation } from "expo-router";
+import { ChevronLeft, Menu } from "lucide-react-native";
 import React from "react";
 import {
   DimensionValue,
@@ -24,6 +24,7 @@ interface Props {
   height?: DimensionValue;
   paddingVertical?: number;
   rightIcon: () => React.JSX.Element;
+  drawer?: boolean;
 }
 
 const BGScreenBG: React.FC<Props> = ({
@@ -36,9 +37,13 @@ const BGScreenBG: React.FC<Props> = ({
   height = 300,
   paddingVertical = 50,
   rightIcon,
+  drawer = false,
 }) => {
   const RightComp = rightIcon;
   const HeaderComp = headerChildren;
+
+  const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -48,7 +53,21 @@ const BGScreenBG: React.FC<Props> = ({
       >
         <View style={styles.row}>
           {title && (
-            <View style={[styles.startRow, { gap: spacing(8) }]}>
+            <View
+              style={[
+                styles.startRow,
+                { gap: spacing(8), alignItems: "flex-start" },
+              ]}
+            >
+              {drawer && (
+                <HapticTab
+                  hitSlop={20}
+                  onPress={() => (navigation as any).toggleDrawer()}
+                  // style={{ marginRight: spacing(20) }}
+                >
+                  <Menu size={scale(24)} color={"white"} />
+                </HapticTab>
+              )}
               {canGoBack && (
                 <HapticTab onPress={() => router.back()} hitSlop={20}>
                   <ChevronLeft size={scale(18)} color={"white"} />

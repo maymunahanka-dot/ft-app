@@ -13,6 +13,7 @@ export type RegisterUserData = {
   //   state: string;
   //   lga: string;
   //   address: string;
+  logo?: string;
   businessName?: string;
   businessAddress?: string;
   website?: string;
@@ -27,6 +28,7 @@ export const emptyUserData: RegisterUserData = {
   storeName: "",
   role: "Designer",
   country: "Nigeria",
+  logo: "",
   createdAt: new Date().toString(),
   lga: "",
   state: "",

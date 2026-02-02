@@ -1,18 +1,50 @@
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  setDoc,
+  doc,
+  where,
+} from "firebase/firestore";
 import { create } from "zustand";
+import { generateDesignId } from "../lib/design";
 import { db } from "../context/firebase";
 import { Design } from "../types/designs";
 
 interface DesignState {
   designs: Design[];
   loading: boolean;
-
+  createDesign(design: Omit<Design, "id" | "createdAt"> & { userEmail: string }): Promise<void>;
   getDesignsByTailor(email: string): Promise<void>;
 }
 
 export const useDesignStore = create<DesignState>((set, get) => ({
   designs: [],
   loading: false,
+
+  async createDesign(payload) {
+    set({ loading: true });
+    try {
+      const id = generateDesignId();
+      const now = new Date().toISOString();
+      const design: Design = {
+        ...payload,
+        id,
+        createdAt: now,
+        category: payload.category ?? "Others",
+        status: payload.status ?? "Active",
+      };
+      const designRef = doc(db, "fashiontally_designs", id);
+      await setDoc(designRef, design);
+      set((state) => ({ designs: [design, ...state.designs] }));
+    } catch (error) {
+      console.error("Error creating design:", error);
+      throw new Error("Failed to create design");
+    } finally {
+      set({ loading: false });
+    }
+  },
 
   async getDesignsByTailor(email) {
     set({ loading: true });

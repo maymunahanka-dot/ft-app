@@ -5,6 +5,7 @@ import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { GenerateOrderId } from "@/src/lib/order";
+import { useClientStore } from "@/src/stores/clientSlice";
 import { useOrderStore } from "@/src/stores/orderSlice";
 import { Client } from "@/src/types/client";
 import { Order } from "@/src/types/Order";
@@ -17,9 +18,9 @@ import {
   scaleFontSize,
   spacing,
 } from "@/src/utils/random";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Calendar, ChevronDown, ChevronLeft } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -96,6 +97,10 @@ const orderGarmentTypeList = [
 ];
 
 const CreateOrderScreen = () => {
+  const { clientId } = useLocalSearchParams<{ clientId?: string }>();
+  const clients = useClientStore((state) => state.clients);
+  const foundClient = clients.find((prev) => prev.id === clientId?.toString());
+
   const createOrder = useOrderStore((state) => state.saveOrder);
   const loading = useOrderStore((state) => state.loading);
 
@@ -159,7 +164,7 @@ const CreateOrderScreen = () => {
 
   const handleDataChange = (
     field: keyof typeof orderData,
-    value: string | number
+    value: string | number,
   ) => {
     setOrderData({ ...orderData, [field]: value });
     if (error[field as keyof typeof error]) {
@@ -169,7 +174,7 @@ const CreateOrderScreen = () => {
 
   const handleMeasurementUpdate = (
     field: keyof Order["measurements"],
-    value: string
+    value: string,
   ) => {
     setOrderData({
       ...orderData,
@@ -265,8 +270,8 @@ const CreateOrderScreen = () => {
           orderData.deposit >= orderData.price * orderData.quantity
             ? "paid"
             : orderData.deposit > 0
-            ? "partial"
-            : "unpaid",
+              ? "partial"
+              : "unpaid",
         updatedAt: new Date().toISOString(),
       };
 
@@ -276,6 +281,12 @@ const CreateOrderScreen = () => {
       console.error("Error creating order", error);
     }
   };
+
+  useEffect(() => {
+    if (foundClient) {
+      setSelectedClient(foundClient);
+    }
+  }, [foundClient]);
 
   return (
     <>

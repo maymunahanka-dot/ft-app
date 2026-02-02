@@ -7,7 +7,6 @@ import ActionItem from "@/src/components/shared/action/item";
 import TabImageBackground from "@/src/components/shared/TabScreenBg";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import { useAuth } from "@/src/hooks/auth";
 import { useTimeSince } from "@/src/hooks/timeSince";
 import { useFinanceStore } from "@/src/stores/financeSlice";
 import { useOrderStore } from "@/src/stores/orderSlice";
@@ -22,7 +21,7 @@ import {
 } from "@/src/utils/random";
 import { Entypo } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { FileText, Plus, UserRoundPlus, UserStar } from "lucide-react-native";
+import { FileText, Plus, UserRoundPlus } from "lucide-react-native";
 import React from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,7 +30,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const GraphValue = SCREEN_WIDTH / 3 - 25;
 
 const DashboardScreen = () => {
-  const { loading, signOut } = useAuth();
+  // const { loading, signOut } = useAuth();
 
   // const user = useUserStore((state) => state.user);
 
@@ -73,6 +72,7 @@ const DashboardScreen = () => {
             <Entypo name="notification" size={24} color="white" />
           </HapticTab>
         )}
+        drawer
       >
         <View style={styles.content}>
           <View style={styles.section}>
@@ -96,13 +96,13 @@ const DashboardScreen = () => {
                 onPress={() => router.push("/protected/form/create-stock")}
                 icon={Plus}
               />
-              <ActionItem
+              {/* <ActionItem
                 label="CRM"
                 onPress={() => {
                   router.push("/protected/bg/CRM");
                 }}
                 icon={UserStar}
-              />
+              /> */}
             </View>
           </View>
 

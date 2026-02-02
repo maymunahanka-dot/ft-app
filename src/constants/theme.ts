@@ -28,6 +28,8 @@ export const Colors = {
     tabIconSelected: tintColorDark,
   },
   primary: PRIMARY_COLOR,
+  primary20: "rgba(8, 94, 94, 0.2)",
+  primaryDark: "#0D6B62",
   tintTabColor: "rgba(8, 94, 94, 1)",
   secondary: SECONDARY_COLOR,
   plight: "rgba(232, 245, 244, 1)",

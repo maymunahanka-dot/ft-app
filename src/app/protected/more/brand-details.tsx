@@ -3,12 +3,14 @@ import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useAuth } from "@/src/hooks/auth";
+import { useUserImage } from "@/src/hooks/useUserImage";
 import { useUserStore } from "@/src/stores/userSlice";
 import { GetInitials, scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Pencil } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -30,7 +32,7 @@ const BrandDetailsScreen = () => {
     businessAddress: "",
     website: "",
     instagram: "",
-    //   address: ""
+    logo: "",
   });
 
   const [error, setError] = useState({
@@ -38,15 +40,37 @@ const BrandDetailsScreen = () => {
     businessAddress: "",
     website: "",
     instagram: "",
-    // address: ""
+    logo: "",
+  });
+
+  const { image, pickImage, getImageUri } = useUserImage({
+    returnBase64: true,
+    maxWidth: 256,
+    compress: 0.4,
   });
 
   const [loading, setLoading] = useState(false);
 
   const handleDataChange = (field: keyof typeof userData, value: string) => {
     setUserData({ ...userData, [field]: value });
+    console.log(`${field}:${value}`);
     if (error[field as keyof typeof error]) {
       setError((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  useEffect(() => {
+    if (image) {
+      handleDataChange("logo", image);
+      // console.log("image", image);
+    }
+  }, [image]);
+
+  const handlePickImage = async () => {
+    try {
+      await pickImage();
+    } catch (error) {
+      console.error("error handling image", error);
     }
   };
 
@@ -58,6 +82,7 @@ const BrandDetailsScreen = () => {
       const success = await updateUserDetails({
         ...user,
         ...userData,
+        logo: userData.logo,
         storeName: userData.businessName,
       });
 
@@ -79,9 +104,12 @@ const BrandDetailsScreen = () => {
       businessAddress: user.businessAddress ?? "",
       website: user.website ?? "",
       instagram: user.instagram ?? "",
+      logo: user.logo ?? "",
     });
     console.log("changed");
   }, [user]);
+
+  const imageUrl = image ? image : user?.logo ? user.logo : null;
 
   return (
     <SafeAreaView
@@ -132,11 +160,35 @@ const BrandDetailsScreen = () => {
           keyboardDismissMode="interactive"
         >
           <View style={styles.content}>
-            <View style={styles.iconWrapper}>
-              <Text style={styles.reg30}>
-                {GetInitials(user?.storeName ?? "Fashion Designer")}
-              </Text>
-            </View>
+            {imageUrl ? (
+              <View style={styles.imagePic}>
+                <Image
+                  source={{ uri: getImageUri(imageUrl) }}
+                  style={{
+                    width: 80,
+                    aspectRatio: 1,
+                    alignSelf: "center",
+                    borderRadius: 14,
+                    borderWidth: 0.2,
+                    borderColor: "rgba(0,0,0,0.8)",
+                  }}
+                />
+
+                <HapticTab
+                  hitSlop={20}
+                  style={styles.pickIcon}
+                  onPress={handlePickImage}
+                >
+                  <Pencil size={scale(15)} color={"white"} />
+                </HapticTab>
+              </View>
+            ) : (
+              <View style={styles.iconWrapper}>
+                <Text style={styles.reg30}>
+                  {GetInitials(user?.storeName ?? "Fashion Designer")}
+                </Text>
+              </View>
+            )}
 
             <View style={styles.inputs}>
               <View style={Styles.inputContainer}>
@@ -274,12 +326,26 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "center",
     borderRadius: 14,
   },
   inputs: {
     flex: 1,
     gap: spacing(16),
+  },
+  imagePic: {
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+  },
+  pickIcon: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    alignSelf: "center",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    padding: spacing(8),
+    borderRadius: 14,
   },
   button: {},
 });

@@ -22,7 +22,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // Financial Analytics
 export function calculateFinancialSummary(
   income: Income[],
-  expenses: Expense[]
+  expenses: Expense[],
 ) {
   const totalIncome = income.reduce((sum, item) => sum + item.amount, 0);
   const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
@@ -130,6 +130,7 @@ const FinanceScreen = () => {
         rightIcon={() => <View style={{}}></View>}
         headerChildren={RowBoxes}
         height={410}
+        drawer
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}

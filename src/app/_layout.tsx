@@ -1,18 +1,41 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useFonts } from "expo-font";
-import { Stack, usePathname, useRouter, useSegments } from "expo-router";
+import { usePathname, useRouter, useSegments } from "expo-router";
+import Drawer from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
+import {
+  DrawerContent,
+  DrawerContentWidth,
+} from "../components/drawer/DrawerContent";
 import { useAuth } from "../hooks/auth";
 import { useUserStore } from "../stores/userSlice";
 
 // import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
+// export const unstable_settings = {
+//   anchor: "(tabs)",
+// };
+
+const drawerOptions = {
+  headerShown: false,
+  drawerPosition: "left",
+  drawerStyle: {
+    backgroundColor: "black",
+    width: 270,
+  },
+  drawerActiveTintColor: "#000",
+  drawerInactiveTintColor: "#666",
+  drawerLabelStyle: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  overlayColor: "rgba(0, 0, 0, 0.5)",
+  swipeEnabled: true,
+  swipeEdgeWidth: DrawerContentWidth,
+} as const;
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -90,12 +113,48 @@ export default function RootLayout() {
     <>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
-          <Stack>
+          {/* <Stack>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="protected" options={{ headerShown: false }} />
             <Stack.Screen name="index" options={{ headerShown: false }} />
-          </Stack>
+          </Stack> */}
+          <Drawer
+            screenOptions={drawerOptions}
+            drawerContent={(props) => <DrawerContent {...props} />}
+            backBehavior="history"
+            initialRouteName={undefined}
+          >
+            <Drawer.Screen
+              name="(auth)"
+              options={{
+                headerShown: false,
+                drawerItemStyle: { display: "none" },
+              }}
+            />
+            <Drawer.Screen
+              name="protected"
+              options={{
+                headerShown: false,
+                drawerItemStyle: { display: "none" },
+              }}
+            />
+            <Drawer.Screen
+              name="(tabs)"
+              options={{
+                headerShown: false,
+                title: "Home",
+                drawerLabel: "Home",
+              }}
+            />
+            <Drawer.Screen
+              name="index"
+              options={{
+                headerShown: false,
+                drawerItemStyle: { display: "none" },
+              }}
+            />
+          </Drawer>
           <StatusBar style="auto" />
         </BottomSheetModalProvider>
       </GestureHandlerRootView>

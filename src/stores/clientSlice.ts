@@ -10,12 +10,17 @@ import {
 } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../context/firebase";
-import { Client } from "../types/client";
+import { Client, ClientMeasurements } from "../types/client";
 
 interface ClientState {
   clients: Client[];
   loading: boolean;
   saveClient(client: Client): Promise<void>;
+  editClient(updatedClient: Client, previousPhone: string): Promise<void>;
+  editMeasurements(
+    client: Client,
+    updates: { [key: string]: string },
+  ): Promise<void>;
   getClientById(id: string): Promise<Client | null>;
   getClientsByTailor(tailorId: string): Promise<void>;
   deleteClient(clientId: string): Promise<void>;
@@ -43,6 +48,78 @@ export const useClientStore = create<ClientState>((set, get) => ({
       set({ loading: false });
     }
   },
+
+  async editClient(updatedClient, previousPhone) {
+    set({ loading: true });
+    try {
+      const clientData = {
+        ...updatedClient,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      // Phone changed
+      if (previousPhone !== updatedClient.phone) {
+        const oldClientRef = doc(db, "fashiontally_clients", previousPhone);
+        await deleteDoc(oldClientRef);
+
+        const newClientRef = doc(
+          db,
+          "fashiontally_clients",
+          updatedClient.phone,
+        );
+        await setDoc(newClientRef, {
+          ...clientData,
+          id: updatedClient.phone,
+        });
+
+        set((state) => ({
+          clients: [
+            ...state.clients.filter((c) => c.id !== previousPhone),
+            { ...updatedClient, id: updatedClient.phone },
+          ],
+        }));
+      } else {
+        // Same phone: update in place
+        const clientRef = doc(db, "fashiontally_clients", updatedClient.phone);
+        await setDoc(clientRef, clientData);
+
+        set((state) => ({
+          clients: state.clients.map((c) =>
+            c.id === updatedClient.phone
+              ? { ...updatedClient, id: updatedClient.phone }
+              : c,
+          ),
+        }));
+      }
+    } catch (error) {
+      console.error("Error editing client:", error);
+      throw new Error("Failed to edit client");
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  async editMeasurements(client, updates) {
+    set({ loading: true });
+    try {
+      const existing = client.measurements ?? ({} as ClientMeasurements);
+      const merged = {
+        ...existing,
+        ...updates,
+      };
+      const updatedClient: Client = {
+        ...client,
+        measurements: merged,
+      };
+      await get().editClient(updatedClient, client.phone);
+    } catch (error) {
+      console.error("Error editing measurements:", error);
+      throw new Error("Failed to edit measurements");
+    } finally {
+      set({ loading: false });
+    }
+  },
+
   async getClientById(id) {
     set({ loading: true });
     try {

@@ -1,9 +1,9 @@
 export interface Design {
   id: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: string;
+  updatedAt?: string;
   name: string;
-  category:
+  category?:
     | "Uniforms"
     | "Shirts"
     | "Children's Wear"
@@ -12,8 +12,9 @@ export interface Design {
     | "Bottoms"
     | "Others";
   customCategory?: string;
-  status: "Active" | "Archived";
+  status?: "Active" | "Archived";
   description?: string;
+  userEmail?: string;
   materials?: string[];
   measurements?: {
     bust?: number;
@@ -27,9 +28,10 @@ export interface Design {
     thigh?: number;
     inseam?: number;
   };
-  price?: number;
+  price: number;
   imageUrl?: string;
   images?: string[];
+  notes?: string;
   dueDate?: Date;
   clientId?: string;
   clientName?: string;

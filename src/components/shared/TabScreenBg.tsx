@@ -1,9 +1,11 @@
+import { useUserImage } from "@/src/hooks/useUserImage";
 import { useUserStore } from "@/src/stores/userSlice";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
-import { router } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { router, useNavigation } from "expo-router";
+import { ChevronLeft, Menu } from "lucide-react-native";
 import React from "react";
 import {
+  Image,
   ImageBackground,
   ScrollView,
   StyleSheet,
@@ -18,6 +20,7 @@ type Props = {
   title: string;
   canGoBack?: boolean;
   rightIcon: () => React.JSX.Element;
+  drawer?: boolean;
 };
 
 const TabImageBackground: React.FC<Props> = ({
@@ -25,8 +28,11 @@ const TabImageBackground: React.FC<Props> = ({
   title,
   canGoBack = false,
   rightIcon,
+  drawer = false,
 }) => {
   const RightComp = rightIcon;
+
+  const navigation = useNavigation();
 
   const user = useUserStore((state) => state.user);
   const fullName =
@@ -34,6 +40,9 @@ const TabImageBackground: React.FC<Props> = ({
     " " +
     (user?.lastName ?? user?.name?.split(" ")[1] ?? "");
   const isBusiness = user?.role === "Business";
+  const name = isBusiness ? (user?.storeName ?? "") : fullName;
+
+  const { getImageUri } = useUserImage();
 
   return (
     <View style={{ flex: 1 }}>
@@ -44,6 +53,15 @@ const TabImageBackground: React.FC<Props> = ({
         <View style={styles.headerView}>
           <View style={styles.row}>
             <View style={[styles.startRow, { gap: spacing(8) }]}>
+              {drawer && (
+                <HapticTab
+                  hitSlop={20}
+                  onPress={() => (navigation as any).toggleDrawer()}
+                  style={{ marginRight: spacing(20) }}
+                >
+                  <Menu size={scale(24)} color={"white"} />
+                </HapticTab>
+              )}
               {canGoBack && (
                 <HapticTab onPress={() => router.back()} hitSlop={20}>
                   <ChevronLeft size={scale(18)} color={"white"} />
@@ -54,11 +72,14 @@ const TabImageBackground: React.FC<Props> = ({
             <RightComp />
           </View>
           <View style={styles.startRow}>
-            <ImagePlaceholder
-              name={isBusiness ? user?.storeName ?? "" : fullName}
-              size={50}
-              fontSize={15}
-            />
+            {user?.logo ? (
+              <Image
+                source={{ uri: getImageUri(user.logo) }}
+                style={{ width: 50, aspectRatio: 1, borderRadius: 100 }}
+              />
+            ) : (
+              <ImagePlaceholder name={name} size={40} fontSize={15} />
+            )}
             <View style={styles.col}>
               <Text style={styles.reg16}>Welcome back,</Text>
               <Text style={styles.bold16} numberOfLines={1}>

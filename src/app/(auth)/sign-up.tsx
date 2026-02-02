@@ -119,7 +119,7 @@ const SignUpScreen = () => {
       Alert.alert(
         "Validation Error",
         "Please fix the errors in the form before continuing.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
     }
   };
@@ -128,7 +128,8 @@ const SignUpScreen = () => {
     <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
       <View style={styles.container}>
         <ImageBackground
-          source={require("@/assets/images/Star_bg.png")}
+          // source={require("@/assets/images/Star_bg.png")}
+          source={require("@/assets/images/screen_bg.png")}
           style={[styles.headerBg, { paddingTop: insets.top + spacing(20) }]}
         >
           <View style={styles.headerContent}>
@@ -309,16 +310,15 @@ export default SignUpScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingHorizontal: spacing(16),
+    width: "100%",
     backgroundColor: "white",
   },
   headerBg: {
-    width: "100%",
-    height: "auto",
     backgroundColor: Colors.primary,
     padding: spacing(16),
     paddingBottom: spacing(50),
   },
+
   headerContent: {
     gap: spacing(8),
   },

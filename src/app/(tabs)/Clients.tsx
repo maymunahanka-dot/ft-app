@@ -1,9 +1,11 @@
 import ClientItem from "@/src/components/clients/Item";
+import BurgerIcon from "@/src/components/drawer/BurgerIcon";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useClientStore } from "@/src/stores/clientSlice";
-import { scale, spacing } from "@/src/utils/random";
+import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { Plus, Search } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
@@ -34,58 +36,70 @@ const ClientsScreen = () => {
   }, [searchValue, clients]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={styles.content}>
-        <View
-          style={[
-            styles.searchContainer,
-            styles.startRow,
-            { gap: spacing(12) },
-          ]}
-        >
-          <Search
-            size={scale(20)}
-            color={"rgba(153, 161, 175, 1)"}
-            strokeWidth={2}
-          />
-          <TextInput
-            value={searchValue}
-            onChangeText={setSearchValue}
-            placeholder={"Search clients by name, phone, or email"}
-            placeholderTextColor={Colors.grey}
-            style={styles.input}
+    <>
+      <StatusBar style="dark" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+        <BurgerIcon
+          title="Clients"
+          textStyle={{
+            fontFamily: "medium",
+            fontSize: scaleFontSize(25),
+            lineHeight: 30,
+          }}
+          viewStyle={{ paddingHorizontal: 20, marginVertical: spacing(20) }}
+        />
+        <View style={styles.content}>
+          <View
+            style={[
+              styles.searchContainer,
+              styles.startRow,
+              { gap: spacing(12) },
+            ]}
+          >
+            <Search
+              size={scale(20)}
+              color={"rgba(153, 161, 175, 1)"}
+              strokeWidth={2}
+            />
+            <TextInput
+              value={searchValue}
+              onChangeText={setSearchValue}
+              placeholder={"Search clients by name, phone, or email"}
+              placeholderTextColor={Colors.grey}
+              style={styles.input}
+            />
+          </View>
+          <FlatList
+            data={filteredListData}
+            keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              flexGrow: 1,
+              gap: spacing(16),
+              paddingTop: spacing(20),
+              paddingBottom: spacing(40),
+            }}
+            showsVerticalScrollIndicator={false}
+            scrollEnabled={false}
+            renderItem={({ item }) => <ClientItem item={item} />}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyContainer}>
+                <Text
+                  style={[Styles.med12, { color: Colors.text.gray }]}
+                >{`No client found.`}</Text>
+              </View>
+            )}
           />
         </View>
-        <FlatList
-          data={filteredListData}
-          keyExtractor={(item) => item.id}
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            flexGrow: 1,
-            gap: spacing(16),
-            paddingTop: spacing(20),
-            paddingBottom: spacing(40),
-          }}
-          showsVerticalScrollIndicator={false}
-          scrollEnabled={false}
-          renderItem={({ item }) => <ClientItem item={item} />}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Text
-                style={[Styles.med12, { color: Colors.text.gray }]}
-              >{`No client found.`}</Text>
-            </View>
-          )}
-        />
-      </View>
 
-      <Pressable
-        style={styles.floatingBtn}
-        onPress={() => router.push("/protected/form/create-client")}
-      >
-        <Plus size={scale(20)} color={"white"} />
-      </Pressable>
-    </SafeAreaView>
+        <Pressable
+          style={styles.floatingBtn}
+          onPress={() => router.push("/protected/form/create-client")}
+        >
+          <Plus size={scale(20)} color={"white"} />
+        </Pressable>
+      </SafeAreaView>
+    </>
   );
 };
 

@@ -24,6 +24,7 @@ export default function TabLayout() {
             height: 80,
             elevation: 0,
             paddingTop: 5,
+            display: "none",
           },
           tabBarBackground: () => (
             <View

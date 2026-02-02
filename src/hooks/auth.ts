@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import {
   confirmPasswordReset,
   createUserWithEmailAndPassword,
@@ -70,7 +69,7 @@ export function useAuth() {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         userEmail,
-        password
+        password,
       );
       const newUser = userCredential.user;
 
@@ -94,7 +93,8 @@ export function useAuth() {
     try {
       await auth.signOut();
       console.log("user details", auth.name);
-      router.replace("/(auth)/sign-in");
+      setUserData(null);
+      // router.replace("/(auth)/sign-in");
     } catch (error) {
       console.error("Error signing out:", error);
       //   throw error;
@@ -110,7 +110,7 @@ export function useAuth() {
       Alert.alert(
         "Email Sent",
         "Password reset email has been sent. Please check your inbox and spam folder.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
     } catch (error) {
       console.error("Error sending reset email:", error);

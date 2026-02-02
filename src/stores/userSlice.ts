@@ -20,6 +20,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       const userId = getCurrentUserId();
       const userRef = doc(db, "fashiontally_users", userId);
       await updateDoc(userRef, user);
+      set({ user });
+      console.log("user updated", JSON.stringify(user, null, 2));
       return true;
     } catch (error) {
       console.error("error updating profile", error);
