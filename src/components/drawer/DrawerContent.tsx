@@ -45,7 +45,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
 
   const router = useRouter();
   const user = useUserStore((state) => state.user);
-  console.log("user logo", user?.logo);
+  // console.log("user logo", user?.logo);
   const fullName =
     (user?.firstName ?? user?.name?.split(" ")[0] ?? "") +
     " " +

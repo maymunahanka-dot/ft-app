@@ -23,38 +23,48 @@ export function useAuth() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+
       if (!user) {
         setLoading(false);
         return;
       }
-      const userDocRef = doc(db, "fashiontally_users", user.uid);
+
       try {
-        const docSnap = await getDoc(userDocRef);
-        if (docSnap.exists()) {
-          const fetchedData = docSnap.data() as RegisterUserData;
-          console.log("hit fetch user", fetchedData);
-          setUserData(fetchedData);
-        } else {
-          console.log("No user profile found in Firestore for UID:", user.uid);
-        }
+        const profile = await fetchUserProfile(user.uid);
+        setUserData(profile);
       } catch (error) {
-        console.error("Error fetching user data from Firestore:", error);
+        console.error("Error fetching user data:", error);
       } finally {
         setLoading(false);
       }
     });
 
     return unsubscribe;
-  }, [setUserData]);
+  }, []);
+
+  const fetchUserProfile = async (uid: string) => {
+    const userDocRef = doc(db, "fashiontally_users", uid);
+    const docSnap = await getDoc(userDocRef);
+
+    if (!docSnap.exists()) {
+      throw new Error("User profile not found");
+    }
+    // console.log("user data", docSnap.data());
+    return docSnap.data() as RegisterUserData;
+  };
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const userdata = await signInWithEmailAndPassword(auth, email, password);
-      return userdata;
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const profile = await fetchUserProfile(cred.user.uid);
+
+      setUser(cred.user);
+      setUserData(profile);
+
+      return cred;
     } catch (error) {
       console.error("Error signing in:", error);
-      //   throw error;
       return null;
     } finally {
       setLoading(false);

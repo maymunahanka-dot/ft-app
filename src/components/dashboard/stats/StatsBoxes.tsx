@@ -25,8 +25,9 @@ const StatsBoxes = () => {
 
   const income = useFinanceStore((state) => state.income);
   const revenue = income.reduce(
-    (acc, item) => acc + (typeof item === "number" ? item : item?.amount ?? 0),
-    0
+    (acc, item) =>
+      acc + (typeof item === "number" ? item : (item?.amount ?? 0)),
+    0,
   );
   const percentageLabel = GetMonthlyIncomeChangeValue(income);
   const isPositive = percentageLabel >= 0;
@@ -61,7 +62,13 @@ const StatsBoxes = () => {
         fetchOrders(user.email),
         fetchStocks(user.email),
       ]);
-      console.log("fetched data success!!");
+      console.log(
+        "fetched data success!!",
+        orders[0],
+        revenue,
+        clients[0],
+        inventoryValue,
+      );
     } catch (error) {
       console.error("error fetching data", error);
     }
