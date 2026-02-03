@@ -3,14 +3,8 @@ import { Colors } from "@/src/constants/theme";
 import { useAppointmentStore } from "@/src/stores/appointmentSlice";
 import { useUserStore } from "@/src/stores/userSlice";
 import { spacing } from "@/src/utils/random";
-import React, { Suspense, useEffect } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import React, { useEffect } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import AppoinmentListItem from "./appoinmentListItem";
 
 const AppointmentsList = () => {
@@ -19,7 +13,22 @@ const AppointmentsList = () => {
   const appointments = useAppointmentStore((state) => state.appointments);
   //   const loading = useAppointmentStore((state) => state.loading);
   const fetchAppointments = useAppointmentStore(
-    (state) => state.getAppointmentsByTailor
+    (state) => state.getAppointmentsByTailor,
+  );
+
+  const isToday = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
+  };
+
+  const todaysAppointments = appointments.filter((appt) =>
+    isToday(appt.createdAt),
   );
 
   useEffect(() => {
@@ -28,7 +37,7 @@ const AppointmentsList = () => {
     }
   }, [user]);
 
-  if (!appointments || appointments.length === 0) {
+  if (!todaysAppointments || todaysAppointments.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No appointments today</Text>
@@ -42,11 +51,9 @@ const AppointmentsList = () => {
       horizontal
       contentContainerStyle={styles.scrollContainer}
     >
-      <Suspense fallback={<ActivityIndicator size={"small"} color={"black"} />}>
-        {appointments.map((appt, index) => (
-          <AppoinmentListItem key={index} item={appt} />
-        ))}
-      </Suspense>
+      {todaysAppointments.map((appt) => (
+        <AppoinmentListItem key={appt.id} item={appt} />
+      ))}
     </ScrollView>
   );
 };
