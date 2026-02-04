@@ -4,12 +4,26 @@ import { Appointment } from "@/src/types/appointment";
 import {
   CapitalizeFirstName,
   GetAmPm,
+  GetDetailedDate,
   scale,
   spacing,
 } from "@/src/utils/random";
 import { Calendar, Clock, Info, Phone, User } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+
+const getTimeFromISO = (value?: string | Date): string => {
+  if (!value) return "";
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (isNaN(date.getTime())) return "";
+
+  return `${date.getHours() % 12 || 12}:${date
+    .getMinutes()
+    .toString()
+    .padStart(2, "0")}`;
+};
 
 type Props = {
   item: Appointment;
@@ -22,13 +36,13 @@ const ClientApptItem = ({ item }: Props) => {
   const textColor = isCompleted
     ? "rgba(0, 130, 54, 1)"
     : isCancelled
-    ? "rgba(193, 0, 7, 1)"
-    : "rgba(20, 71, 230, 1)";
+      ? "rgba(193, 0, 7, 1)"
+      : "rgba(20, 71, 230, 1)";
   const bgColor = isCompleted
     ? "rgba(220, 252, 231, 1)"
     : isCancelled
-    ? "rgba(255, 226, 226, 1)"
-    : "rgba(239, 246, 255, 1)";
+      ? "rgba(255, 226, 226, 1)"
+      : "rgba(239, 246, 255, 1)";
 
   return (
     <View style={styles.apptContainer}>
@@ -48,7 +62,7 @@ const ClientApptItem = ({ item }: Props) => {
           </View>
           <View style={[styles.col, { gap: spacing(4) }]}>
             <Text style={[Styles.reg14, { color: Colors.text.black }]}>
-              {item.type}
+              {CapitalizeFirstName(item.type)}
             </Text>
             <View
               style={[
@@ -75,7 +89,8 @@ const ClientApptItem = ({ item }: Props) => {
         <View style={[styles.startRow, { gap: spacing(8) }]}>
           <Clock size={scale(16)} color={Colors.primary} />
           <Text style={[Styles.reg14, { color: Colors.text.black }]}>
-            {item.date} at {item.time} {GetAmPm(item.time)}
+            {GetDetailedDate(item.date)} at {getTimeFromISO(item.time)}{" "}
+            {GetAmPm(item.time)}
           </Text>
         </View>
 
@@ -105,12 +120,12 @@ const ClientApptItem = ({ item }: Props) => {
             </Text>
           </View>
 
-          <View style={[styles.gapRow, { gap: spacing(4) }]}>
+          {/* <View style={[styles.gapRow, { gap: spacing(4) }]}>
             <Info size={scale(12)} color={Colors.grey} />
             <Text style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
               1hr reminder
             </Text>
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.duration}>

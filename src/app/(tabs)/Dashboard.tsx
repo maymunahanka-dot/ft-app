@@ -17,11 +17,16 @@ import {
 import {
   FormatNairaShorthand,
   GetFormattedDate,
+  scale,
   spacing,
 } from "@/src/utils/random";
-import { Entypo } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { FileText, Plus, UserRoundPlus } from "lucide-react-native";
+import {
+  CalendarClock,
+  FileText,
+  Plus,
+  UserRoundPlus,
+} from "lucide-react-native";
 import React from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -68,8 +73,11 @@ const DashboardScreen = () => {
       <TabImageBackground
         title="Dashbaord"
         rightIcon={() => (
-          <HapticTab style={{}}>
-            <Entypo name="notification" size={24} color="white" />
+          <HapticTab
+            hitSlop={20}
+            onPress={() => router.push("/(tabs)/Appointments")}
+          >
+            <CalendarClock size={scale(24)} color="white" />
           </HapticTab>
         )}
         drawer

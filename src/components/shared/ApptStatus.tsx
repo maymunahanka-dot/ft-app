@@ -8,8 +8,8 @@ type Props = {
 
 const statusConfigs: Record<AppointmentStatus, { bg: string; text: string }> = {
   scheduled: { bg: "#E0E7FF", text: "#4338CA" },
-  confirmed: { bg: "rgba(220, 252, 231, 1)", text: "rgba(0, 130, 54, 1)" },
-  "in-progress": { bg: "#FEF9C3", text: "#854D0E" },
+  // confirmed: { bg: "rgba(220, 252, 231, 1)", text: "rgba(0, 130, 54, 1)" },
+  // "in-progress": { bg: "#FEF9C3", text: "#854D0E" },
   completed: { bg: "#D1FAE5", text: "#065F46" },
   cancelled: { bg: "#FEE2E2", text: "#991B1B" },
 };

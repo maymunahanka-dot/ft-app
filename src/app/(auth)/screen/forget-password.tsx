@@ -2,9 +2,8 @@ import PrimaryButton from "@/src/components/button/PrimaryButton";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useAuth } from "@/src/hooks/auth";
-import { scale, spacing } from "@/src/utils/random";
+import { spacing } from "@/src/utils/random";
 import { router } from "expo-router";
-import { Eye, EyeOff } from "lucide-react-native";
 import React, { useState } from "react";
 import {
   ImageBackground,
@@ -14,7 +13,6 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import {
@@ -33,21 +31,21 @@ const ForgetPasswordScreen = () => {
     confirmPassword: "",
   });
 
-  const [isSecure, setIsSecure] = useState(true);
-  const toggleVisiblity = () => setIsSecure((prev) => !prev);
+  // const [isSecure, setIsSecure] = useState(true);
+  // const toggleVisiblity = () => setIsSecure((prev) => !prev);
 
   const [email, setEmail] = useState("");
-  const [details, setDetails] = useState({
-    password: "",
-    confirmPassword: "",
-  });
+  // const [details, setDetails] = useState({
+  //   password: "",
+  //   confirmPassword: "",
+  // });
 
-  const handleDataChange = (field: keyof typeof details, value: string) => {
-    setDetails((prev) => ({ ...prev, [field]: value }));
-    if (error[field as keyof typeof error]) {
-      setError((prev) => ({ ...prev, [field]: "" }));
-    }
-  };
+  // const handleDataChange = (field: keyof typeof details, value: string) => {
+  //   setDetails((prev) => ({ ...prev, [field]: value }));
+  //   if (error[field as keyof typeof error]) {
+  //     setError((prev) => ({ ...prev, [field]: "" }));
+  //   }
+  // };
 
   const handleEmailChange = (text: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -79,23 +77,23 @@ const ForgetPasswordScreen = () => {
       isValid = false;
     }
 
-    // Password validation
-    if (!details.password?.trim()) {
-      newErrors.password = "Password is required";
-      isValid = false;
-    } else if (details.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-      isValid = false;
-    }
+    // // Password validation
+    // if (!details.password?.trim()) {
+    //   newErrors.password = "Password is required";
+    //   isValid = false;
+    // } else if (details.password.length < 6) {
+    //   newErrors.password = "Password must be at least 6 characters";
+    //   isValid = false;
+    // }
 
-    //  must match password
-    if (!details.confirmPassword?.trim()) {
-      newErrors.confirmPassword = "Please confirm your password";
-      isValid = false;
-    } else if (details.password !== details.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-      isValid = false;
-    }
+    // //  must match password
+    // if (!details.confirmPassword?.trim()) {
+    //   newErrors.confirmPassword = "Please confirm your password";
+    //   isValid = false;
+    // } else if (details.password !== details.confirmPassword) {
+    //   newErrors.confirmPassword = "Passwords do not match";
+    //   isValid = false;
+    // }
 
     setError(newErrors);
     return isValid;
@@ -104,13 +102,14 @@ const ForgetPasswordScreen = () => {
     if (!validateForm()) return;
     try {
       await sendResetEmail(email);
-      router.push({
-        pathname: "/(auth)/screen/email/[email]",
-        params: {
-          email: email,
-          password: details.password,
-        },
-      });
+      // router.push({
+      //   pathname: "/(auth)/screen/email/[email]",
+      //   params: {
+      //     email: email,
+      //     password: details.password,
+      //   },
+      // });
+      router.push("/sign-in");
     } catch (error) {
       console.error("error in send email", error);
     }
@@ -195,7 +194,7 @@ const ForgetPasswordScreen = () => {
                 </View>
 
                 {/* password */}
-                <View style={Styles.inputContainer}>
+                {/* <View style={Styles.inputContainer}>
                   <Text style={Styles.label}>Password</Text>
                   <View style={Styles.input2}>
                     <TextInput
@@ -223,10 +222,10 @@ const ForgetPasswordScreen = () => {
                   {error.password ? (
                     <Text style={Styles.errorText}>{error.password}</Text>
                   ) : null}
-                </View>
+                </View> */}
 
                 {/* confirm password*/}
-                <View style={Styles.inputContainer}>
+                {/* <View style={Styles.inputContainer}>
                   <Text style={Styles.label}>Confirm Password</Text>
                   <View style={Styles.input2}>
                     <TextInput
@@ -256,7 +255,7 @@ const ForgetPasswordScreen = () => {
                       {error.confirmPassword}
                     </Text>
                   ) : null}
-                </View>
+                </View> */}
               </View>
 
               <View style={[styles.footer]}>

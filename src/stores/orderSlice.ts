@@ -12,6 +12,7 @@ import {
 import { create } from "zustand";
 import { db } from "../context/firebase";
 import { Order } from "../types/Order";
+import { ShowToastMessage } from "../utils/random";
 
 interface OrderState {
   orders: Order[];
@@ -51,8 +52,13 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       })) as Order[];
 
       set({ orders });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting orders:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -71,8 +77,13 @@ export const useOrderStore = create<OrderState>((set, get) => ({
           ? state.orders.map((i) => (i.id === order.id ? order : i))
           : [order, ...state.orders],
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving order:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -91,8 +102,13 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         } as Order;
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting order:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
       return null;
     } finally {
       set({ loading: false });
@@ -121,8 +137,13 @@ export const useOrderStore = create<OrderState>((set, get) => ({
           order.id === orderId ? { ...order, status, updatedAt } : order,
         ),
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating order status:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -137,8 +158,13 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       set((state) => ({
         orders: state.orders.filter((i) => i.id !== orderId),
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting order:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }

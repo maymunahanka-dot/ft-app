@@ -7,6 +7,19 @@ import React from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import ApptStatus from "../shared/ApptStatus";
 
+const getTimeFromISO = (value?: string | Date): string => {
+  if (!value) return "";
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  if (isNaN(date.getTime())) return "";
+
+  return `${date.getHours() % 12 || 12}:${date
+    .getMinutes()
+    .toString()
+    .padStart(2, "0")}`;
+};
+
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 type Props = {
@@ -20,7 +33,7 @@ const AppoinmentListItem: React.FC<Props> = ({ item }) => {
         <Text
           style={[Styles.reg12, { color: Colors.text.black, lineHeight: 12 }]}
         >
-          {item.time}
+          {getTimeFromISO(item.time)}
         </Text>
         <Text
           style={[Styles.reg12, { color: Colors.text.black, lineHeight: 12 }]}

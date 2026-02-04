@@ -12,6 +12,7 @@ import {
 import { create } from "zustand";
 import { db } from "../context/firebase";
 import { InventoryItem } from "../types/inventory";
+import { ShowToastMessage } from "../utils/random";
 
 interface InventoryState {
   stocks: InventoryItem[];
@@ -39,9 +40,14 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
           ? state.stocks.map((i) => (i.id === item.id ? item : i))
           : [item, ...state.stocks],
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving inventory item:", error);
-      throw new Error("Failed to save inventory item");
+      // throw new Error("Failed to save inventory item");
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -60,8 +66,13 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         } as InventoryItem;
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting inventory item:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
       return null;
     } finally {
       set({ loading: false });
@@ -75,7 +86,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       const q = query(
         inventoryRef,
         where("tailorId", "==", tailorId),
-        orderBy("name", "asc")
+        orderBy("name", "asc"),
       );
       const querySnapshot = await getDocs(q);
 
@@ -85,8 +96,13 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       })) as InventoryItem[];
 
       set({ stocks });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting inventory:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -102,8 +118,13 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       set((state) => ({
         stocks: state.stocks.filter((i) => i.id !== itemId),
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting inventory item:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }

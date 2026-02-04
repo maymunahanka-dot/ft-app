@@ -12,6 +12,7 @@ import { Alert } from "react-native";
 import { auth, db } from "../context/firebase";
 import { useUserStore } from "../stores/userSlice";
 import { RegisterUserData } from "../types/auth";
+import { ShowToastMessage } from "../utils/random";
 
 export function useAuth() {
   //   const [user, setUser] = useState<User | null>(null);
@@ -42,15 +43,31 @@ export function useAuth() {
     return unsubscribe;
   }, []);
 
-  const fetchUserProfile = async (uid: string) => {
-    const userDocRef = doc(db, "fashiontally_users", uid);
-    const docSnap = await getDoc(userDocRef);
+  const fetchUserProfile = async (
+    uid: string,
+  ): Promise<RegisterUserData | null> => {
+    try {
+      const userDocRef = doc(db, "fashiontally_users", uid);
+      const docSnap = await getDoc(userDocRef);
 
-    if (!docSnap.exists()) {
-      throw new Error("User profile not found");
+      if (!docSnap.exists()) {
+        console.warn("[FETCH_USER_PROFILE] User profile not found", { uid });
+        return null;
+      }
+
+      return docSnap.data() as RegisterUserData;
+    } catch (error: any) {
+      console.error("[FETCH_USER_PROFILE] Failed to fetch user profile", {
+        uid,
+        error,
+      });
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
+      return null;
     }
-    // console.log("user data", docSnap.data());
-    return docSnap.data() as RegisterUserData;
   };
 
   const signIn = async (email: string, password: string) => {
@@ -63,8 +80,13 @@ export function useAuth() {
       setUserData(profile);
 
       return cred;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing in:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
       return null;
     } finally {
       setLoading(false);
@@ -90,9 +112,13 @@ export function useAuth() {
         console.log("user registration failed");
         // throw new Error('User registration failed, user not created.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing up:", error);
-      //   throw error;
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -105,9 +131,13 @@ export function useAuth() {
       console.log("user details", auth.name);
       setUserData(null);
       // router.replace("/(auth)/sign-in");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing out:", error);
-      //   throw error;
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -122,9 +152,13 @@ export function useAuth() {
         "Password reset email has been sent. Please check your inbox and spam folder.",
         [{ text: "OK" }],
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending reset email:", error);
-      //   throw error;
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -152,8 +186,13 @@ export function useAuth() {
           const fetchedData = docSnap.data() as RegisterUserData;
           setUserData(fetchedData);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error refreshing user data:", error);
+        ShowToastMessage({
+          title: error,
+          preset: "error",
+          haptic: "error",
+        });
       } finally {
         setLoading(false);
       }

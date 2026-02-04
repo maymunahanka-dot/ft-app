@@ -12,6 +12,7 @@ import {
 import { create } from "zustand";
 import { db } from "../context/firebase";
 import { Appointment } from "../types/appointment";
+import { ShowToastMessage } from "../utils/random";
 
 interface AppointmentState {
   appointments: Appointment[];
@@ -34,7 +35,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         appointmentsRef,
         where("tailorId", "==", email),
         orderBy("date", "asc"),
-        orderBy("time", "asc")
+        orderBy("time", "asc"),
       );
       const querySnapshot = await getDocs(q);
 
@@ -46,8 +47,13 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       //   console.log("appointments", JSON.stringify(appointments, null, 2));
 
       set({ appointments });
-    } catch (error) {
-      console.error("Error getting appointments:", error);
+    } catch (error: any) {
+      console.error("Error getting appointments", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -58,14 +64,19 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       const appointmentRef = doc(
         db,
         "fashiontally_appointments",
-        appointment.id
+        appointment.id,
       );
       await setDoc(appointmentRef, {
         ...appointment,
         updatedAt: new Date().toISOString(),
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving appointment:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -83,8 +94,13 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         } as Appointment;
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting appointment:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
       return null;
     } finally {
       set({ loading: false });
@@ -98,7 +114,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         appointmentsRef,
         where("tailorId", "==", email),
         where("date", "==", date),
-        orderBy("time", "asc")
+        orderBy("time", "asc"),
       );
       const querySnapshot = await getDocs(q);
 
@@ -106,8 +122,13 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         id: doc.id,
         ...doc.data(),
       })) as Appointment[];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting appointments by date:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
       return [];
     } finally {
       set({ loading: false });
@@ -119,12 +140,17 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       const appointmentRef = doc(
         db,
         "fashiontally_appointments",
-        appointmentId
+        appointmentId,
       );
       await deleteDoc(appointmentRef);
       console.log(`Appointment ${appointmentId} successfully deleted`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting appointment:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }

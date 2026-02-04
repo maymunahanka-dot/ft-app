@@ -12,6 +12,7 @@ import { create } from "zustand";
 import { db } from "../context/firebase";
 import { generateInvoiceId, generateInvoiceNumber } from "../lib/invoice";
 import { Invoice, InvoiceData } from "../types/Invoice";
+import { ShowToastMessage } from "../utils/random";
 
 interface InvoiceState {
   invoices: Invoice[];
@@ -45,9 +46,14 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
       const invoiceRef = doc(db, "fashiontally_invoices", id);
       await setDoc(invoiceRef, invoiceDoc);
       set((state) => ({ invoices: [invoiceDoc, ...state.invoices] }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating invoice:", error);
-      throw new Error("Failed to create invoice");
+      // throw new Error("Failed to create invoice");
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -70,9 +76,14 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
       })) as Invoice[];
 
       set({ invoices });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting invoices:", error);
-      throw new Error("Failed to get invoices");
+      // throw new Error("Failed to get invoices");
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -88,8 +99,13 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
       set((state) => ({
         invoices: state.invoices.filter((i) => i.id !== invoiceId),
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting invoice:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }

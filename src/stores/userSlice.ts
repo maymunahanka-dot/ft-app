@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { db } from "../context/firebase";
 import { getCurrentUserId } from "../lib/auth-utils";
 import { RegisterUserData } from "../types/auth";
+import { ShowToastMessage } from "../utils/random";
 
 interface UserState {
   user: RegisterUserData | null;
@@ -23,8 +24,13 @@ export const useUserStore = create<UserState>((set, get) => ({
       set({ user });
       console.log("user updated", JSON.stringify(user, null, 2));
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("error updating profile", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
       return false;
     }
   },

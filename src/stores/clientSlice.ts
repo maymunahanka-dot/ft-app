@@ -11,6 +11,7 @@ import {
 import { create } from "zustand";
 import { db } from "../context/firebase";
 import { Client, ClientMeasurements } from "../types/client";
+import { ShowToastMessage } from "../utils/random";
 
 interface ClientState {
   clients: Client[];
@@ -42,8 +43,13 @@ export const useClientStore = create<ClientState>((set, get) => ({
           ? state.clients.map((i) => (i.id === client.id ? client : i))
           : [client, ...state.clients],
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving client:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -91,8 +97,13 @@ export const useClientStore = create<ClientState>((set, get) => ({
           ),
         }));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error editing client:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
       throw new Error("Failed to edit client");
     } finally {
       set({ loading: false });
@@ -112,9 +123,14 @@ export const useClientStore = create<ClientState>((set, get) => ({
         measurements: merged,
       };
       await get().editClient(updatedClient, client.phone);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error editing measurements:", error);
-      throw new Error("Failed to edit measurements");
+      // throw new Error("Failed to edit measurements");
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -133,8 +149,13 @@ export const useClientStore = create<ClientState>((set, get) => ({
         } as Client;
       }
       return null;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting client:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
       return null;
     } finally {
       set({ loading: false });
@@ -154,9 +175,14 @@ export const useClientStore = create<ClientState>((set, get) => ({
       })) as Client[];
 
       set({ clients });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting clients:", error);
-      throw new Error("Failed to get clients");
+      // throw new Error("Failed to get clients");
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -172,9 +198,14 @@ export const useClientStore = create<ClientState>((set, get) => ({
       set((state) => ({
         clients: state.clients.filter((i) => i.id !== clientId),
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting client:", error);
-      throw new Error("Failed to delete client");
+      // throw new Error("Failed to delete client");
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }

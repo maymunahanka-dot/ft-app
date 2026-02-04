@@ -7,9 +7,10 @@ import { auth } from "../context/firebase";
 export const getCurrentUserId = (): string => {
   const user = auth.currentUser;
   if (!user) {
-    throw new Error(
-      "User not authenticated. Please log in to access this data."
-    );
+    // throw new Error(
+    //   "User not authenticated. Please log in to access this data."
+    // );
+    return "";
   }
   return user.uid;
 };
@@ -21,9 +22,10 @@ export const getCurrentUserId = (): string => {
 export const getCurrentUserEmail = (): string => {
   const user = auth.currentUser;
   if (!user) {
-    throw new Error(
-      "User not authenticated. Please log in to access this data."
-    );
+    // throw new Error(
+    //   "User not authenticated. Please log in to access this data."
+    // );
+    return "";
   }
   return user.email || "user@fashiontally.com";
 };
@@ -35,9 +37,10 @@ export const getCurrentUserEmail = (): string => {
 export const getCurrentUser = (): { uid: string; email: string } => {
   const user = auth.currentUser;
   if (!user) {
-    throw new Error(
-      "User not authenticated. Please log in to access this data."
-    );
+    // throw new Error(
+    //   "User not authenticated. Please log in to access this data."
+    // );
+    return { uid: "", email: "" };
   }
   return {
     uid: user.uid,

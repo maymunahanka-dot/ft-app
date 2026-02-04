@@ -11,6 +11,7 @@ import {
 import { create } from "zustand";
 import { db } from "../context/firebase";
 import { Expense, Income } from "../types/finance";
+import { ShowToastMessage } from "../utils/random";
 
 interface FinancialState {
   income: Income[];
@@ -35,7 +36,7 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
       const q = query(
         expensesRef,
         where("tailorId", "==", tailorId),
-        orderBy("date", "desc")
+        orderBy("date", "desc"),
       );
       const querySnapshot = await getDocs(q);
 
@@ -45,8 +46,13 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
       })) as Expense[];
 
       set({ expenses });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting expenses:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -58,7 +64,7 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
       const q = query(
         incomeRef,
         where("tailorId", "==", tailorId),
-        orderBy("date", "desc")
+        orderBy("date", "desc"),
       );
       const querySnapshot = await getDocs(q);
 
@@ -68,8 +74,13 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
       })) as Income[];
 
       set({ income });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting income:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -88,8 +99,13 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
           ? state.income.map((i) => (i.id === income.id ? income : i))
           : [income, ...state.income],
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving income:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -108,8 +124,13 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
           ? state.expenses.map((i) => (i.id === expense.id ? expense : i))
           : [expense, ...state.expenses],
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving expense:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -124,8 +145,13 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
       set((state) => ({
         income: state.income.filter((i) => i.id !== incomeId),
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting income:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -140,8 +166,13 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
       set((state) => ({
         expenses: state.expenses.filter((i) => i.id !== expenseId),
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting expense:", error);
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }

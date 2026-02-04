@@ -1,3 +1,5 @@
+import * as Burnt from "burnt";
+import { ToastOptions } from "burnt/build/types";
 import { Dimensions, PixelRatio, Platform } from "react-native";
 import { ClientMeasurements } from "../types/client";
 
@@ -365,6 +367,18 @@ export const GetDetailedDate = (date: Date | string): string => {
   }).format(now);
 };
 
+export const GetDetailedTime = (date: Date | string): string => {
+  const now = new Date(date);
+
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  })
+    .format(now)
+    .toLowerCase(); // makes AM/PM → am/pm
+};
+
 /**
  * Takes an ISO string and returns the date in YYYY-MM-DD format
  * @param isoString - e.g., "2025-12-16T21:13:04.778Z"
@@ -406,4 +420,49 @@ export const formatInvoiceDate = (dateString: string): string => {
     month: "short",
     year: "numeric",
   });
+};
+
+/**
+ * Formats Firebase error strings into human-readable text.
+ * @param error - The raw error string or object from Firebase
+ * @returns A clean string like "User not found"
+ */
+export const FormatFirebaseError = (error: any): string => {
+  const errorString = error?.toString() || "";
+
+  // 1. Extract the code inside the brackets: (auth/user-not-found)
+  const match = errorString.match(/\((.*?)\)/);
+  if (!match) return "An unexpected error occurred.";
+
+  const fullCode = match[1]; // e.g., "auth/user-not-found"
+
+  // 2. Remove the "auth/" or "storage/" prefix and clean up
+  const cleanCode = fullCode.split("/")[1] || fullCode;
+
+  // 3. Replace dashes with spaces and capitalize the first letter
+  const formatted = cleanCode.replace(/-/g, " ");
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+};
+
+export const ShowToastMessage = (option: ToastOptions) => {
+  Burnt.toast({
+    preset: "done",
+    haptic: "none",
+    duration: 2,
+    shouldDismissByDrag: true,
+    from: "bottom",
+    layout: {
+      iconSize: {
+        height: 24,
+        width: 24,
+      },
+    },
+    ...option,
+    title: FormatFirebaseError(option.title),
+  });
+};
+
+export const numberize = (value: string): number => {
+  const cleaned = value.replace(/[^0-9.]/g, "");
+  return Number(cleaned);
 };

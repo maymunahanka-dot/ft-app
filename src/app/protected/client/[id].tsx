@@ -51,6 +51,10 @@ type TabProps = {
 };
 
 const OverViewTab = ({ client }: TabProps) => {
+  const invoices = useInvoiceStore((state) => state.invoices);
+  const clientInvoices = invoices.filter(
+    (prev) => prev.clientId === client?.id,
+  );
   const [editNoteModal, setEditNoteModal] = useState(false);
   const toggleEditNoteModal = () => setEditNoteModal((prev) => !prev);
 
@@ -95,7 +99,7 @@ const OverViewTab = ({ client }: TabProps) => {
           </View>
 
           <View style={styles.col}>
-            <Text style={[styles.reg18]}>{2}</Text>
+            <Text style={[styles.reg18]}>{clientInvoices.length}</Text>
             <Text
               style={[
                 Styles.reg12,

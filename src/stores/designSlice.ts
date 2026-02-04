@@ -1,21 +1,24 @@
 import {
   collection,
+  doc,
   getDocs,
   orderBy,
   query,
   setDoc,
-  doc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
-import { generateDesignId } from "../lib/design";
 import { db } from "../context/firebase";
+import { generateDesignId } from "../lib/design";
 import { Design } from "../types/designs";
+import { ShowToastMessage } from "../utils/random";
 
 interface DesignState {
   designs: Design[];
   loading: boolean;
-  createDesign(design: Omit<Design, "id" | "createdAt"> & { userEmail: string }): Promise<void>;
+  createDesign(
+    design: Omit<Design, "id" | "createdAt"> & { userEmail: string },
+  ): Promise<void>;
   getDesignsByTailor(email: string): Promise<void>;
 }
 
@@ -38,9 +41,14 @@ export const useDesignStore = create<DesignState>((set, get) => ({
       const designRef = doc(db, "fashiontally_designs", id);
       await setDoc(designRef, design);
       set((state) => ({ designs: [design, ...state.designs] }));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating design:", error);
-      throw new Error("Failed to create design");
+      // throw new Error("Failed to create design");
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }
@@ -53,7 +61,7 @@ export const useDesignStore = create<DesignState>((set, get) => ({
       const q = query(
         clientsRef,
         where("userEmail", "==", email),
-        orderBy("createdAt", "desc")
+        orderBy("createdAt", "desc"),
       );
       const querySnapshot = await getDocs(q);
 
@@ -63,9 +71,14 @@ export const useDesignStore = create<DesignState>((set, get) => ({
       })) as Design[];
 
       set({ designs });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting clients:", error);
-      throw new Error("Failed to get clients");
+      // throw new Error("Failed to get clients");
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
     } finally {
       set({ loading: false });
     }

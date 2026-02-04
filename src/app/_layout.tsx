@@ -3,7 +3,9 @@ import { useFonts } from "expo-font";
 import { usePathname, useRouter, useSegments } from "expo-router";
 import Drawer from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
+import * as Updates from "expo-updates";
 import { useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import {
@@ -11,6 +13,8 @@ import {
   DrawerContentWidth,
 } from "../components/drawer/DrawerContent";
 import { useAuth } from "../hooks/auth";
+import { useSubscriptionGuard } from "../hooks/useSubscriptionGuard";
+import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
 import { useUserStore } from "../stores/userSlice";
 
 // import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -79,31 +83,49 @@ export default function RootLayout() {
   }, [loading, router, segments, user, loaded, pathname]);
 
   // Expo OTA Updates once app starts
-  // useEffect(() => {
-  //   const checkForUpdates = async () => {
-  //     try {
-  //       const update = await Updates.checkForUpdateAsync();
-  //       if (update.isAvailable) {
-  //         console.info("New update available, fetching...");
-  //         await Updates.fetchUpdateAsync();
-  //         console.info("Update fetched, reloading app...");
-  //         await Updates.reloadAsync();
-  //       } else {
-  //         console.info("No updates found.");
-  //       }
-  //     } catch (err) {
-  //       console.error("Update check failed:", err);
-  //     }
-  //   };
+  useEffect(() => {
+    const checkForUpdates = async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          console.info("New update available, fetching...");
+          await Updates.fetchUpdateAsync();
+          console.info("Update fetched, reloading app...");
+          await Updates.reloadAsync();
+        } else {
+          console.info("No updates found.");
+        }
+      } catch (err) {
+        console.error("Update check failed:", err);
+      }
+    };
 
-  //   checkForUpdates();
-  // }, []);
+    checkForUpdates();
+  }, []);
 
   useEffect(() => {
     if (!pathname) return;
     const currentRoute = pathname.split("?")[0];
     console.log(`Current route: ${currentRoute}`);
   }, [pathname]);
+
+  const { loading: isLoading, isSubscribed } = useSubscriptionGuard({
+    email: getCurrentUserEmail(),
+    uuid: getCurrentUserId(),
+    paymentUrl: "https://www.fashiontally.co/auth/login",
+  });
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // if (!isSubscribed) {
+  //   return null;
+  // }
 
   if (!loaded) {
     return null;
@@ -113,12 +135,6 @@ export default function RootLayout() {
     <>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
-          {/* <Stack>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="protected" options={{ headerShown: false }} />
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-          </Stack> */}
           <Drawer
             screenOptions={drawerOptions}
             drawerContent={(props) => <DrawerContent {...props} />}
