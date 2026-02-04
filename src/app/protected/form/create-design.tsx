@@ -1,19 +1,22 @@
 import PrimaryButton from "@/src/components/button/PrimaryButton";
+import SelectClientModal from "@/src/components/form/order/SelectClientModal";
 import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useUserImage } from "@/src/hooks/useUserImage";
 import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { useDesignStore } from "@/src/stores/designSlice";
+import { Client } from "@/src/types/client";
 import { validateDesignForm } from "@/src/utils/formValidation";
 import { formatPrice, scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, Upload } from "lucide-react-native";
+import { ChevronDown, ChevronLeft, Upload } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -26,6 +29,10 @@ const CreateDesignScreen = () => {
   const { clientId } = useLocalSearchParams<{ clientId?: string }>();
   const createDesign = useDesignStore((state) => state.createDesign);
   const loading = useDesignStore((state) => state.loading);
+
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [clientModal, setClientModal] = useState(false);
+  const toggleClientModal = () => setClientModal((prev) => !prev);
 
   const { image, pickImage } = useUserImage({
     returnBase64: true,
@@ -53,6 +60,7 @@ const CreateDesignScreen = () => {
 
   const [designDetails, setDesignDetails] = useState({
     imageUrl: "",
+    clientId: clientId ? clientId : "",
     name: "",
     price: "",
     description: "",
@@ -61,6 +69,7 @@ const CreateDesignScreen = () => {
 
   const [error, setError] = useState({
     imageUrl: "",
+    // clientId: "",
     name: "",
     price: "",
     description: "",
@@ -77,10 +86,16 @@ const CreateDesignScreen = () => {
     }
   };
 
+  const client = clientId
+    ? clientId
+    : selectedClient
+      ? selectedClient.id
+      : null;
+
   const handleCreateDesign = async () => {
     const { isValid, errors } = validateDesignForm(designDetails);
     setError(errors);
-    if (!isValid) return;
+    if (!isValid || !client) return;
 
     try {
       const priceNum =
@@ -92,9 +107,7 @@ const CreateDesignScreen = () => {
         description: designDetails.description?.trim() || "",
         notes: designDetails.notes?.trim() || "",
         imageUrl: designDetails.imageUrl?.trim() || "",
-        ...(clientId != null
-          ? { clientId: Array.isArray(clientId) ? clientId[0] : clientId }
-          : {}),
+        clientId: client,
       });
       router.back();
     } catch (err) {
@@ -147,6 +160,42 @@ const CreateDesignScreen = () => {
             keyboardDismissMode="interactive"
           >
             <View style={styles.content}>
+              {!clientId && (
+                <View style={Styles.inputContainer}>
+                  <Text style={Styles.label}>
+                    Clients<Text style={styles.red}> *</Text>
+                  </Text>
+                  <Pressable
+                    style={[
+                      Styles.input,
+                      { ...styles.row, paddingVertical: 0 },
+                    ]}
+                    onPress={toggleClientModal}
+                  >
+                    {selectedClient ? (
+                      <Text
+                        style={[
+                          Styles.reg16,
+                          { color: "rgba(10, 10, 10, 0.5)" },
+                        ]}
+                      >
+                        {selectedClient.name}
+                      </Text>
+                    ) : (
+                      <Text
+                        style={[
+                          Styles.reg16,
+                          { color: "rgba(10, 10, 10, 0.5)" },
+                        ]}
+                      >
+                        Select a Client
+                      </Text>
+                    )}
+
+                    <ChevronDown size={scale(20)} color={Colors.grey} />
+                  </Pressable>
+                </View>
+              )}
               <View style={[Styles.inputContainer, { gap: spacing(12) }]}>
                 <Text style={[styles.reg14]}>
                   Style Image<Text style={styles.red}> *</Text>
@@ -305,6 +354,16 @@ const CreateDesignScreen = () => {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      {clientModal && (
+        <SelectClientModal
+          visible={clientModal}
+          handleOption={(client) => {
+            setSelectedClient(client);
+            handleDetailsChange("clientId", client.id);
+          }}
+          onClose={() => setClientModal(false)}
+        />
+      )}
     </>
   );
 };

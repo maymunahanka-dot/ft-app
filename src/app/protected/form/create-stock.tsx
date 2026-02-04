@@ -81,7 +81,7 @@ const statusList = [
     value: "in-stock",
   },
   {
-    label: "Low Stoc",
+    label: "Low Stock",
     value: "low-stock",
   },
   {
@@ -146,7 +146,7 @@ const CreateStockItemScreen = () => {
   const [unitModal, setUnitModal] = useState(false);
   const toggleUnitModal = () => setUnitModal((prev) => !prev);
   const [statusModal, setStatusModal] = useState(false);
-  const toggleStatusModal = () => setUnitModal((prev) => !prev);
+  const toggleStatusModal = () => setStatusModal((prev) => !prev);
 
   const [stockData, setStockData] = useState<InventoryItem>({
     id: generateInventoryId(),
@@ -179,7 +179,7 @@ const CreateStockItemScreen = () => {
 
   const handleDataChange = (
     field: keyof typeof stockData,
-    value: string | number
+    value: string | number,
   ) => {
     setStockData({ ...stockData, [field]: value });
     if (error[field as keyof typeof error]) {
@@ -429,7 +429,7 @@ const CreateStockItemScreen = () => {
                   >
                     {CapitalizeFirstName(
                       statusList.find((s) => s.value === stockData.status)
-                        ?.label ?? stockData.status
+                        ?.label ?? stockData.status,
                     )}
                   </Text>
 

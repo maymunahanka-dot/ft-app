@@ -20,6 +20,7 @@ interface OrderState {
   saveOrder(order: Order): Promise<void>;
   getOrderById(id: string): Promise<Order | null>;
   deleteOrder(orderId: string): Promise<void>;
+  updateOrderStatus(orderId: string, status: Order["status"]): Promise<void>;
 }
 
 export const useOrderStore = create<OrderState>((set, get) => ({
@@ -32,7 +33,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       const q = query(
         ordersRef,
         where("tailorId", "==", tailorId),
-        orderBy("orderDate", "desc")
+        orderBy("orderDate", "desc"),
       );
       const querySnapshot = await getDocs(q);
 
@@ -41,7 +42,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        }))
+        })),
       );
 
       const orders = querySnapshot.docs.map((doc) => ({
@@ -98,6 +99,34 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     }
   },
 
+  async updateOrderStatus(orderId, status) {
+    set({ loading: true });
+
+    try {
+      const orderRef = doc(db, "fashiontally_orders", orderId);
+
+      const updatedAt = new Date().toISOString();
+
+      await setDoc(
+        orderRef,
+        {
+          status,
+          updatedAt,
+        },
+        { merge: true },
+      );
+
+      set((state) => ({
+        orders: state.orders.map((order) =>
+          order.id === orderId ? { ...order, status, updatedAt } : order,
+        ),
+      }));
+    } catch (error) {
+      console.error("Error updating order status:", error);
+    } finally {
+      set({ loading: false });
+    }
+  },
   async deleteOrder(orderId) {
     set({ loading: true });
     try {

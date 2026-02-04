@@ -4,6 +4,7 @@ import EditNote from "@/src/components/clients/modal/EditNote";
 import DesignItem from "@/src/components/designs/DesignItem";
 import { HapticTab } from "@/src/components/haptic-tab";
 import InvoiceItem from "@/src/components/invoice/Item";
+import OrderItem from "@/src/components/orders/OrderItem";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useClientStore } from "@/src/stores/clientSlice";
@@ -129,7 +130,10 @@ const OverViewTab = ({ client }: TabProps) => {
             Recent Activity
           </Text>
           <View style={styles.orders}>
-            {clientsOrder.map((order, index) => {
+            {clientsOrder.map((order, index) => (
+              <OrderItem order={order} key={index} />
+            ))}
+            {/* {
               const isCompleted = order.status === "completed";
               const isCancelled = order.status === "cancelled";
 
@@ -188,7 +192,7 @@ const OverViewTab = ({ client }: TabProps) => {
                   </View>
                 </View>
               );
-            })}
+            } */}
           </View>
         </View>
       </View>

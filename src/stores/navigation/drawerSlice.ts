@@ -2,8 +2,11 @@ import { Href } from "expo-router";
 import {
   Box,
   ChartSpline,
+  FileOutput,
   LucideIcon,
+  Palette,
   Settings,
+  ShoppingCart,
   Store,
   UsersIcon,
 } from "lucide-react-native";
@@ -39,24 +42,24 @@ const drawerItems: DrawerItem[] = [
     route: "/(tabs)/Inventory",
     icon: Box,
   },
-  // {
-  //   id: "4",
-  //   name: "Designs",
-  //   route: "/",
-  //   icon: Palette,
-  // },
-  // {
-  //   id: "5",
-  //   name: "Order Management",
-  //   route: "/",
-  //   icon: ShoppingCart,
-  // },
-  // {
-  //   id: "6",
-  //   name: "Invoice",
-  //   route: "/",
-  //   icon: FileOutput,
-  // },
+  {
+    id: "4",
+    name: "Designs",
+    route: "/Designs",
+    icon: Palette,
+  },
+  {
+    id: "5",
+    name: "Order Management",
+    route: "/(tabs)/Orders",
+    icon: ShoppingCart,
+  },
+  {
+    id: "6",
+    name: "Invoice",
+    route: "/(tabs)/Invoices",
+    icon: FileOutput,
+  },
   // {
   //   id: "7",
   //   name: "Appointments",

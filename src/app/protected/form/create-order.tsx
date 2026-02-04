@@ -112,7 +112,7 @@ const CreateOrderScreen = () => {
   const toggleStatusModal = () => setStatusModal((prev) => !prev);
 
   const [typeModal, setTypeModal] = useState(false);
-  const toggleTypeModal = () => setStatusModal((prev) => !prev);
+  const toggleTypeModal = () => setTypeModal((prev) => !prev);
 
   const [showPicker, setShowPicker] = useState(false);
 
@@ -349,7 +349,7 @@ const CreateOrderScreen = () => {
                     <Text
                       style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
                     >
-                      Select date
+                      Select a Client
                     </Text>
                   )}
 

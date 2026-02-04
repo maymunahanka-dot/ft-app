@@ -83,7 +83,7 @@ const DashboardScreen = () => {
             <View style={styles.actions}>
               <ActionItem
                 label="New Order"
-                onPress={() => router.push("/protected/form/create-order")}
+                onPress={() => router.replace("/protected/form/create-order")}
                 icon={FileText}
               />
               <ActionItem

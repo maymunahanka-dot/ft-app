@@ -9,6 +9,7 @@ import { useFinanceStore } from "@/src/stores/financeSlice";
 import { Expense, Income } from "@/src/types/finance";
 import {
   CapitalizeFirstName,
+  formatPrice,
   GetDetailedDate,
   scale,
   scaleFontSize,
@@ -114,6 +115,14 @@ const sourceList = [
   },
 ];
 
+const parseAmount = (value: string) => {
+  if (!value) return NaN;
+
+  const normalized = value.replace(/,/g, "").trim();
+
+  return Number(normalized);
+};
+
 const CreateTransactionScreen = () => {
   const saveIncome = useFinanceStore((state) => state.saveIncome);
   const saveExpense = useFinanceStore((state) => state.saveExpense);
@@ -127,7 +136,7 @@ const CreateTransactionScreen = () => {
   const [showPicker, setShowPicker] = useState(false);
 
   const [selectedType, setSelectedType] = useState<"income" | "expenses">(
-    "income"
+    "income",
   );
   const [transaction, setTransaction] = useState<Income & Expense>({
     id: "",
@@ -152,7 +161,7 @@ const CreateTransactionScreen = () => {
 
   const handleDataChange = (
     field: keyof typeof transaction,
-    value: string | number
+    value: string | number,
   ) => {
     setTransaction({ ...transaction, [field]: value });
     if (error[field as keyof typeof error]) {
@@ -170,7 +179,9 @@ const CreateTransactionScreen = () => {
       description: "",
     };
 
-    if (!transaction.amount || transaction.amount <= 0) {
+    const amount = parseAmount(transaction.amount.toString());
+
+    if (isNaN(amount) || amount <= 0) {
       newErrors.amount = "Enter a valid amount";
       isValid = false;
     }
@@ -201,10 +212,12 @@ const CreateTransactionScreen = () => {
   const handleSaveTransaction = async () => {
     if (!validateForm()) return;
     const isIncome = selectedType === "income";
+    const amount = parseAmount(transaction.amount.toString());
     try {
       const payload: Income | Expense = {
         ...transaction,
         id: isIncome ? generateIncomeId() : generateExpenseId(),
+        amount,
         tailorId: getCurrentUserEmail(),
         date: new Date().toISOString(),
         createdAt: new Date().toISOString(),
@@ -323,10 +336,8 @@ const CreateTransactionScreen = () => {
                   Amount (₦)<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
-                  value={transaction.amount.toString()}
-                  onChangeText={(text) =>
-                    handleDataChange("amount", Number(text))
-                  }
+                  value={formatPrice(transaction.amount.toString())}
+                  onChangeText={(text) => handleDataChange("amount", text)}
                   placeholder="e.g., 50000"
                   placeholderTextColor={Colors.grayText}
                   returnKeyLabel="next"

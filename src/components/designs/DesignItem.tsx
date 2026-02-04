@@ -8,18 +8,26 @@ import {
   spacing,
 } from "@/src/utils/random";
 import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import {
+  Image,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from "react-native";
 import { HapticTab } from "../haptic-tab";
 
 const HEIGHT = 270;
 
 type Props = {
   item: Design;
+  style?: StyleProp<ViewStyle>;
 };
 
-const DesignItem: React.FC<Props> = ({ item }) => {
+const DesignItem: React.FC<Props> = ({ item, style }) => {
   return (
-    <HapticTab style={styles.container}>
+    <HapticTab style={[styles.container, style]}>
       <Image source={{ uri: item.imageUrl }} style={styles.image} />
       <View style={styles.colText}>
         <Text style={styles.reg14}>{CapitalizeFirstName(item.name)}</Text>

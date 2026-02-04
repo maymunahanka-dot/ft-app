@@ -8,6 +8,7 @@ import { User } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ActivityIndicator,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -64,7 +65,7 @@ const SelectClientModal = ({ visible, onClose, handleOption }: Props) => {
         data={clients}
         keyExtractor={(item: Client, index: number) => `index-${item.id}`}
         renderItem={({ item }: { item: Client }) => (
-          <TouchableOpacity
+          <Pressable
             style={styles.item}
             onPress={() => {
               handleOption(item);
@@ -87,7 +88,7 @@ const SelectClientModal = ({ visible, onClose, handleOption }: Props) => {
                 {item.phone}
               </Text>
             </View>
-          </TouchableOpacity>
+          </Pressable>
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={() =>
@@ -109,6 +110,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    // gap: spacing(15),
     padding: spacing(22),
   },
   badge: {
@@ -123,8 +125,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",
+    paddingVertical: spacing(12),
     gap: spacing(8),
-    height: 40,
   },
   separator: {
     height: 1,

@@ -7,13 +7,23 @@ import { getFirestore } from "firebase/firestore";
 
 // import 'react-native-url-polyfill/auto';
 
+// const firebaseConfig = {
+//   apiKey: "AIzaSyB28Z_jBl5F4dfhysFgK5GmSEUFQ-tw6f0",
+//   authDomain: "fashion-tally-13a35.firebaseapp.com",
+//   projectId: "fashion-tally-13a35",
+//   storageBucket: "fashion-tally-13a35.firebasestorage.app",
+//   messagingSenderId: "998635995178",
+//   appId: "1:998635995178:web:a70eaaf8d4f9166d1ec353",
+// };
+
 const firebaseConfig = {
-  apiKey: "AIzaSyB28Z_jBl5F4dfhysFgK5GmSEUFQ-tw6f0",
-  authDomain: "fashion-tally-13a35.firebaseapp.com",
-  projectId: "fashion-tally-13a35",
-  storageBucket: "fashion-tally-13a35.firebasestorage.app",
-  messagingSenderId: "998635995178",
-  appId: "1:998635995178:web:a70eaaf8d4f9166d1ec353",
+  apiKey: "AIzaSyBcl7hy63ZNw3mXiJTrL7EoWqdy44eWzHk",
+  authDomain: "fashiontallycloud.firebaseapp.com",
+  projectId: "fashiontallycloud",
+  storageBucket: "fashiontallycloud.firebasestorage.app",
+  messagingSenderId: "203645598940",
+  appId: "1:203645598940:web:1c52d0a8f9a27c1c704819",
+  measurementId: "G-W9HLR3B4CM",
 };
 
 // Initialize Firebase
