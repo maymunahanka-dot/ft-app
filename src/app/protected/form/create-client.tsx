@@ -48,7 +48,7 @@ const CreateClientScreen = () => {
 
   const handleDataChange = (
     field: keyof typeof clientData,
-    value: string | number
+    value: string | number,
   ) => {
     setClientData({ ...clientData, [field]: value });
     if (error[field as keyof typeof error]) {
@@ -118,6 +118,10 @@ const CreateClientScreen = () => {
     }
   };
 
+  const handleBack = () => {
+    router.replace("/(tabs)/Clients");
+  };
+
   return (
     <>
       <SafeAreaView
@@ -131,7 +135,7 @@ const CreateClientScreen = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <ChevronLeft
               size={scale(20)}

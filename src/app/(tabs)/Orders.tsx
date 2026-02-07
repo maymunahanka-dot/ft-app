@@ -10,6 +10,7 @@ import { StatusBar } from "expo-status-bar";
 import { Plus, Search } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -22,6 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const OrdersScreen = () => {
   const [searchValue, setSearchValue] = useState("");
 
+  const loading = useOrderStore((state) => state.loading);
   const orders = useOrderStore((state) => state.orders);
 
   const filteredListData = useMemo(() => {
@@ -71,26 +73,38 @@ const OrdersScreen = () => {
             />
           </View>
 
-          <FlatList
-            data={filteredListData}
-            keyExtractor={(item) => item.id}
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              flexGrow: 1,
-              gap: spacing(16),
-              paddingTop: spacing(20),
-              paddingBottom: spacing(40),
-            }}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => <OrderItem order={item} />}
-            ListEmptyComponent={() => (
-              <View style={styles.emptyContainer}>
-                <Text
-                  style={[Styles.med12, { color: Colors.text.gray }]}
-                >{`No Order found.`}</Text>
-              </View>
-            )}
-          />
+          {loading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size={"small"} color={"black"} />
+            </View>
+          ) : (
+            <FlatList
+              data={filteredListData}
+              keyExtractor={(item) => item.id}
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                flexGrow: 1,
+                gap: spacing(16),
+                paddingTop: spacing(20),
+                paddingBottom: spacing(40),
+              }}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => <OrderItem order={item} />}
+              ListEmptyComponent={() => (
+                <View style={styles.emptyContainer}>
+                  <Text
+                    style={[Styles.med12, { color: Colors.text.gray }]}
+                  >{`No Order found.`}</Text>
+                </View>
+              )}
+            />
+          )}
         </View>
 
         <Pressable

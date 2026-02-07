@@ -24,6 +24,7 @@ import {
 } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   StyleSheet,
@@ -105,6 +106,7 @@ const InventoryScreen = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("all");
 
+  const loading = useInventoryStore((state) => state.loading);
   const stocks = useInventoryStore((state) => state.stocks);
 
   const filteredStocks = useMemo(() => {
@@ -179,25 +181,37 @@ const InventoryScreen = () => {
               {stocks.length} Items
             </Text>
 
-            <FlatList
-              data={filteredStocks}
-              renderItem={({ item }) => <StockItem item={item} />}
-              keyExtractor={(item, index) => item.id}
-              style={{ flex: 1 }}
-              contentContainerStyle={{
-                flexGrow: 1,
-                gap: spacing(16),
-                paddingBottom: spacing(40),
-              }}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={() => (
-                <View style={styles.emptyContainer}>
-                  <Text
-                    style={[Styles.med12, { color: Colors.text.gray }]}
-                  >{`No item found.`}</Text>
-                </View>
-              )}
-            />
+            {loading ? (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <ActivityIndicator size={"small"} color={"black"} />
+              </View>
+            ) : (
+              <FlatList
+                data={filteredStocks}
+                renderItem={({ item }) => <StockItem item={item} />}
+                keyExtractor={(item, index) => item.id}
+                style={{ flex: 1 }}
+                contentContainerStyle={{
+                  flexGrow: 1,
+                  gap: spacing(16),
+                  paddingBottom: spacing(40),
+                }}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={() => (
+                  <View style={styles.emptyContainer}>
+                    <Text
+                      style={[Styles.med12, { color: Colors.text.gray }]}
+                    >{`No item found.`}</Text>
+                  </View>
+                )}
+              />
+            )}
           </View>
         </View>
         {/* </ScrollView> */}

@@ -6,6 +6,7 @@ import { useAuth } from "@/src/hooks/auth";
 import { useUserImage } from "@/src/hooks/useUserImage";
 import { useUserStore } from "@/src/stores/userSlice";
 import { GetInitials, scale, scaleFontSize, spacing } from "@/src/utils/random";
+import { uploadImageToCloudinary } from "@/src/utils/uploadImageToCloudinary";
 import { router } from "expo-router";
 import { ChevronLeft, Pencil } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
@@ -53,7 +54,7 @@ const BrandDetailsScreen = () => {
 
   const handleDataChange = (field: keyof typeof userData, value: string) => {
     setUserData({ ...userData, [field]: value });
-    console.log(`${field}:${value}`);
+    // console.log(`${field}:${value}`);
     if (error[field as keyof typeof error]) {
       setError((prev) => ({ ...prev, [field]: "" }));
     }
@@ -77,12 +78,21 @@ const BrandDetailsScreen = () => {
   const handleUpdate = async () => {
     setLoading(true);
     if (!user) return;
+
+    const logo = await uploadImageToCloudinary(userData.logo);
+    console.log("image url", logo);
+    // setLoading(false);
+    // if (!logo) {
+    //   setLoading(false);
+    //   return;
+    // }
+
     try {
       console.log("brand details", userData);
       const success = await updateUserDetails({
         ...user,
         ...userData,
-        logo: userData.logo,
+        logo: logo ? logo : userData.logo,
         storeName: userData.businessName,
       });
 
@@ -111,6 +121,10 @@ const BrandDetailsScreen = () => {
 
   const imageUrl = image ? image : user?.logo ? user.logo : null;
 
+  const handleBack = () => {
+    router.replace("/(tabs)/More");
+  };
+
   return (
     <SafeAreaView
       style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
@@ -123,7 +137,7 @@ const BrandDetailsScreen = () => {
             justifyContent: "center",
             alignItems: "center",
           }}
-          onPress={() => router.back()}
+          onPress={handleBack}
         >
           <ChevronLeft
             size={scale(20)}

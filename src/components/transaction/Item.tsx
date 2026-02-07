@@ -9,6 +9,7 @@ import {
   scaleFontSize,
   spacing,
 } from "@/src/utils/random";
+import { router } from "expo-router";
 import { ArrowUpCircle, Calendar, ChevronRight } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -28,7 +29,17 @@ const TransactionItem = ({ item }: Props) => {
   //   console.log("item", item, displayName);
 
   return (
-    <Pressable style={[styles.container]}>
+    <Pressable
+      style={[styles.container]}
+      onPress={() =>
+        router.push({
+          pathname: "/protected/transaction/[id]",
+          params: {
+            id: item.id,
+          },
+        })
+      }
+    >
       <View style={[styles.iconWrapper, { backgroundColor: bgColor }]}>
         <ArrowUpCircle size={scale(20)} color={textColor} />
       </View>

@@ -17,6 +17,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const SecurityDetailsScreen = () => {
+  const handleBack = () => {
+    router.replace("/(tabs)/More");
+  };
   return (
     <SafeAreaView
       style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
@@ -29,7 +32,7 @@ const SecurityDetailsScreen = () => {
             justifyContent: "center",
             alignItems: "center",
           }}
-          onPress={() => router.back()}
+          onPress={handleBack}
         >
           <ChevronLeft
             size={scale(20)}

@@ -288,6 +288,10 @@ const CreateOrderScreen = () => {
     }
   }, [foundClient]);
 
+  const handleBack = () => {
+    router.replace("/(tabs)/Orders");
+  };
+
   return (
     <>
       <SafeAreaView
@@ -301,7 +305,7 @@ const CreateOrderScreen = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <ChevronLeft
               size={scale(20)}

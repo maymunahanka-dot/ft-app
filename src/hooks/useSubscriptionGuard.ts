@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { router } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Linking } from "react-native";
 import { useUserStore } from "../stores/userSlice";
 import { checkSubscriptionStatus } from "../utils/subscription";
@@ -7,51 +8,79 @@ type UseSubscriptionGuardProps = {
   email?: string;
   uuid?: string;
   paymentUrl: string;
+  /**
+   * If true, automatically redirect to subscription modal when not subscribed
+   * @default true
+   */
+  autoRedirect?: boolean;
 };
 
 export const useSubscriptionGuard = ({
   email,
   uuid,
   paymentUrl,
+  autoRedirect = true,
 }: UseSubscriptionGuardProps) => {
   const hasCheckedRef = useRef(false);
+  const isCheckingRef = useRef(false);
 
-  const [loading, setLoading] = useState(true);
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [state, setState] = useState({
+    loading: true,
+    isSubscribed: false,
+  });
 
-  const user = useUserStore((state) => state.user);
+  const hasUser = useUserStore((state) => !!state.user);
+
+  const runCheck = useCallback(async () => {
+    if (isCheckingRef.current) return;
+
+    try {
+      isCheckingRef.current = true;
+
+      if (!email && !uuid) {
+        setState({ loading: false, isSubscribed: false });
+        return;
+      }
+
+      const result = await checkSubscriptionStatus(email, uuid);
+
+      setState({
+        loading: false,
+        isSubscribed: result.isSubscribed,
+      });
+
+      console.log("Subscription status:", result);
+
+      // Handle redirect
+      if (!result.isSubscribed && autoRedirect) {
+        router.push({
+          pathname: "/protected/subscription-modal",
+          params: {
+            email: email || "",
+            uuid: uuid || "",
+            paymentUrl,
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Subscription check failed:", err);
+
+      setState({ loading: false, isSubscribed: false });
+
+      Linking.openURL(paymentUrl).catch((linkErr) =>
+        console.error("Failed to open payment URL:", linkErr),
+      );
+    } finally {
+      isCheckingRef.current = false;
+    }
+  }, [email, uuid, paymentUrl, autoRedirect]);
 
   useEffect(() => {
-    if (hasCheckedRef.current && !user) return;
+    if (hasCheckedRef.current || !hasUser) return;
+
     hasCheckedRef.current = true;
-
-    const runCheck = async () => {
-      try {
-        if (!email && !uuid) {
-          setLoading(false);
-          return;
-        }
-
-        const result = await checkSubscriptionStatus(email, uuid);
-
-        setIsSubscribed(result.isSubscribed);
-        setLoading(false);
-
-        if (!result.isSubscribed) {
-          // Redirect user to payment page
-          Linking.openURL(paymentUrl);
-        }
-      } catch (err) {
-        setLoading(false);
-        Linking.openURL(paymentUrl);
-      }
-    };
-
     runCheck();
-  }, [user]);
+  }, [hasUser, runCheck]);
 
-  return {
-    loading,
-    isSubscribed,
-  };
+  return state;
 };

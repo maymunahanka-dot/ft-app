@@ -35,6 +35,11 @@ export function useAuth() {
         setUserData(profile);
       } catch (error) {
         console.error("Error fetching user data:", error);
+        // ShowToastMessage({
+        //   title: FormatFirebaseError(error),
+        //   preset: "error",
+        //   haptic: "error",
+        // });
       } finally {
         setLoading(false);
       }
@@ -52,6 +57,11 @@ export function useAuth() {
 
       if (!docSnap.exists()) {
         console.warn("[FETCH_USER_PROFILE] User profile not found", { uid });
+        ShowToastMessage({
+          title: "User does not exists",
+          preset: "error",
+          haptic: "error",
+        });
         return null;
       }
 
@@ -60,11 +70,6 @@ export function useAuth() {
       console.error("[FETCH_USER_PROFILE] Failed to fetch user profile", {
         uid,
         error,
-      });
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
       });
       return null;
     }
@@ -83,7 +88,7 @@ export function useAuth() {
     } catch (error: any) {
       console.error("Error signing in:", error);
       ShowToastMessage({
-        title: error,
+        title: "Error signing in",
         preset: "error",
         haptic: "error",
       });
@@ -115,7 +120,7 @@ export function useAuth() {
     } catch (error: any) {
       console.error("Error signing up:", error);
       ShowToastMessage({
-        title: error,
+        title: "Error signing up",
         preset: "error",
         haptic: "error",
       });
@@ -134,7 +139,7 @@ export function useAuth() {
     } catch (error: any) {
       console.error("Error signing out:", error);
       ShowToastMessage({
-        title: error,
+        title: "Error signing out",
         preset: "error",
         haptic: "error",
       });
@@ -155,7 +160,7 @@ export function useAuth() {
     } catch (error: any) {
       console.error("Error sending reset email:", error);
       ShowToastMessage({
-        title: error,
+        title: "Error sending reset email",
         preset: "error",
         haptic: "error",
       });
@@ -188,11 +193,11 @@ export function useAuth() {
         }
       } catch (error: any) {
         console.error("Error refreshing user data:", error);
-        ShowToastMessage({
-          title: error,
-          preset: "error",
-          haptic: "error",
-        });
+        // ShowToastMessage({
+        //   title: "",
+        //   preset: "error",
+        //   haptic: "error",
+        // });
       } finally {
         setLoading(false);
       }

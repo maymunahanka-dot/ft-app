@@ -16,7 +16,14 @@ import {
 import { router } from "expo-router";
 import { Plus } from "lucide-react-native";
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Financial Analytics
@@ -116,6 +123,7 @@ const RowBoxes = () => {
 };
 
 const FinanceScreen = () => {
+  const loading = useFinanceStore((state) => state.loading);
   const incomes = useFinanceStore((state) => state.income);
   const expenses = useFinanceStore((state) => state.expenses);
   return (
@@ -163,9 +171,21 @@ const FinanceScreen = () => {
               </View>
 
               {/* recent transactions */}
-              {[...incomes, ...expenses].map((transaction, index) => (
-                <TransactionItem key={index} item={transaction} />
-              ))}
+              {loading ? (
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <ActivityIndicator size={"small"} color={"black"} />
+                </View>
+              ) : (
+                [...incomes, ...expenses].map((transaction, index) => (
+                  <TransactionItem key={index} item={transaction} />
+                ))
+              )}
             </View>
           </View>
         </ScrollView>

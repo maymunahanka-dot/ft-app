@@ -9,6 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import { Plus, Search } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -21,6 +22,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const ClientsScreen = () => {
   const [searchValue, setSearchValue] = useState("");
 
+  const loading = useClientStore((state) => state.loading);
   const clients = useClientStore((state) => state.clients);
 
   const filteredListData = useMemo(() => {
@@ -69,27 +71,40 @@ const ClientsScreen = () => {
               style={styles.input}
             />
           </View>
-          <FlatList
-            data={filteredListData}
-            keyExtractor={(item) => item.id}
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              flexGrow: 1,
-              gap: spacing(16),
-              paddingTop: spacing(20),
-              paddingBottom: spacing(40),
-            }}
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={false}
-            renderItem={({ item }) => <ClientItem item={item} />}
-            ListEmptyComponent={() => (
-              <View style={styles.emptyContainer}>
-                <Text
-                  style={[Styles.med12, { color: Colors.text.gray }]}
-                >{`No client found.`}</Text>
-              </View>
-            )}
-          />
+
+          {loading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size={"small"} color={"black"} />
+            </View>
+          ) : (
+            <FlatList
+              data={filteredListData}
+              keyExtractor={(item) => item.id}
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                flexGrow: 1,
+                gap: spacing(16),
+                paddingTop: spacing(20),
+                paddingBottom: spacing(40),
+              }}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
+              renderItem={({ item }) => <ClientItem item={item} />}
+              ListEmptyComponent={() => (
+                <View style={styles.emptyContainer}>
+                  <Text
+                    style={[Styles.med12, { color: Colors.text.gray }]}
+                  >{`No client found.`}</Text>
+                </View>
+              )}
+            />
+          )}
         </View>
 
         <Pressable

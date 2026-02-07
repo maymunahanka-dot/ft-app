@@ -9,6 +9,7 @@ import { useDesignStore } from "@/src/stores/designSlice";
 import { Client } from "@/src/types/client";
 import { validateDesignForm } from "@/src/utils/formValidation";
 import { formatPrice, scale, scaleFontSize, spacing } from "@/src/utils/random";
+import { uploadImageToCloudinary } from "@/src/utils/uploadImageToCloudinary";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronDown, ChevronLeft, Upload } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
@@ -95,7 +96,12 @@ const CreateDesignScreen = () => {
   const handleCreateDesign = async () => {
     const { isValid, errors } = validateDesignForm(designDetails);
     setError(errors);
+    console.log("details", isValid, error, client);
     if (!isValid || !client) return;
+
+    const imageUrl = await uploadImageToCloudinary(designDetails.imageUrl);
+    console.log("image url", imageUrl);
+    if (!imageUrl) return;
 
     try {
       const priceNum =
@@ -106,13 +112,17 @@ const CreateDesignScreen = () => {
         price: priceNum,
         description: designDetails.description?.trim() || "",
         notes: designDetails.notes?.trim() || "",
-        imageUrl: designDetails.imageUrl?.trim() || "",
+        imageUrl,
         clientId: client,
       });
       router.back();
     } catch (err) {
       console.error("Error creating design", err);
     }
+  };
+
+  const handleBack = () => {
+    router.replace("/(tabs)/Designs");
   };
 
   return (
@@ -128,7 +138,7 @@ const CreateDesignScreen = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <ChevronLeft
               size={scale(20)}

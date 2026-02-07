@@ -217,6 +217,10 @@ const CreateInvoiceScreen = () => {
     }
   }, [foundClient]);
 
+  const handleBack = () => {
+    router.replace("/(tabs)/Invoices");
+  };
+
   return (
     <>
       <SafeAreaView
@@ -230,7 +234,7 @@ const CreateInvoiceScreen = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <ChevronLeft
               size={scale(20)}

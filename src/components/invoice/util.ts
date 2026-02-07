@@ -17,6 +17,10 @@ export const createAndShareInvoice = async (invoice: InvoiceData) => {
 export const generateInvoiceHTML = (data: InvoiceData) => {
   const subtotal = data.items.reduce((sum, i) => sum + i.qty * i.rate, 0);
 
+  const TAX_RATE = 7.5; // 7.5%
+  const taxAmount = (subtotal * TAX_RATE) / 100;
+  const total = subtotal + taxAmount;
+
   const formatMoney = (n: number) =>
     `${data.currency ?? "NGN"}${n.toLocaleString("en-NG", {
       minimumFractionDigits: 2,
@@ -128,6 +132,12 @@ padding-top: 30px
         padding: 6px 0;
       }
 
+      .summary-row.total-row {
+        border-top: 1px solid #ddd;
+        margin-top: 8px;
+        padding-top: 12px;
+      }
+
       .balance-box {
         margin-top: 20px;
         width: 95%;
@@ -214,13 +224,18 @@ padding-top: 30px
       </div>
 
       <div class="summary-row">
+        <span><b>Tax (${TAX_RATE}%)</b></span>
+        <span><strong>${formatMoney(taxAmount)}</strong></span>
+      </div>
+
+      <div class="summary-row total-row">
         <span><b>Total</b></span>
-        <span><strong>${formatMoney(subtotal)}</strong></span>
+        <span><strong>${formatMoney(total)}</strong></span>
       </div>
 
       <div class="balance-box">
         <span>Balance Due:</span>
-        <span><strong>${formatMoney(subtotal)}</strong></span>
+        <span><strong>${formatMoney(total)}</strong></span>
       </div>
     </div>
 

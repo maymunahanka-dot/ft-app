@@ -11,6 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import { Plus, Search } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -28,6 +29,7 @@ const DesignsScreen = () => {
 
   const [searchValue, setSearchValue] = useState("");
 
+  const loading = useDesignStore((state) => state.loading);
   const designs = useDesignStore((state) => state.designs);
   const fetchDesigns = useDesignStore((state) => state.getDesignsByTailor);
 
@@ -80,32 +82,44 @@ const DesignsScreen = () => {
             />
           </View>
 
-          <FlatList
-            data={filteredListData}
-            keyExtractor={(item) => item.id}
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              flexGrow: 1,
-              gap: spacing(16),
-              paddingTop: spacing(20),
-              paddingBottom: spacing(50),
-            }}
-            columnWrapperStyle={{
-              gap: spacing(16),
-            }}
-            numColumns={2}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <DesignItem item={item} style={{ width: undefined, flex: 1 }} />
-            )}
-            ListEmptyComponent={() => (
-              <View style={styles.emptyContainer}>
-                <Text
-                  style={[Styles.med12, { color: Colors.text.gray }]}
-                >{`No Design found.`}</Text>
-              </View>
-            )}
-          />
+          {loading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size={"small"} color={"black"} />
+            </View>
+          ) : (
+            <FlatList
+              data={filteredListData}
+              keyExtractor={(item) => item.id}
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                flexGrow: 1,
+                gap: spacing(16),
+                paddingTop: spacing(20),
+                paddingBottom: spacing(50),
+              }}
+              columnWrapperStyle={{
+                gap: spacing(16),
+              }}
+              numColumns={2}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <DesignItem item={item} style={{ width: undefined, flex: 1 }} />
+              )}
+              ListEmptyComponent={() => (
+                <View style={styles.emptyContainer}>
+                  <Text
+                    style={[Styles.med12, { color: Colors.text.gray }]}
+                  >{`No Design found.`}</Text>
+                </View>
+              )}
+            />
+          )}
         </View>
 
         <Pressable

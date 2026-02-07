@@ -95,6 +95,10 @@ const EditProfileScreen = () => {
     console.log("changed");
   }, [user]);
 
+  const handleBack = () => {
+    router.replace("/(tabs)/More");
+  };
+
   return (
     <SafeAreaView
       style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
@@ -107,7 +111,7 @@ const EditProfileScreen = () => {
             justifyContent: "center",
             alignItems: "center",
           }}
-          onPress={() => router.back()}
+          onPress={handleBack}
         >
           <ChevronLeft
             size={scale(20)}

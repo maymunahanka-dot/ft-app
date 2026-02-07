@@ -243,6 +243,10 @@ const CreateStockItemScreen = () => {
     }
   };
 
+  const handleBack = () => {
+    router.replace("/(tabs)/Inventory");
+  };
+
   return (
     <>
       <SafeAreaView
@@ -256,7 +260,7 @@ const CreateStockItemScreen = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <ChevronLeft
               size={scale(20)}

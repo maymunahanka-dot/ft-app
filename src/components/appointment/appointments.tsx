@@ -4,14 +4,20 @@ import { useAppointmentStore } from "@/src/stores/appointmentSlice";
 import { useUserStore } from "@/src/stores/userSlice";
 import { spacing } from "@/src/utils/random";
 import React, { useEffect } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import AppoinmentListItem from "./appoinmentListItem";
 
 const AppointmentsList = () => {
   const user = useUserStore((state) => state.user);
 
   const appointments = useAppointmentStore((state) => state.appointments);
-  //   const loading = useAppointmentStore((state) => state.loading);
+  const loading = useAppointmentStore((state) => state.loading);
   const fetchAppointments = useAppointmentStore(
     (state) => state.getAppointmentsByTailor,
   );
@@ -51,9 +57,21 @@ const AppointmentsList = () => {
       horizontal
       contentContainerStyle={styles.scrollContainer}
     >
-      {todaysAppointments.map((appt) => (
-        <AppoinmentListItem key={appt.id} item={appt} />
-      ))}
+      {loading ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <ActivityIndicator size={"small"} color={"black"} />
+        </View>
+      ) : (
+        todaysAppointments.map((appt) => (
+          <AppoinmentListItem key={appt.id} item={appt} />
+        ))
+      )}
     </ScrollView>
   );
 };

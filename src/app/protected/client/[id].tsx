@@ -480,11 +480,15 @@ const ClientDetailsScreen = () => {
     invoice: <InvoicesTab client={client} />,
   };
 
+  const handleBack = () => {
+    router.replace("/(tabs)/Clients");
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
       <View style={styles.container}>
         <View style={styles.rowHeader}>
-          <Pressable hitSlop={20} onPress={() => router.back()}>
+          <Pressable hitSlop={20} onPress={handleBack}>
             <ChevronLeft size={scale(20)} color={"black"} />
           </Pressable>
           <HapticTab

@@ -177,6 +177,10 @@ const OrderDetailScreen = () => {
     }
   };
 
+  const handleBack = () => {
+    router.replace("/(tabs)/Orders");
+  };
+
   return (
     <>
       <SafeAreaView
@@ -190,7 +194,7 @@ const OrderDetailScreen = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <ChevronLeft
               size={scale(20)}

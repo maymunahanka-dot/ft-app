@@ -66,6 +66,7 @@ export default function RootLayout() {
 
     const inForgetPassword =
       pathname.split("?")[0] === "/screen/forget-password";
+    // const inSubModal = pathname.split("?")[0] === "subscription-modal";
 
     const isInsideAuthArea = inTab || inProtected;
 
@@ -139,7 +140,7 @@ export default function RootLayout() {
             screenOptions={drawerOptions}
             drawerContent={(props) => <DrawerContent {...props} />}
             backBehavior="history"
-            initialRouteName={undefined}
+            initialRouteName={"index"}
           >
             <Drawer.Screen
               name="(auth)"

@@ -8,7 +8,7 @@ export const MoreSection = [
     title: "Profile",
     details: "Personal Details",
     onPress: () => {
-      router.push("/protected/more/edit-profile");
+      router.replace("/protected/more/edit-profile");
     },
   },
   {
@@ -16,7 +16,7 @@ export const MoreSection = [
     title: "Brand",
     details: "Business Information",
     onPress: () => {
-      router.push("/protected/more/brand-details");
+      router.replace("/protected/more/brand-details");
     },
   },
   {
@@ -24,7 +24,7 @@ export const MoreSection = [
     title: "Security",
     details: "Password & authentication",
     onPress: () => {
-      router.push("/protected/more/security-details");
+      router.replace("/protected/more/security-details");
     },
   },
   {

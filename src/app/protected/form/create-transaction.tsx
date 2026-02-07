@@ -230,10 +230,14 @@ const CreateTransactionScreen = () => {
         await saveExpense(payload as Expense);
       }
 
-      router.back();
+      handleBack();
     } catch (err) {
       console.log("Error saving transaction:", err);
     }
+  };
+
+  const handleBack = () => {
+    router.replace("/(tabs)/Finance");
   };
 
   return (
@@ -249,7 +253,7 @@ const CreateTransactionScreen = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <ChevronLeft
               size={scale(20)}

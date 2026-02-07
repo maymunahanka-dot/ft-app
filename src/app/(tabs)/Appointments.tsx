@@ -11,6 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import { Plus, Search } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -28,6 +29,7 @@ const AppointmentsScreen = () => {
 
   const [searchValue, setSearchValue] = useState("");
 
+  const loading = useAppointmentStore((state) => state.loading);
   const appointments = useAppointmentStore((state) => state.appointments);
   const fetchAppointments = useAppointmentStore(
     (state) => state.getAppointmentsByTailor,
@@ -82,26 +84,39 @@ const AppointmentsScreen = () => {
               style={styles.input}
             />
           </View>
-          <FlatList
-            data={filteredListData}
-            keyExtractor={(item) => item.id}
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              flexGrow: 1,
-              gap: spacing(16),
-              paddingTop: spacing(20),
-              paddingBottom: spacing(50),
-            }}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => <ClientApptItem item={item} />}
-            ListEmptyComponent={() => (
-              <View style={styles.emptyContainer}>
-                <Text
-                  style={[Styles.med12, { color: Colors.text.gray }]}
-                >{`No Appointment found.`}</Text>
-              </View>
-            )}
-          />
+
+          {loading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size={"small"} color={"black"} />
+            </View>
+          ) : (
+            <FlatList
+              data={filteredListData}
+              keyExtractor={(item) => item.id}
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                flexGrow: 1,
+                gap: spacing(16),
+                paddingTop: spacing(20),
+                paddingBottom: spacing(50),
+              }}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => <ClientApptItem item={item} />}
+              ListEmptyComponent={() => (
+                <View style={styles.emptyContainer}>
+                  <Text
+                    style={[Styles.med12, { color: Colors.text.gray }]}
+                  >{`No Appointment found.`}</Text>
+                </View>
+              )}
+            />
+          )}
         </View>
 
         <Pressable

@@ -216,6 +216,10 @@ const CreateAppoinmentScreen = () => {
     }
   };
 
+  const handleBack = () => {
+    router.replace("/(tabs)/Appointments");
+  };
+
   return (
     <>
       <SafeAreaView
@@ -229,7 +233,7 @@ const CreateAppoinmentScreen = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={() => router.back()}
+            onPress={handleBack}
           >
             <ChevronLeft
               size={scale(20)}

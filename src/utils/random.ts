@@ -458,7 +458,7 @@ export const ShowToastMessage = (option: ToastOptions) => {
       },
     },
     ...option,
-    title: FormatFirebaseError(option.title),
+    title: option.title,
   });
 };
 

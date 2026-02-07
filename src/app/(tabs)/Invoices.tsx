@@ -11,6 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import { Plus, Search } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -24,6 +25,7 @@ const InvoicesScreen = () => {
   const [searchValue, setSearchValue] = useState("");
 
   const invoices = useInvoiceStore((state) => state.invoices);
+  const loading = useInvoiceStore((state) => state.loading);
   const fetchInvoices = useInvoiceStore((state) => state.getInvoicesByTailor);
 
   useEffect(() => {
@@ -75,26 +77,38 @@ const InvoicesScreen = () => {
             />
           </View>
 
-          <FlatList
-            data={filteredListData}
-            keyExtractor={(item) => item.id}
-            style={{ flex: 1 }}
-            contentContainerStyle={{
-              flexGrow: 1,
-              gap: spacing(16),
-              paddingTop: spacing(20),
-              paddingBottom: spacing(40),
-            }}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => <InvoiceItem invoice={item} />}
-            ListEmptyComponent={() => (
-              <View style={styles.emptyContainer}>
-                <Text
-                  style={[Styles.med12, { color: Colors.text.gray }]}
-                >{`No invoice found.`}</Text>
-              </View>
-            )}
-          />
+          {loading ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <ActivityIndicator size={"small"} color={"black"} />
+            </View>
+          ) : (
+            <FlatList
+              data={filteredListData}
+              keyExtractor={(item) => item.id}
+              style={{ flex: 1 }}
+              contentContainerStyle={{
+                flexGrow: 1,
+                gap: spacing(16),
+                paddingTop: spacing(20),
+                paddingBottom: spacing(40),
+              }}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => <InvoiceItem invoice={item} />}
+              ListEmptyComponent={() => (
+                <View style={styles.emptyContainer}>
+                  <Text
+                    style={[Styles.med12, { color: Colors.text.gray }]}
+                  >{`No invoice found.`}</Text>
+                </View>
+              )}
+            />
+          )}
         </View>
 
         <Pressable
