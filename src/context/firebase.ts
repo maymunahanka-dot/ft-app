@@ -1,9 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getApps, initializeApp } from "firebase/app";
-// @ts-ignore: getReactNativePersistence exists in the RN bundle
-// but is often missing from public TypeScript definitions.
-import { getReactNativePersistence, initializeAuth } from "firebase/auth";
+import {
+  getAuth,
+  // @ts-expect-error - the function exists but is not typed in the Firebase SDK
+  getReactNativePersistence,
+  initializeAuth,
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { Platform } from "react-native";
 
 // import 'react-native-url-polyfill/auto';
 
@@ -36,9 +40,12 @@ if (getApps().length === 0) {
 
 // Initialize Firebase services
 // const auth = getAuth(app);
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+const auth =
+  Platform.OS === "web"
+    ? getAuth(app)
+    : initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      });
 const db = getFirestore(app);
 
 // For development, you can uncomment these lines to use emulators
