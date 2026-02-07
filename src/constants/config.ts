@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Building2, Info, Shield, User } from "lucide-react-native";
+import { Building2, Info, Shield, User, Users } from "lucide-react-native";
 import { Linking } from "react-native";
 
 export const MoreSection = [
@@ -17,6 +17,14 @@ export const MoreSection = [
     details: "Business Information",
     onPress: () => {
       router.replace("/protected/more/brand-details");
+    },
+  },
+  {
+    icon: Users,
+    title: "Team",
+    details: "Manage team members",
+    onPress: () => {
+      Linking.openURL("https://www.fashiontally.co/settings?tab=admins");
     },
   },
   {
