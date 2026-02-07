@@ -21,7 +21,7 @@ const ClientItem = ({ item }: Props) => {
     <Pressable
       style={styles.container}
       onPress={() => {
-        router.push({
+        router.replace({
           pathname: "/protected/client/[id]",
           params: {
             id: item.id,

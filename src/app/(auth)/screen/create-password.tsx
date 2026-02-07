@@ -95,7 +95,7 @@ const CreatePasswordScreen = () => {
       Alert.alert(
         "Validation Error",
         "Please fix the errors in the form before continuing.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
     }
   };
@@ -137,7 +137,7 @@ const CreatePasswordScreen = () => {
                     textDecorationLine: "underline",
                   },
                 ]}
-                onPress={() => router.push("/sign-in")}
+                onPress={() => router.replace("/sign-in")}
               >
                 Sign in
               </Text>

@@ -276,7 +276,7 @@ const CreateOrderScreen = () => {
       };
 
       await createOrder(payload);
-      router.back();
+      handleBack();
     } catch (error) {
       console.error("Error creating order", error);
     }

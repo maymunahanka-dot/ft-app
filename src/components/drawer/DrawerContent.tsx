@@ -92,7 +92,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
     <View style={[styles.container, { paddingTop: top }]}>
       <View style={styles.header}>
         <PressableScale
-          onPress={() => router.push("/(tabs)/Dashboard")}
+          onPress={() => router.replace("/(tabs)/Dashboard")}
           style={styles.gapRow}
         >
           <Image source={require("@/assets/images/fashion_tally_logo.png")} />
@@ -134,7 +134,11 @@ export function DrawerContent(props: DrawerContentComponentProps) {
         </PressablesGroup>
       </View>
 
-      <HapticTab style={styles.logOutBtn} hitSlop={20} onPress={signOut}>
+      <HapticTab
+        style={[styles.logOutBtn, { marginBottom: bottom + 10 }]}
+        hitSlop={20}
+        onPress={signOut}
+      >
         {loading ? (
           <ActivityIndicator size={scale(15)} color={"red"} />
         ) : (
@@ -203,7 +207,7 @@ const styles = StyleSheet.create({
   },
   logOutBtn: {
     paddingHorizontal: spacing(20),
-    marginBottom: spacing(50),
+    // marginBottom: spacing(30),
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",

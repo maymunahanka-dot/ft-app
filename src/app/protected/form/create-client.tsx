@@ -112,7 +112,7 @@ const CreateClientScreen = () => {
       };
 
       await saveClient(payload);
-      router.back();
+      handleBack();
     } catch (error) {
       console.error("Error saving client", error);
     }

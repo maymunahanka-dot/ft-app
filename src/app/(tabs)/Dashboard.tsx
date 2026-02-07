@@ -10,6 +10,7 @@ import { Colors } from "@/src/constants/theme";
 import { useTimeSince } from "@/src/hooks/timeSince";
 import { useFinanceStore } from "@/src/stores/financeSlice";
 import { useOrderStore } from "@/src/stores/orderSlice";
+import { CalculateMonthlyIncrement } from "@/src/types/finance";
 import {
   GetAverageOrderValue,
   GetOrderCompletionRate,
@@ -42,6 +43,9 @@ const DashboardScreen = () => {
   const timeAgo = useTimeSince();
 
   const income = useFinanceStore((state) => state.income);
+  const increment = CalculateMonthlyIncrement(income);
+
+  const isNegative = increment < 0;
 
   const orders = useOrderStore((state) => state.orders);
   const orderCompletionRate = GetOrderCompletionRate(orders);
@@ -75,7 +79,7 @@ const DashboardScreen = () => {
         rightIcon={() => (
           <HapticTab
             hitSlop={20}
-            onPress={() => router.push("/(tabs)/Appointments")}
+            onPress={() => router.replace("/protected/form/create-appointment")}
           >
             <CalendarClock size={scale(24)} color="white" />
           </HapticTab>
@@ -96,18 +100,18 @@ const DashboardScreen = () => {
               />
               <ActionItem
                 label="New Client"
-                onPress={() => router.push("/protected/form/create-client")}
+                onPress={() => router.replace("/protected/form/create-client")}
                 icon={UserRoundPlus}
               />
               <ActionItem
                 label="Add Inventory"
-                onPress={() => router.push("/protected/form/create-stock")}
+                onPress={() => router.replace("/protected/form/create-stock")}
                 icon={Plus}
               />
               {/* <ActionItem
                 label="CRM"
                 onPress={() => {
-                  router.push("/protected/bg/CRM");
+                  router.replace("/protected/bg/CRM");
                 }}
                 icon={UserStar}
               /> */}
@@ -156,9 +160,10 @@ const DashboardScreen = () => {
               size={GraphValue}
             />
             <StatCircle
-              title="Client Satisfaction"
-              value={75}
+              title="Monthly Revenue"
+              value={increment}
               size={GraphValue}
+              colorText={isNegative ? "red" : "green"}
             />
             <StatCircle
               title="Ave. Order Value"

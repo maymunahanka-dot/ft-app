@@ -1,3 +1,4 @@
+import { useUserStore } from "@/src/stores/userSlice";
 import { InvoiceData } from "@/src/types/Invoice";
 
 import * as Print from "expo-print";
@@ -15,6 +16,8 @@ export const createAndShareInvoice = async (invoice: InvoiceData) => {
 };
 
 export const generateInvoiceHTML = (data: InvoiceData) => {
+  const userLogo = useUserStore.getState().user?.logo;
+
   const subtotal = data.items.reduce((sum, i) => sum + i.qty * i.rate, 0);
 
   const TAX_RATE = 7.5; // 7.5%
@@ -160,7 +163,16 @@ padding-top: 30px
 <!-- HEADER -->
 <div class="row">
   <div class="header-left">
-    ${data.logoUrl ? `<img src="${data.logoUrl}" class="logo" />` : ""}
+    ${
+      userLogo
+        ? `<img 
+      src="${userLogo}" 
+      class="logo" 
+      alt="User Logo" 
+      style="max-width: 150px; height: auto; object-fit: contain;" 
+    />`
+        : ""
+    }
     <div class="business-name padding-top">${data.businessName}</div>
     <div class="business-address">${data.businessAddress}</div>
   </div>

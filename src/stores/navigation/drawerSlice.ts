@@ -1,6 +1,7 @@
 import { Href } from "expo-router";
 import {
   Box,
+  Calendar,
   ChartSpline,
   FileOutput,
   LucideIcon,
@@ -60,12 +61,12 @@ const drawerItems: DrawerItem[] = [
     route: "/(tabs)/Invoices",
     icon: FileOutput,
   },
-  // {
-  //   id: "7",
-  //   name: "Appointments",
-  //   route: "/",
-  //   icon: Calendar,
-  // },
+  {
+    id: "7",
+    name: "Appointments",
+    route: "/(tabs)/Appointments",
+    icon: Calendar,
+  },
   {
     id: "8",
     name: "Finances",

@@ -36,3 +36,112 @@ export const MoreSection = [
     },
   },
 ];
+
+export const categoryList = [
+  {
+    label: "Fabric",
+    value: "fabric",
+  },
+  {
+    label: "Thread",
+    value: "thread",
+  },
+  {
+    label: "Button",
+    value: "button",
+  },
+  {
+    label: "Zipper",
+    value: "zipper",
+  },
+  {
+    label: "Lining",
+    value: "lining",
+  },
+  {
+    label: "Interfacing",
+    value: "interfacing",
+  },
+  {
+    label: "Elastic",
+    value: "elastic",
+  },
+  {
+    label: "Trim",
+    value: "trim",
+  },
+  {
+    label: "Accessory",
+    value: "accessory",
+  },
+  {
+    label: "Tool",
+    value: "tool",
+  },
+  {
+    label: "Other",
+    value: "other",
+  },
+];
+
+export const statusList = [
+  {
+    label: "In Stock",
+    value: "in-stock",
+  },
+  {
+    label: "Low Stock",
+    value: "low-stock",
+  },
+  {
+    label: "Out of Stock",
+    value: "out-of-stock",
+  },
+  {
+    label: "Discontinued",
+    value: "discontinued",
+  },
+];
+
+export const unitList = [
+  {
+    label: "Yards",
+    value: "yards",
+  },
+  {
+    label: "Meters",
+    value: "meters",
+  },
+  {
+    label: "Pieces",
+    value: "pieces",
+  },
+  {
+    label: "Spools",
+    value: "spools",
+  },
+  {
+    label: "Packets",
+    value: "packets",
+  },
+  {
+    label: "Rolls",
+    value: "rolls",
+  },
+  {
+    label: "Sets",
+    value: "sets",
+  },
+  {
+    label: "Kilograms",
+    value: "kg",
+  },
+  {
+    label: "Grams",
+    value: "grams",
+  },
+  {
+    label: "Other",
+    value: "other",
+  },
+];

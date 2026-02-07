@@ -95,7 +95,7 @@ const RowBoxes = () => {
             Total Income
           </Text>
           <Text style={styles.valueBox}>
-            {FormatCurrency(summary.monthlyIncome)}
+            {FormatCurrency(summary.totalIncome)}
           </Text>
         </GlassCard>
       </View>
@@ -105,7 +105,7 @@ const RowBoxes = () => {
             Total Expenses
           </Text>
           <Text style={styles.valueBox}>
-            {FormatCurrency(summary.monthlyExpenses)}
+            {FormatCurrency(summary.totalExpenses)}
           </Text>
         </GlassCard>
 
@@ -148,7 +148,9 @@ const FinanceScreen = () => {
         >
           <View style={styles.content}>
             <Pressable
-              onPress={() => router.push("/protected/form/create-transaction")}
+              onPress={() =>
+                router.replace("/protected/form/create-transaction")
+              }
               style={styles.addBtn}
             >
               <Plus size={scale(16)} color={"white"} />

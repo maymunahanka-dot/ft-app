@@ -1,7 +1,12 @@
 import * as Burnt from "burnt";
 import { ToastOptions } from "burnt/build/types";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { Dimensions, PixelRatio, Platform } from "react-native";
 import { ClientMeasurements } from "../types/client";
+
+// Extend dayjs with the parsing plugin
+dayjs.extend(customParseFormat);
 
 // Get device dimensions
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -359,12 +364,51 @@ export const GetCurrentMonthYear = (): string => {
 export const GetDetailedDate = (date: Date | string): string => {
   const now = new Date(date);
 
+  console.log("date detailed date", date);
+
   // We use 'en-GB' or 'en-US' for English month names
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(now);
+};
+
+export const ConvertToISO = (dateString: string, form?: string): string => {
+  // Parse using the specific format of your input
+  const date = dayjs(dateString, "DD MMM YYYY");
+
+  if (!date.isValid()) {
+    console.error("Invalid date provided:" + form, dateString);
+    return new Date().toISOString(); // Fallback to now
+  }
+
+  return date.toISOString();
+};
+
+export const normalizeToISODateTime = (
+  dateISO: string,
+  timeOrISO: string,
+): string => {
+  if (!timeOrISO) return new Date(dateISO).toISOString();
+
+  // NEW FORMAT → already ISO
+  if (timeOrISO.includes("T")) {
+    const d = new Date(timeOrISO);
+    if (!isNaN(d.getTime())) return d.toISOString();
+  }
+
+  // LEGACY FORMAT → "HH:mm"
+  const [hours, minutes] = timeOrISO.split(":").map(Number);
+
+  const base = new Date(dateISO);
+
+  base.setHours(hours || 0);
+  base.setMinutes(minutes || 0);
+  base.setSeconds(0);
+  base.setMilliseconds(0);
+
+  return base.toISOString();
 };
 
 export const GetDetailedTime = (date: Date | string): string => {

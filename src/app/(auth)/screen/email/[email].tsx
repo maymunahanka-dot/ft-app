@@ -130,7 +130,7 @@ const OtpVerificationScreen = () => {
                     textDecorationLine: "underline",
                   },
                 ]}
-                onPress={() => router.push("/sign-in")}
+                onPress={() => router.replace("/sign-in")}
               >
                 Sign in
               </Text>

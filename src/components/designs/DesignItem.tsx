@@ -4,9 +4,12 @@ import {
   CapitalizeFirstName,
   FormatCurrency,
   FormatDateToYYYYMMDD,
+  scale,
   scaleFontSize,
   spacing,
 } from "@/src/utils/random";
+import { router } from "expo-router";
+import { ChevronRight } from "lucide-react-native";
 import React from "react";
 import {
   Image,
@@ -27,7 +30,17 @@ type Props = {
 
 const DesignItem: React.FC<Props> = ({ item, style }) => {
   return (
-    <HapticTab style={[styles.container, style]}>
+    <HapticTab
+      style={[styles.container, style]}
+      onPress={() =>
+        router.replace({
+          pathname: "/protected/design/[id]",
+          params: {
+            id: item.id,
+          },
+        })
+      }
+    >
       <Image source={{ uri: item.imageUrl }} style={styles.image} />
       <View style={styles.colText}>
         <Text style={styles.reg14}>{CapitalizeFirstName(item.name)}</Text>
@@ -38,7 +51,7 @@ const DesignItem: React.FC<Props> = ({ item, style }) => {
           <Text style={[styles.reg14, { color: Colors.primary }]}>
             {FormatCurrency(item.price)}
           </Text>
-          {/* <ChevronRight size={scale(10)} color={"#99A1AF"} height={16} /> */}
+          <ChevronRight size={scale(10)} color={"#99A1AF"} height={16} />
         </View>
       </View>
     </HapticTab>

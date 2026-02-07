@@ -7,6 +7,7 @@ import {
   orderBy,
   query,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
@@ -20,6 +21,10 @@ interface InventoryState {
   saveInventoryItem(item: InventoryItem): Promise<void>;
   getInventoryItemById(id: string): Promise<InventoryItem | null>;
   getInventoryByTailor(tailorId: string): Promise<void>;
+  editInventoryItem(
+    itemId: string,
+    updates: Partial<InventoryItem>,
+  ): Promise<void>;
   deleteInventoryItem(itemId: string): Promise<void>;
 }
 
@@ -100,6 +105,42 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       console.error("Error getting inventory:", error);
       ShowToastMessage({
         title: error,
+        preset: "error",
+        haptic: "error",
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  async editInventoryItem(itemId, updates) {
+    set({ loading: true });
+    try {
+      const itemRef = doc(db, "fashiontally_inventories", itemId);
+
+      const updateData = {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(itemRef, updateData);
+
+      set((state) => ({
+        stocks: state.stocks.map((item) =>
+          item.id === itemId ? { ...item, ...updateData } : item,
+        ),
+      }));
+
+      ShowToastMessage({
+        title: "Inventory updated successfully",
+        preset: "done",
+        haptic: "success",
+      });
+    } catch (error: any) {
+      console.error("Error updating inventory item:", error);
+      ShowToastMessage({
+        title: "Update failed",
+        message: error.message,
         preset: "error",
         haptic: "error",
       });

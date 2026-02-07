@@ -19,7 +19,13 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
-import { Calendar, ChevronDown, ChevronLeft, Plus } from "lucide-react-native";
+import {
+  Calendar,
+  ChevronDown,
+  ChevronLeft,
+  Plus,
+  X,
+} from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -77,11 +83,17 @@ const CreateInvoiceScreen = () => {
   const [itemErrors, setItemErrors] = useState<Record<number, string>>({});
 
   const totals = useMemo(() => {
-    const subTotal = invoiceData.items.reduce(
-      (sum, i) => sum + i.qty * i.rate,
+    const sub = invoiceData.items.reduce(
+      (sum, i) => sum + Number(i.qty) * Number(i.rate),
       0,
     );
-    return { subTotal, tax: 0, total: subTotal };
+    const t = (7.5 / 100) * sub;
+
+    return {
+      subTotal: sub,
+      tax: t,
+      total: sub + t,
+    };
   }, [invoiceData.items]);
 
   const handleDetailsChange = (
@@ -97,13 +109,23 @@ const CreateInvoiceScreen = () => {
   const handleAddItem = () => {
     setInvoiceData((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", qty: 0, rate: 0 }],
+      items: [...prev.items, { name: "", qty: 1, rate: 0 }],
     }));
     setItemErrors((prev) => {
       const next = { ...prev };
       delete next[invoiceData.items.length];
       return next;
     });
+  };
+
+  const removeItem = (index: number) => {
+    if (invoiceData.items.length <= 1) {
+      return;
+    }
+    setInvoiceData((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
   };
 
   const handleItemChange = (
@@ -199,7 +221,7 @@ const CreateInvoiceScreen = () => {
         userEmail: user.email,
         clientId: selectedClient.id,
       });
-      router.back();
+      handleBack();
     } catch (err) {
       console.error("Error creating invoice", err);
     }
@@ -410,6 +432,30 @@ const CreateInvoiceScreen = () => {
                 {invoiceData.items.map((item, index) => {
                   return (
                     <View style={{ gap: spacing(4) }} key={index}>
+                      {invoiceData.items.length! > 1 && (
+                        <View
+                          style={[
+                            styles.gapRow,
+                            {
+                              gap: spacing(15),
+                              justifyContent: "center",
+                              paddingVertical: spacing(10),
+                            },
+                          ]}
+                        >
+                          <Text style={Styles.label}>Item {index + 1}</Text>
+                          <HapticTab
+                            style={styles.removeBtn}
+                            onPress={() => removeItem(index)}
+                          >
+                            <X
+                              size={scale(10)}
+                              color={"white"}
+                              strokeWidth={3}
+                            />
+                          </HapticTab>
+                        </View>
+                      )}
                       <TextInput
                         value={item.name}
                         onChangeText={(text) =>
@@ -641,6 +687,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
     gap: spacing(14),
+  },
+  removeBtn: {
+    backgroundColor: "#E7000B",
+    width: 18,
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 100,
   },
   red: {
     color: "rgba(251, 44, 54, 1)",

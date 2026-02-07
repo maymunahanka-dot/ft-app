@@ -31,7 +31,7 @@ const SelectFilterModal = ({
 
   const handleClosePress = useCallback(() => {
     bottomSheetRef.current?.dismiss();
-    setTimeout(() => onClose(), 2000);
+    setTimeout(() => onClose(), 200);
   }, [onClose]);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ const SelectFilterModal = ({
     <BottomSheetModal
       ref={bottomSheetRef}
       snapPoints={snapPoints}
-      enableDynamicSizing={false}
+      enableDynamicSizing={true}
       enablePanDownToClose={true}
       onDismiss={handleClosePress}
       backdropComponent={({ style }) => (

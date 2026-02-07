@@ -53,7 +53,7 @@ export const useSubscriptionGuard = ({
 
       // Handle redirect
       if (!result.isSubscribed && autoRedirect) {
-        router.push({
+        router.replace({
           pathname: "/protected/subscription-modal",
           params: {
             email: email || "",
@@ -76,6 +76,7 @@ export const useSubscriptionGuard = ({
   }, [email, uuid, paymentUrl, autoRedirect]);
 
   useEffect(() => {
+    if (__DEV__) return;
     if (hasCheckedRef.current || !hasUser) return;
 
     hasCheckedRef.current = true;

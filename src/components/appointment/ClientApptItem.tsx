@@ -8,9 +8,10 @@ import {
   scale,
   spacing,
 } from "@/src/utils/random";
+import { router } from "expo-router";
 import { Calendar, Clock, Info, Phone, User } from "lucide-react-native";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const getTimeFromISO = (value?: string | Date): string => {
   if (!value) return "";
@@ -45,7 +46,17 @@ const ClientApptItem = ({ item }: Props) => {
       : "rgba(239, 246, 255, 1)";
 
   return (
-    <View style={styles.apptContainer}>
+    <Pressable
+      style={styles.apptContainer}
+      onPress={() => {
+        router.replace({
+          pathname: "/protected/appointment/[id]",
+          params: {
+            id: item.id,
+          },
+        });
+      }}
+    >
       <View style={[styles.row, { alignItems: "flex-start" }]}>
         <View
           style={[
@@ -134,7 +145,7 @@ const ClientApptItem = ({ item }: Props) => {
           </Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 };
 

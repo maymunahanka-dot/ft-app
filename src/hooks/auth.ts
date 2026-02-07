@@ -13,6 +13,7 @@ import { auth, db } from "../context/firebase";
 import { useUserStore } from "../stores/userSlice";
 import { RegisterUserData } from "../types/auth";
 import { ShowToastMessage } from "../utils/random";
+import { uploadImageToCloudinary } from "../utils/uploadImageToCloudinary";
 
 export function useAuth() {
   //   const [user, setUser] = useState<User | null>(null);
@@ -101,7 +102,15 @@ export function useAuth() {
   const signUp = async (userDataInput: RegisterUserData, password: string) => {
     setLoading(true);
     try {
+      const data = userDataInput;
       const userEmail = userDataInput.email.trim();
+
+      if (userDataInput.logo) {
+        const imageUrl = await uploadImageToCloudinary(userDataInput.logo);
+        console.log("image url", imageUrl);
+        if (!imageUrl) return;
+        data.logo = imageUrl;
+      }
 
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -112,7 +121,7 @@ export function useAuth() {
 
       if (newUser) {
         const userDocRef = doc(db, "fashiontally_users", newUser.uid);
-        await setDoc(userDocRef, userDataInput);
+        await setDoc(userDocRef, data);
       } else {
         console.log("user registration failed");
         // throw new Error('User registration failed, user not created.');

@@ -1,6 +1,6 @@
 import { scaleFontSize } from "@/src/utils/random";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ColorValue, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 
 interface StatCircleProps {
@@ -8,6 +8,7 @@ interface StatCircleProps {
   value: number; // 0 - 100
   isCurrency?: boolean;
   size?: number;
+  colorText?: ColorValue;
   strokeWidth?: number;
 }
 
@@ -17,6 +18,7 @@ const StatCircle: React.FC<StatCircleProps> = ({
   isCurrency = false,
   size = 160,
   strokeWidth = 16,
+  colorText,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const fullCircumference = 2 * Math.PI * radius;
@@ -64,7 +66,7 @@ const StatCircle: React.FC<StatCircleProps> = ({
       </Svg>
 
       <View style={styles.textWrapper}>
-        <Text style={styles.value}>
+        <Text style={[styles.value, { color: colorText }]}>
           {isCurrency ? `${value.toLocaleString()}` : `${value}%`}
         </Text>
         <Text style={styles.title}>{title}</Text>

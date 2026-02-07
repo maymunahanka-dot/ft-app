@@ -19,6 +19,14 @@ const firebaseConfig = {
   messagingSenderId: "998635995178",
   appId: "1:998635995178:web:a70eaaf8d4f9166d1ec353",
 };
+// const firebaseConfig = {
+//   projectId: "fashiontallycloud",
+//   appId: "1:203645598940:web:1c52d0a8f9a27c1c704819",
+//   storageBucket: "fashiontallycloud.firebasestorage.app",
+//   authDomain: "fashiontallycloud.firebaseapp.com",
+//   messagingSenderId: "203645598940",
+//   measurementId: "G-W9HLR3B4CM",
+// };
 
 // const firebaseConfig = {
 //   apiKey: "AIzaSyBcl7hy63ZNw3mXiJTrL7EoWqdy44eWzHk",

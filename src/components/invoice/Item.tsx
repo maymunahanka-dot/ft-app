@@ -8,7 +8,7 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { router } from "expo-router";
-import { Eye, FileText, Trash2 } from "lucide-react-native";
+import { Eye, FileText, Pencil, Trash2 } from "lucide-react-native";
 import React from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
 import { HapticTab } from "../haptic-tab";
@@ -70,9 +70,24 @@ const InvoiceItem = ({ invoice }: Props) => {
 
       <View style={styles.buttons}>
         <HapticTab
+          hitSlop={20}
+          style={[styles.btn, { backgroundColor: Colors.inputBorder }]}
+          onPress={() => {
+            router.replace({
+              pathname: "/protected/invoice/[id]",
+              params: {
+                id: invoice.id,
+              },
+            });
+          }}
+        >
+          <Pencil size={scale(12)} color={"rgba(74, 85, 101, 1)"} />
+          <Text style={[styles.reg14, { color: "black" }]}>Edit</Text>
+        </HapticTab>
+        <HapticTab
           style={[styles.btn]}
           onPress={() =>
-            router.push({
+            router.replace({
               pathname: "/protected/invoice-preview",
               params: {
                 invoiceId: invoice.id,

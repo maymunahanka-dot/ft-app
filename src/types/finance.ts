@@ -46,6 +46,48 @@ export type Income = {
   updatedAt: string;
 };
 
+export const CalculateMonthlyIncrement = (income: Income[]) => {
+  if (!income?.length) return 0;
+
+  const now = new Date();
+
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  const lastMonthDate = new Date(currentYear, currentMonth - 1);
+  const lastMonth = lastMonthDate.getMonth();
+  const lastYear = lastMonthDate.getFullYear();
+
+  let currentTotal = 0;
+  let lastTotal = 0;
+
+  for (const item of income) {
+    const d = new Date(item.date);
+
+    const m = d.getMonth();
+    const y = d.getFullYear();
+
+    if (m === currentMonth && y === currentYear) {
+      currentTotal += item.amount;
+    }
+
+    if (m === lastMonth && y === lastYear) {
+      lastTotal += item.amount;
+    }
+  }
+
+  // avoid divide by zero
+  if (lastTotal === 0 && currentTotal === 0) return 0;
+  if (lastTotal === 0) return 100;
+
+  let percent = ((currentTotal - lastTotal) / lastTotal) * 100;
+
+  // clamp
+  percent = Math.max(-100, Math.min(100, percent));
+
+  return Number(percent.toFixed(2));
+};
+
 /**
  * Calculates the raw percentage change in income between the current and previous month.
  * @param incomeList - Array of income objects

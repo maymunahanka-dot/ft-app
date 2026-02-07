@@ -283,7 +283,7 @@ const DesignsTab = ({ client }: TabProps) => {
         <HapticTab
           style={styles.rowBtn}
           onPress={() => {
-            router.push({
+            router.replace({
               pathname: "/protected/form/create-design",
               params: { clientId: client?.id ?? "" },
             });
@@ -315,7 +315,7 @@ const OrdersTab = ({ client }: TabProps) => {
         <HapticTab
           style={styles.rowBtn}
           onPress={() => {
-            router.push({
+            router.replace({
               pathname: "/protected/form/create-order",
               params: { clientId: client?.id ?? "" },
             });
@@ -415,7 +415,7 @@ const InvoicesTab = ({ client }: TabProps) => {
         <HapticTab
           style={styles.rowBtn}
           onPress={() =>
-            router.push({
+            router.replace({
               pathname: "/protected/form/create-invoice",
               params: { clientId: client?.id ?? "" },
             })
@@ -494,7 +494,7 @@ const ClientDetailsScreen = () => {
           <HapticTab
             style={styles.gapRow}
             onPress={() => {
-              router.push({
+              router.replace({
                 pathname: "/protected/clientAppt/[phone]",
                 params: {
                   phone: client?.phone ?? "",

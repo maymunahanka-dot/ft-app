@@ -6,6 +6,7 @@ import {
   orderBy,
   query,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
@@ -23,6 +24,7 @@ interface InvoiceState {
     },
   ): Promise<void>;
   getInvoicesByTailor(email: string): Promise<void>;
+  editInvoice(itemId: string, updates: Partial<Invoice>): Promise<void>;
   deleteInvoice(invoiceId: string): Promise<void>;
 }
 
@@ -81,6 +83,42 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
       // throw new Error("Failed to get invoices");
       ShowToastMessage({
         title: error,
+        preset: "error",
+        haptic: "error",
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  async editInvoice(itemId, updates) {
+    set({ loading: true });
+    try {
+      const itemRef = doc(db, "fashiontally_invoices", itemId);
+
+      const updateData = {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(itemRef, updateData);
+
+      set((state) => ({
+        invoices: state.invoices.map((item) =>
+          item.id === itemId ? { ...item, ...updateData } : item,
+        ),
+      }));
+
+      ShowToastMessage({
+        title: "Invoice updated successfully",
+        preset: "done",
+        haptic: "success",
+      });
+    } catch (error: any) {
+      console.error("Error updating Invoice item:", error);
+      ShowToastMessage({
+        title: "Update failed",
+        message: error.message,
         preset: "error",
         haptic: "error",
       });

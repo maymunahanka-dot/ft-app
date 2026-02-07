@@ -29,7 +29,7 @@ const RowBoxes = () => {
               {GetInitials(
                 user?.storeName
                   ? user?.storeName
-                  : user?.name ?? "Fashion House"
+                  : (user?.name ?? "Fashion House"),
               )}
             </Text>
           </View>
@@ -39,7 +39,7 @@ const RowBoxes = () => {
               {CapitalizeFirstName(
                 user?.storeName
                   ? user?.storeName
-                  : user?.name ?? "Fashion House"
+                  : (user?.name ?? "Fashion House"),
               )}
             </Text>
             <Text style={[Styles.reg14, { color: "white" }]}>
@@ -82,11 +82,12 @@ const MoreScreen = () => {
       edges={["bottom"]}
     >
       <BGScreenBG
-        title=""
+        title="More"
         rightIcon={() => <View style={{}}></View>}
         headerChildren={RowBoxes}
-        paddingVertical={10}
-        height={330}
+        paddingVertical={50}
+        height={400}
+        drawer
       >
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}

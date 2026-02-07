@@ -32,7 +32,7 @@ const TransactionItem = ({ item }: Props) => {
     <Pressable
       style={[styles.container]}
       onPress={() =>
-        router.push({
+        router.replace({
           pathname: "/protected/transaction/[id]",
           params: {
             id: item.id,

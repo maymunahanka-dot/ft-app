@@ -166,12 +166,12 @@ const OrderDetailScreen = () => {
 
   const handleOrderUpdate = async () => {
     if (order.status === orderStatus) {
-      router.back();
+      handleBack();
       return;
     }
     try {
       await updateOrderStatus(order.id, orderStatus);
-      router.back();
+      handleBack();
     } catch (error) {
       console.error("error handling order update", error);
     }

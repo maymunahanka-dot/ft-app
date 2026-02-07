@@ -210,7 +210,7 @@ const CreateAppoinmentScreen = () => {
         ...data,
         updatedAt: new Date().toISOString(),
       });
-      router.back();
+      handleBack();
     } catch (err) {
       console.error("Failed to create appointment", err);
     }

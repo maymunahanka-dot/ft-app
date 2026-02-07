@@ -1,6 +1,7 @@
 import PrimaryButton from "@/src/components/button/PrimaryButton";
 import { HapticTab } from "@/src/components/haptic-tab";
 import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
+import { categoryList, statusList, unitList } from "@/src/constants/config";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { getCurrentUserEmail } from "@/src/lib/auth-utils";
@@ -27,115 +28,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const categoryList = [
-  {
-    label: "Fabric",
-    value: "fabric",
-  },
-  {
-    label: "Thread",
-    value: "thread",
-  },
-  {
-    label: "Button",
-    value: "button",
-  },
-  {
-    label: "Zipper",
-    value: "zipper",
-  },
-  {
-    label: "Lining",
-    value: "lining",
-  },
-  {
-    label: "Interfacing",
-    value: "interfacing",
-  },
-  {
-    label: "Elastic",
-    value: "elastic",
-  },
-  {
-    label: "Trim",
-    value: "trim",
-  },
-  {
-    label: "Accessory",
-    value: "accessory",
-  },
-  {
-    label: "Tool",
-    value: "tool",
-  },
-  {
-    label: "Other",
-    value: "other",
-  },
-];
-
-const statusList = [
-  {
-    label: "In Stock",
-    value: "in-stock",
-  },
-  {
-    label: "Low Stock",
-    value: "low-stock",
-  },
-  {
-    label: "Out of Stock",
-    value: "out-of-stock",
-  },
-  {
-    label: "Discontinued",
-    value: "discontinued",
-  },
-];
-
-const unitList = [
-  {
-    label: "Yards",
-    value: "yards",
-  },
-  {
-    label: "Meters",
-    value: "meters",
-  },
-  {
-    label: "Pieces",
-    value: "pieces",
-  },
-  {
-    label: "Spools",
-    value: "spools",
-  },
-  {
-    label: "Packets",
-    value: "packets",
-  },
-  {
-    label: "Rolls",
-    value: "rolls",
-  },
-  {
-    label: "Sets",
-    value: "sets",
-  },
-  {
-    label: "Kilograms",
-    value: "kg",
-  },
-  {
-    label: "Grams",
-    value: "grams",
-  },
-  {
-    label: "Other",
-    value: "other",
-  },
-];
 
 const CreateStockItemScreen = () => {
   const saveItem = useInventoryStore((state) => state.saveInventoryItem);
@@ -237,7 +129,7 @@ const CreateStockItemScreen = () => {
       };
 
       await saveItem(payload);
-      router.back();
+      handleBack();
     } catch (error) {
       console.log("Error creating inventory item:", error);
     }

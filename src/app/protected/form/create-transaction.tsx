@@ -213,15 +213,18 @@ const CreateTransactionScreen = () => {
     if (!validateForm()) return;
     const isIncome = selectedType === "income";
     const amount = parseAmount(transaction.amount.toString());
+    const now = new Date().toISOString();
+    const { source, category, ...restOfTransaction } = transaction;
     try {
       const payload: Income | Expense = {
-        ...transaction,
+        ...restOfTransaction,
+        ...(isIncome ? { source: source } : { category: category }),
         id: isIncome ? generateIncomeId() : generateExpenseId(),
         amount,
         tailorId: getCurrentUserEmail(),
-        date: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        date: now,
+        createdAt: now,
+        updatedAt: now,
       };
 
       if (isIncome) {
@@ -229,7 +232,18 @@ const CreateTransactionScreen = () => {
       } else {
         await saveExpense(payload as Expense);
       }
-
+      setTransaction({
+        id: "",
+        description: "",
+        amount: 0,
+        source: "deposit",
+        category: "materials",
+        date: new Date().toISOString(),
+        notes: "",
+        tailorId: "",
+        createdAt: "",
+        updatedAt: "",
+      });
       handleBack();
     } catch (err) {
       console.log("Error saving transaction:", err);
@@ -489,6 +503,11 @@ const CreateTransactionScreen = () => {
                     },
                   ]}
                 />
+                {error.description ? (
+                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
+                    {error.description}
+                  </Text>
+                ) : null}
               </View>
 
               <View style={styles.button}>

@@ -115,7 +115,7 @@ const CreateDesignScreen = () => {
         imageUrl,
         clientId: client,
       });
-      router.back();
+      handleBack();
     } catch (err) {
       console.error("Error creating design", err);
     }

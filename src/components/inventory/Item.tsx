@@ -10,7 +10,8 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { LinearGradient } from "expo-linear-gradient";
-import { Trash2 } from "lucide-react-native";
+import { router } from "expo-router";
+import { Pencil, Trash2 } from "lucide-react-native";
 import React from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -39,8 +40,8 @@ const StockItem = ({ item }: Props) => {
   const alert = outOfStock
     ? "Out of Stock"
     : lowStock
-    ? "Low Stock"
-    : "Sufficient";
+      ? "Low Stock"
+      : "Sufficient";
 
   const bgColor = lowStock
     ? "rgba(254, 249, 194, 1)"
@@ -55,7 +56,7 @@ const StockItem = ({ item }: Props) => {
         { text: "Cancel", style: "cancel" },
         { text: "Delete", onPress: () => deleteItem(item.id) },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
@@ -104,9 +105,20 @@ const StockItem = ({ item }: Props) => {
         </View>
 
         <View style={[styles.gapRow]}>
-          {/* <Pressable hitSlop={20} style={styles.actionBtn}>
+          <Pressable
+            hitSlop={20}
+            style={styles.actionBtn}
+            onPress={() => {
+              router.replace({
+                pathname: "/protected/inventory/[id]",
+                params: {
+                  id: item.id,
+                },
+              });
+            }}
+          >
             <Pencil size={scale(15)} color={"rgba(74, 85, 101, 1)"} />
-          </Pressable> */}
+          </Pressable>
           <Pressable
             hitSlop={20}
             style={styles.actionBtn}
@@ -236,7 +248,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    gap: spacing(8),
+    gap: spacing(40),
   },
   iconWrapper: {
     width: 48,

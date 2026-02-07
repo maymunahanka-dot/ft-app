@@ -94,7 +94,7 @@ const SignInScreen = () => {
     if (!validateForm()) return;
     try {
       await signIn(loginData.email, loginData.password);
-      router.push("/(tabs)/Dashboard");
+      router.replace("/(tabs)/Dashboard");
     } catch (error) {
       console.error("error in sign in", error);
     }
@@ -125,7 +125,7 @@ const SignInScreen = () => {
                     textDecorationLine: "underline",
                   },
                 ]}
-                onPress={() => router.push("/sign-up")}
+                onPress={() => router.replace("/sign-up")}
               >
                 Sign up
               </Text>
@@ -224,7 +224,9 @@ const SignInScreen = () => {
                     Styles.med12,
                     { textAlign: "right", color: Colors.secondary },
                   ]}
-                  onPress={() => router.push("/(auth)/screen/forget-password")}
+                  onPress={() =>
+                    router.replace("/(auth)/screen/forget-password")
+                  }
                 >
                   Forgot Password ?
                 </Text>

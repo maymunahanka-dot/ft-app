@@ -61,6 +61,7 @@ export const useUserImage = ({
   };
 
   const getImageUri = (base64?: string) => {
+    if (base64 && base64.startsWith("https")) return base64;
     if (!base64) return undefined;
 
     // already a data URI → return as-is

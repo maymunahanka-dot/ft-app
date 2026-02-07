@@ -102,14 +102,14 @@ const ForgetPasswordScreen = () => {
     if (!validateForm()) return;
     try {
       await sendResetEmail(email);
-      // router.push({
+      // router.replace({
       //   pathname: "/(auth)/screen/email/[email]",
       //   params: {
       //     email: email,
       //     password: details.password,
       //   },
       // });
-      router.push("/sign-in");
+      router.replace("/sign-in");
     } catch (error) {
       console.error("error in send email", error);
     }
@@ -140,7 +140,7 @@ const ForgetPasswordScreen = () => {
                     textDecorationLine: "underline",
                   },
                 ]}
-                onPress={() => router.push("/sign-in")}
+                onPress={() => router.replace("/sign-in")}
               >
                 Sign in
               </Text>

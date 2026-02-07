@@ -113,7 +113,7 @@ const InvoicesScreen = () => {
 
         <Pressable
           style={styles.floatingBtn}
-          onPress={() => router.push("/protected/form/create-invoice")}
+          onPress={() => router.replace("/protected/form/create-invoice")}
         >
           <Plus size={scale(20)} color={"white"} />
         </Pressable>

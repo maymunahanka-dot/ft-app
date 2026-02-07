@@ -113,7 +113,7 @@ const SignUpScreen = () => {
 
   const handleContinue = () => {
     if (validateForm()) {
-      router.push("/(auth)/screen/store-details");
+      router.replace("/(auth)/screen/store-details");
     } else {
       focusFirstErrorField();
       Alert.alert(
@@ -153,7 +153,7 @@ const SignUpScreen = () => {
                     textDecorationLine: "underline",
                   },
                 ]}
-                onPress={() => router.push("/sign-in")}
+                onPress={() => router.replace("/sign-in")}
               >
                 Sign in
               </Text>

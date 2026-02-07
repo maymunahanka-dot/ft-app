@@ -2,9 +2,10 @@ import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { Appointment } from "@/src/types/appointment";
 import { GetAmPm, scale, spacing } from "@/src/utils/random";
+import { router } from "expo-router";
 import { UserRound } from "lucide-react-native";
 import React from "react";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import ApptStatus from "../shared/ApptStatus";
 
 const getTimeFromISO = (value?: string | Date): string => {
@@ -28,7 +29,17 @@ type Props = {
 
 const AppoinmentListItem: React.FC<Props> = ({ item }) => {
   return (
-    <View style={styles.apptView}>
+    <Pressable
+      style={styles.apptView}
+      onPress={() => {
+        router.replace({
+          pathname: "/protected/appointment/[id]",
+          params: {
+            id: item.id,
+          },
+        });
+      }}
+    >
       <View style={[styles.col, { gap: spacing(4) }]}>
         <Text
           style={[Styles.reg12, { color: Colors.text.black, lineHeight: 12 }]}
@@ -57,7 +68,7 @@ const AppoinmentListItem: React.FC<Props> = ({ item }) => {
 
         <ApptStatus status={item.status} />
       </View>
-    </View>
+    </Pressable>
   );
 };
 

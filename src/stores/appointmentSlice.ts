@@ -7,6 +7,7 @@ import {
   orderBy,
   query,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
@@ -21,6 +22,7 @@ interface AppointmentState {
   saveAppointment(appointment: Appointment): Promise<void>;
   getAppointmentById(id: string): Promise<Appointment | null>;
   getAppointmentsByDate(email: string, date: string): Promise<Appointment[]>;
+  editAppoinment(itemId: string, updates: Partial<Appointment>): Promise<void>;
   deleteAppointment(appointmentId: string): Promise<void>;
 }
 
@@ -134,6 +136,44 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       set({ loading: false });
     }
   },
+
+  async editAppoinment(itemId, updates) {
+    set({ loading: true });
+
+    try {
+      const itemRef = doc(db, "fashiontally_appointments", itemId);
+
+      const updateData = {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(itemRef, updateData);
+
+      set((state) => ({
+        appointments: state.appointments.map((item) =>
+          item.id === itemId ? { ...item, ...updateData } : item,
+        ),
+      }));
+
+      ShowToastMessage({
+        title: "Appointment updated successfully",
+        preset: "done",
+        haptic: "success",
+      });
+    } catch (error: any) {
+      console.error("Error updating Appointment item:", error);
+      ShowToastMessage({
+        title: "Update failed",
+        message: error.message,
+        preset: "error",
+        haptic: "error",
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
   async deleteAppointment(appointmentId: string) {
     set({ loading: true });
     try {

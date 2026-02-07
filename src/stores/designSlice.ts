@@ -5,6 +5,7 @@ import {
   orderBy,
   query,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
@@ -12,6 +13,7 @@ import { db } from "../context/firebase";
 import { generateDesignId } from "../lib/design";
 import { Design } from "../types/designs";
 import { ShowToastMessage } from "../utils/random";
+import { uploadImageToCloudinary } from "../utils/uploadImageToCloudinary";
 
 interface DesignState {
   designs: Design[];
@@ -20,6 +22,8 @@ interface DesignState {
     design: Omit<Design, "id" | "createdAt"> & { userEmail: string },
   ): Promise<void>;
   getDesignsByTailor(email: string): Promise<void>;
+
+  editDesign(itemId: string, updates: Partial<Design>): Promise<void>;
 }
 
 export const useDesignStore = create<DesignState>((set, get) => ({
@@ -46,6 +50,51 @@ export const useDesignStore = create<DesignState>((set, get) => ({
       // throw new Error("Failed to create design");
       ShowToastMessage({
         title: error,
+        preset: "error",
+        haptic: "error",
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  async editDesign(itemId, updates) {
+    set({ loading: true });
+    let finalUpdates = { ...updates };
+    if (updates.imageUrl && updates.imageUrl.startsWith("data:image")) {
+      const uploadedUrl = await uploadImageToCloudinary(updates.imageUrl);
+      if (!uploadedUrl) {
+        set({ loading: false });
+        return;
+      }
+      finalUpdates.imageUrl = uploadedUrl;
+    }
+    try {
+      const itemRef = doc(db, "fashiontally_designs", itemId);
+
+      const updateData = {
+        ...finalUpdates,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(itemRef, updateData);
+
+      set((state) => ({
+        designs: state.designs.map((item) =>
+          item.id === itemId ? { ...item, ...updateData } : item,
+        ),
+      }));
+
+      ShowToastMessage({
+        title: "Design updated successfully",
+        preset: "done",
+        haptic: "success",
+      });
+    } catch (error: any) {
+      console.error("Error updating Design item:", error);
+      ShowToastMessage({
+        title: "Update failed",
+        message: error.message,
         preset: "error",
         haptic: "error",
       });
