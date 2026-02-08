@@ -94,7 +94,7 @@ const ClientsScreen = () => {
                 paddingBottom: spacing(40),
               }}
               showsVerticalScrollIndicator={false}
-              scrollEnabled={false}
+              // scrollEnabled={false}
               renderItem={({ item }) => <ClientItem item={item} />}
               ListEmptyComponent={() => (
                 <View style={styles.emptyContainer}>

@@ -28,6 +28,7 @@ export type Client = {
   notes?: string;
   tailorId: string;
   createdAt: string;
+  updatedAt?: string;
 };
 
 /**

@@ -41,7 +41,14 @@ const DesignItem: React.FC<Props> = ({ item, style }) => {
         })
       }
     >
-      <Image source={{ uri: item.imageUrl }} style={styles.image} />
+      <Image
+        source={{
+          uri: item.imageUrl?.trim()
+            ? item.imageUrl
+            : "https://ui-avatars.com/api/?name=Fashion+Tally&background=0D8ABC&color=fff&size=128",
+        }}
+        style={styles.image}
+      />
       <View style={styles.colText}>
         <Text style={styles.reg14}>{CapitalizeFirstName(item.name)}</Text>
         <Text style={[styles.reg14, { color: Colors.text.gray }]}>

@@ -1,10 +1,11 @@
 import { Styles } from "@/src/constants/styles";
 import { Client } from "@/src/types/client";
-import { FormatOrderDate, scale, spacing } from "@/src/utils/random";
+import { scale, spacing } from "@/src/utils/random";
 import { LinearGradient } from "expo-linear-gradient";
 import { Calendar, Mail, Phone } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { formatFirestoreTimestamp } from "../invoice/util";
 import ImagePlaceholder from "../shared/ImagePlaceholder";
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
 
 const ClientCard = ({ item }: Props) => {
   const fullName = item?.name;
+  console.log("client. card", item);
 
   return (
     <LinearGradient
@@ -55,7 +57,7 @@ const ClientCard = ({ item }: Props) => {
           <Calendar size={scale(15)} color={"white"} />
           <Text style={[Styles.reg14, { color: "white", lineHeight: 20 }]}>
             {" "}
-            {FormatOrderDate(item?.lastVisit ?? "N/A", true)}
+            {formatFirestoreTimestamp(item?.updatedAt as any)}
           </Text>
         </View>
       </View>

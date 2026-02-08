@@ -53,112 +53,161 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
 
   const chartData = useMemo(() => {
     const now = new Date();
-    let daysBack = 7;
-
-    switch (selectedFilter) {
-      case "7days":
-        daysBack = 7;
-        break;
-      case "30days":
-        daysBack = 30;
-        break;
-      case "90days":
-        daysBack = 90;
-        break;
-      case "1year":
-        daysBack = 365;
-        break;
-    }
-
-    const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - daysBack);
-
-    // Filter data within date range
-    const filteredIncomes = incomes.filter(
-      (income) => new Date(income.date) >= startDate
-    );
-    const filteredExpenses = expenses.filter(
-      (expense) => new Date(expense.date) >= startDate
-    );
-
-    // Group by date
-    const dailyData: { [key: string]: { income: number; expense: number } } =
-      {};
-
-    for (let i = 0; i < daysBack; i++) {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + i);
-      const dateKey = date.toISOString().split("T")[0];
-      dailyData[dateKey] = { income: 0, expense: 0 };
-    }
-
-    filteredIncomes.forEach((income) => {
-      const dateKey = income.date.split("T")[0];
-      if (dailyData[dateKey]) {
-        dailyData[dateKey].income += income.amount;
-      }
-    });
-
-    filteredExpenses.forEach((expense) => {
-      const dateKey = expense.date.split("T")[0];
-      if (dailyData[dateKey]) {
-        dailyData[dateKey].expense += expense.amount;
-      }
-    });
-
-    // Aggregate data based on filter
+    let startDate: Date;
     const aggregatedData: { label: string; income: number; expense: number }[] =
       [];
-    const sortedDates = Object.keys(dailyData).sort();
+
+    const getDateKey = (d: Date) => d.toISOString().split("T")[0];
 
     if (selectedFilter === "7days") {
-      sortedDates.forEach((date) => {
-        const dateObj = new Date(date);
-        const label = dateObj.toLocaleDateString("en-US", { weekday: "short" });
-        aggregatedData.push({
-          label,
-          income: dailyData[date].income,
-          expense: dailyData[date].expense,
-        });
+      // Last 7 days → daily points
+      startDate = new Date();
+      startDate.setDate(now.getDate() - 6);
+
+      const dailyData: Record<string, { income: number; expense: number }> = {};
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        dailyData[getDateKey(d)] = { income: 0, expense: 0 };
+      }
+
+      incomes.forEach((inc) => {
+        const key = getDateKey(new Date(inc.date));
+        if (dailyData[key]) dailyData[key].income += inc.amount;
       });
+
+      expenses.forEach((exp) => {
+        const key = getDateKey(new Date(exp.date));
+        if (dailyData[key]) dailyData[key].expense += exp.amount;
+      });
+
+      Object.keys(dailyData)
+        .sort()
+        .forEach((date) => {
+          const d = new Date(date);
+          aggregatedData.push({
+            label: d.toLocaleDateString("en-US", { weekday: "short" }),
+            income: dailyData[date].income,
+            expense: dailyData[date].expense,
+          });
+        });
     } else if (selectedFilter === "30days") {
+      // Last 30 days → weekly points (7-day chunks)
+      startDate = new Date();
+      startDate.setDate(now.getDate() - 29);
+
+      const dailyData: Record<string, { income: number; expense: number }> = {};
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        dailyData[getDateKey(d)] = { income: 0, expense: 0 };
+      }
+
+      incomes.forEach((inc) => {
+        const key = getDateKey(new Date(inc.date));
+        if (dailyData[key]) dailyData[key].income += inc.amount;
+      });
+
+      expenses.forEach((exp) => {
+        const key = getDateKey(new Date(exp.date));
+        if (dailyData[key]) dailyData[key].expense += exp.amount;
+      });
+
+      const sortedDates = Object.keys(dailyData).sort();
       const weekSize = 7;
       for (let i = 0; i < sortedDates.length; i += weekSize) {
         const weekDates = sortedDates.slice(i, i + weekSize);
         const weekIncome = weekDates.reduce(
-          (sum, date) => sum + dailyData[date].income,
-          0
+          (sum, d) => sum + dailyData[d].income,
+          0,
         );
         const weekExpense = weekDates.reduce(
-          (sum, date) => sum + dailyData[date].expense,
-          0
+          (sum, d) => sum + dailyData[d].expense,
+          0,
         );
-        const weekNum = Math.floor(i / weekSize) + 1;
         aggregatedData.push({
-          label: `W${weekNum}`,
+          label: `W${Math.floor(i / weekSize) + 1}`,
           income: weekIncome,
           expense: weekExpense,
         });
       }
-    } else {
-      const monthGroups: {
-        [key: string]: { income: number; expense: number };
-      } = {};
-      sortedDates.forEach((date) => {
+    } else if (selectedFilter === "90days") {
+      // Last 90 days → 30-day chunks (3 points)
+      startDate = new Date();
+      startDate.setDate(now.getDate() - 89);
+
+      const dailyData: Record<string, { income: number; expense: number }> = {};
+      for (let i = 0; i < 90; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        dailyData[getDateKey(d)] = { income: 0, expense: 0 };
+      }
+
+      incomes.forEach((inc) => {
+        const key = getDateKey(new Date(inc.date));
+        if (dailyData[key]) dailyData[key].income += inc.amount;
+      });
+
+      expenses.forEach((exp) => {
+        const key = getDateKey(new Date(exp.date));
+        if (dailyData[key]) dailyData[key].expense += exp.amount;
+      });
+
+      const sortedDates = Object.keys(dailyData).sort();
+      const chunkSize = 30;
+      for (let i = 0; i < sortedDates.length; i += chunkSize) {
+        const chunkDates = sortedDates.slice(i, i + chunkSize);
+        const chunkIncome = chunkDates.reduce(
+          (sum, d) => sum + dailyData[d].income,
+          0,
+        );
+        const chunkExpense = chunkDates.reduce(
+          (sum, d) => sum + dailyData[d].expense,
+          0,
+        );
+        const labelDate = new Date(chunkDates[0]);
+        aggregatedData.push({
+          label: labelDate.toLocaleDateString("en-US", { month: "short" }),
+          income: chunkIncome,
+          expense: chunkExpense,
+        });
+      }
+    } else if (selectedFilter === "1year") {
+      // Last year → monthly points (12 points)
+      startDate = new Date(now);
+      startDate.setMonth(now.getMonth() - 11);
+
+      const dailyData: Record<string, { income: number; expense: number }> = {};
+      for (let d = new Date(startDate); d <= now; d.setDate(d.getDate() + 1)) {
+        dailyData[getDateKey(new Date(d))] = { income: 0, expense: 0 };
+      }
+
+      incomes.forEach((inc) => {
+        const key = getDateKey(new Date(inc.date));
+        if (dailyData[key]) dailyData[key].income += inc.amount;
+      });
+
+      expenses.forEach((exp) => {
+        const key = getDateKey(new Date(exp.date));
+        if (dailyData[key]) dailyData[key].expense += exp.amount;
+      });
+
+      const monthGroups: Record<string, { income: number; expense: number }> =
+        {};
+      Object.keys(dailyData).forEach((date) => {
         const monthKey = date.substring(0, 7);
-        if (!monthGroups[monthKey]) {
+        if (!monthGroups[monthKey])
           monthGroups[monthKey] = { income: 0, expense: 0 };
-        }
         monthGroups[monthKey].income += dailyData[date].income;
         monthGroups[monthKey].expense += dailyData[date].expense;
       });
+
       Object.keys(monthGroups)
         .sort()
         .forEach((monthKey) => {
           const dateObj = new Date(monthKey + "-01");
-          const label = dateObj.toLocaleDateString("en-US", { month: "short" });
           aggregatedData.push({
-            label,
+            label: dateObj.toLocaleDateString("en-US", { month: "short" }),
             income: monthGroups[monthKey].income,
             expense: monthGroups[monthKey].expense,
           });
@@ -189,7 +238,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
     const STEP = 10000;
     const yAxisMax = Math.max(
       Math.ceil(actualMax / STEP) * STEP,
-      MIN_CHART_MAX
+      MIN_CHART_MAX,
     );
 
     const segments = 4;
@@ -215,7 +264,8 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
     };
 
     const getX = (index: number) => {
-      const spacing = plotWidth / (chartData.length - 1 || 1);
+      if (chartData.length === 1) return paddingLeft + plotWidth / 2; // single point in chart
+      const spacing = plotWidth / (chartData.length - 1); // uniform spacing for all points
       return paddingLeft + index * spacing;
     };
 

@@ -15,7 +15,7 @@ import {
 } from "@/src/utils/random";
 import { router } from "expo-router";
 import { Plus } from "lucide-react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -126,6 +126,15 @@ const FinanceScreen = () => {
   const loading = useFinanceStore((state) => state.loading);
   const incomes = useFinanceStore((state) => state.income);
   const expenses = useFinanceStore((state) => state.expenses);
+  const fetchTransactions = useFinanceStore(
+    (state) => state.getTransactionsByTailor,
+  );
+
+  useEffect(() => {
+    fetchTransactions("");
+  }, []);
+
+  console.log("transactions", incomes, expenses);
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "white" }}
@@ -141,7 +150,7 @@ const FinanceScreen = () => {
         drawer
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: spacing(50) }}
           horizontal={false}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="interactive"
@@ -165,11 +174,11 @@ const FinanceScreen = () => {
                 <Text style={[Styles.reg16, { color: Colors.text.black }]}>
                   Recent Transactions
                 </Text>
-                <Pressable onPress={() => {}}>
+                {/* <Pressable onPress={() => {}}>
                   <Text style={[Styles.reg16, { color: Colors.secondary }]}>
                     View All
                   </Text>
-                </Pressable>
+                </Pressable> */}
               </View>
 
               {/* recent transactions */}

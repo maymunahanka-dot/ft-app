@@ -47,8 +47,10 @@ const InvoiceItem = ({ invoice }: Props) => {
   };
 
   const totalInvoiceAmount = invoice.items.reduce((sum, item) => {
-    return sum + item.rate * item.qty;
+    return sum + item.price * item.quantity;
   }, 0);
+
+  console.log("invoice", JSON.stringify(invoice.id, null, 2));
 
   return (
     <View style={styles.container}>
@@ -86,14 +88,18 @@ const InvoiceItem = ({ invoice }: Props) => {
         </HapticTab>
         <HapticTab
           style={[styles.btn]}
-          onPress={() =>
+          onPress={() => {
+            if (!invoice.id) {
+              console.log("invoice id", invoice.id);
+              return;
+            }
             router.replace({
               pathname: "/protected/invoice-preview",
               params: {
                 invoiceId: invoice.id,
               },
-            })
-          }
+            });
+          }}
         >
           <Eye size={scale(14)} color={"white"} />
           <Text style={[styles.reg14, { color: "white" }]}>View</Text>

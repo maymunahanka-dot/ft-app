@@ -2,7 +2,6 @@ import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { Expense, Income } from "@/src/types/finance";
 import {
-  CapitalizeFirstName,
   FormatCurrency,
   FormatOrderDate,
   scale,
@@ -19,12 +18,13 @@ type Props = {
 };
 
 const TransactionItem = ({ item }: Props) => {
-  const isExpenses = "category" in item;
+  const isExpenses =
+    "category" in item || item.type.toLowerCase() === "expense";
   const bgColor = isExpenses
     ? "rgba(255, 226, 226, 1)"
     : "rgba(220, 252, 231, 1)";
   const textColor = isExpenses ? "rgba(231, 0, 11, 1)" : "rgba(0, 166, 62, 1)";
-  const displayName = isExpenses ? item.category : item.source;
+  // const displayName = isExpenses ? item.category : item.source;
 
   //   console.log("item", item, displayName);
 
@@ -57,7 +57,7 @@ const TransactionItem = ({ item }: Props) => {
         </View>
 
         <View style={[styles.startRow, { gap: spacing(5) }]}>
-          <View style={styles.typeView}>
+          {/* <View style={styles.typeView}>
             <Text
               style={[
                 Styles.reg12,
@@ -65,8 +65,8 @@ const TransactionItem = ({ item }: Props) => {
               ]}
             >
               {CapitalizeFirstName(displayName)}
-            </Text>
-          </View>
+            </Text> */}
+          {/* </View> */}
 
           <Text style={[Styles.reg16, { color: "rgba(106, 114, 130, 1)" }]}>
             {"•"}
@@ -93,7 +93,6 @@ const TransactionItem = ({ item }: Props) => {
           </Text>
         </View>
       </View>
-      {/* <Text>{item.amount}</Text> */}
     </Pressable>
   );
 };

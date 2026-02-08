@@ -44,12 +44,12 @@ const AppoinmentListItem: React.FC<Props> = ({ item }) => {
         <Text
           style={[Styles.reg12, { color: Colors.text.black, lineHeight: 12 }]}
         >
-          {getTimeFromISO(item.time)}
+          {getTimeFromISO(item.date)}
         </Text>
         <Text
           style={[Styles.reg12, { color: Colors.text.black, lineHeight: 12 }]}
         >
-          {GetAmPm(item.time)}
+          {GetAmPm(item.date)}
         </Text>
       </View>
 
@@ -62,7 +62,7 @@ const AppoinmentListItem: React.FC<Props> = ({ item }) => {
             </Text>
           </View>
           <Text style={[Styles.reg12, { color: Colors.text.black }]}>
-            {item.type}
+            {item.service}
           </Text>
         </View>
 

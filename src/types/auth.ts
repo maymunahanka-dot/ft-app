@@ -1,7 +1,7 @@
 export type RegisterUserData = {
-  name?: string;
-  firstName: string;
-  lastName: string;
+  name: string;
+  // firstName: string;
+  // lastName: string;
   email: string;
   phone: string;
   storeName: string;
@@ -14,15 +14,16 @@ export type RegisterUserData = {
   //   lga: string;
   //   address: string;
   logo?: string;
-  businessName?: string;
-  businessAddress?: string;
-  website?: string;
-  instagram?: string;
+  // businessName?: string;
+  // businessAddress?: string;
+  // website?: string;
+  // instagram?: string;
 };
 
 export const emptyUserData: RegisterUserData = {
-  firstName: "",
-  lastName: "",
+  // firstName: "",
+  // lastName: "",
+  name: "",
   email: "",
   phone: "",
   storeName: "",
@@ -33,3 +34,19 @@ export const emptyUserData: RegisterUserData = {
   lga: "",
   state: "",
 };
+
+export type BrandSettings = {
+  id?: string;
+  logoUrl?: string;
+  businessName: string;
+  businessAddress?: string;
+  businessEmail?: string;
+  businessWebsite?: string;
+  businessPhone?: string;
+  footerText?: string;
+  termsAndConditions?: string;
+  updatedAt: string;
+  userEmail: string;
+};
+
+export const BrandSettings = {};

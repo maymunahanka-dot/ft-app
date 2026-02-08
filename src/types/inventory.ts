@@ -1,14 +1,14 @@
 export type InventoryCategory =
-  | "fabric"
-  | "thread"
+  | "fabrics"
+  | "threads"
   | "button"
   | "zipper"
   | "lining"
   | "interfacing"
   | "elastic"
   | "trim"
-  | "accessory"
-  | "tool"
+  | "accessories"
+  | "tools"
   | "other";
 
 export type InventoryUnit =
@@ -39,16 +39,16 @@ export type InventoryItem = {
   material: string; // e.g., cotton, silk, polyester
   quantity: number;
   unit: InventoryUnit;
-  minStockLevel: number; // Reorder point
-  costPerUnit: number;
-  sellingPricePerUnit: number;
+  minStockLevel?: number; // Reorder point
+  costPerUnit?: number;
+  sellingPricePerUnit?: number;
   totalValue: number; // quantity * costPerUnit
   status: InventoryStatus;
-  purchaseDate: string; // ISO string
+  purchaseDate?: string; // ISO string
   expiryDate?: string; // Optional, for items that expire
   batchNumber?: string; // Optional, for tracking batches
   imageUrl?: string; // Optional, for item images
-  notes: string;
+  notes?: string;
   tailorId: string;
   createdAt: string;
   updatedAt: string;

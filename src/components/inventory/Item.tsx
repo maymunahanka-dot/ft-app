@@ -20,11 +20,11 @@ type Props = {
 };
 
 const Icons = {
-  fabric: "🧵",
+  fabrics: "🧵",
   notion: "📌",
-  thread: "🧶",
+  threads: "🧶",
   accessories: "💎",
-  tool: "✂️",
+  tools: "✂️",
   pattern: "📐",
   trim: "🎀",
 } as const;
@@ -36,7 +36,7 @@ const StockItem = ({ item }: Props) => {
   const lowStock =
     item.status === "low-stock" ||
     item.status === "out-of-stock" ||
-    item.quantity <= item.minStockLevel;
+    item.quantity <= (item.minStockLevel ?? 1);
   const alert = outOfStock
     ? "Out of Stock"
     : lowStock
@@ -75,7 +75,7 @@ const StockItem = ({ item }: Props) => {
                 lineHeight: 32,
               }}
             >
-              {Icons[item.category as keyof typeof Icons]}
+              {Icons[item.category.toString() as keyof typeof Icons]}
             </Text>
           </LinearGradient>
 
@@ -156,7 +156,7 @@ const StockItem = ({ item }: Props) => {
           </Text>
 
           <Text style={[Styles.reg14, { color: Colors.text.black }]}>
-            {FormatCurrency(item.sellingPricePerUnit)}
+            {FormatCurrency(item.sellingPricePerUnit ?? 1)}
           </Text>
         </View>
 
@@ -200,7 +200,7 @@ const StockItem = ({ item }: Props) => {
           <Text
             style={[Styles.med16, { color: Colors.primary, lineHeight: 24 }]}
           >
-            {FormatCurrency(item.quantity * item.sellingPricePerUnit)}
+            {FormatCurrency(item.quantity * (item.sellingPricePerUnit ?? 1))}
           </Text>
         </View>
 

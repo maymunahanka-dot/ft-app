@@ -37,6 +37,7 @@ const AppointmentsScreen = () => {
 
   useEffect(() => {
     fetchAppointments(getCurrentUserEmail());
+    console.log("appointment", JSON.stringify(appointments, null, 2));
   }, []);
 
   const filteredListData = useMemo(() => {
@@ -44,7 +45,7 @@ const AppointmentsScreen = () => {
 
     const q = searchValue.toLowerCase();
     return appointments.filter((c: Appointment) => {
-      const type = String(c?.type ?? "").toLowerCase();
+      const type = String(c?.service ?? "").toLowerCase();
       const clientName = String(c?.clientName ?? "").toLowerCase();
       return type.includes(q) || clientName.includes(q);
     });

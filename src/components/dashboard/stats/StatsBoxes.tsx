@@ -46,8 +46,9 @@ const StatsBoxes = () => {
   const totalInStock = GetInStockCount(stocks);
   const inventoryValue = GetTotalInventoryValue(stocks);
 
-  const fetchExpenses = useFinanceStore((state) => state.getExpensesByTailor);
-  const fetchIncome = useFinanceStore((state) => state.getIncomeByTailor);
+  const fetchTransactions = useFinanceStore(
+    (state) => state.getTransactionsByTailor,
+  );
   const fetchClients = useClientStore((state) => state.getClientsByTailor);
   const fetchOrders = useOrderStore((state) => state.getOrdersByTailor);
   const fetchStocks = useInventoryStore((state) => state.getInventoryByTailor);
@@ -56,8 +57,7 @@ const StatsBoxes = () => {
     if (!user) return;
     try {
       await Promise.all([
-        fetchIncome(user.email),
-        fetchExpenses(user.email),
+        fetchTransactions(user.email),
         fetchClients(user.email),
         fetchOrders(user.email),
         fetchStocks(user.email),

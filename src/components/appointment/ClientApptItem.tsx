@@ -45,6 +45,8 @@ const ClientApptItem = ({ item }: Props) => {
       ? "rgba(255, 226, 226, 1)"
       : "rgba(239, 246, 255, 1)";
 
+  console.log("appointemts", item);
+
   return (
     <Pressable
       style={styles.apptContainer}
@@ -73,7 +75,7 @@ const ClientApptItem = ({ item }: Props) => {
           </View>
           <View style={[styles.col, { gap: spacing(4) }]}>
             <Text style={[Styles.reg14, { color: Colors.text.black }]}>
-              {CapitalizeFirstName(item.type)}
+              {CapitalizeFirstName(item.service ? item.service : item.purpose)}
             </Text>
             <View
               style={[
@@ -100,8 +102,8 @@ const ClientApptItem = ({ item }: Props) => {
         <View style={[styles.startRow, { gap: spacing(8) }]}>
           <Clock size={scale(16)} color={Colors.primary} />
           <Text style={[Styles.reg14, { color: Colors.text.black }]}>
-            {GetDetailedDate(item.date)} at {getTimeFromISO(item.time)}{" "}
-            {GetAmPm(item.time)}
+            {GetDetailedDate(item.date)} at {getTimeFromISO(item.date)}{" "}
+            {GetAmPm(item.date)}
           </Text>
         </View>
 

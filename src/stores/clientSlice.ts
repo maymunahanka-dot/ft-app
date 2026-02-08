@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../context/firebase";
+import { getCurrentUserEmail } from "../lib/auth-utils";
 import { Client, ClientMeasurements } from "../types/client";
 import { ShowToastMessage } from "../utils/random";
 
@@ -97,6 +98,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
           ),
         }));
       }
+      await get().getClientsByTailor(getCurrentUserEmail());
     } catch (error: any) {
       console.error("Error editing client:", error);
       ShowToastMessage({
@@ -166,7 +168,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
     set({ loading: true });
     try {
       const clientsRef = collection(db, "fashiontally_clients");
-      const q = query(clientsRef, where("tailorId", "==", tailorId));
+      const q = query(clientsRef, where("userEmail", "==", tailorId));
       const querySnapshot = await getDocs(q);
 
       const clients = querySnapshot.docs.map((doc) => ({

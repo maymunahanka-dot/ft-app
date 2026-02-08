@@ -33,6 +33,7 @@ const EditNote: React.FC<Props> = ({ visible, onClose, client }) => {
 
   const handleEditNote = async () => {
     if (!notes?.trim()) return;
+    console.log("notes", client.notes, notes);
     try {
       await updateNote({ ...client, notes }, client.phone);
       onClose();

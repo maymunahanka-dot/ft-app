@@ -22,8 +22,20 @@ const AppointmentsList = () => {
     (state) => state.getAppointmentsByTailor,
   );
 
-  const isToday = (dateString: string) => {
-    const date = new Date(dateString);
+  const isToday = (
+    dateInput: string | { seconds: number; nanoseconds: number },
+  ): boolean => {
+    let date: Date;
+
+    // ✅ Firestore timestamp object
+    if (typeof dateInput === "object" && "seconds" in dateInput) {
+      date = new Date(dateInput.seconds * 1000);
+    }
+    // ✅ ISO or "YYYY-MM-DD"
+    else {
+      date = new Date(dateInput);
+    }
+
     const today = new Date();
 
     return (
@@ -40,6 +52,10 @@ const AppointmentsList = () => {
   useEffect(() => {
     if (user) {
       fetchAppointments(user.email);
+      console.log(
+        "today aappt",
+        appointments.filter((appt) => isToday(appt.createdAt)),
+      );
     }
   }, [user]);
 

@@ -124,8 +124,7 @@ const parseAmount = (value: string) => {
 };
 
 const CreateTransactionScreen = () => {
-  const saveIncome = useFinanceStore((state) => state.saveIncome);
-  const saveExpense = useFinanceStore((state) => state.saveExpense);
+  const saveTransaction = useFinanceStore((state) => state.saveTransaction);
   const loading = useFinanceStore((state) => state.loading);
 
   const [sourceModal, setSourceModal] = useState(false);
@@ -135,18 +134,19 @@ const CreateTransactionScreen = () => {
 
   const [showPicker, setShowPicker] = useState(false);
 
-  const [selectedType, setSelectedType] = useState<"income" | "expenses">(
+  const [selectedType, setSelectedType] = useState<"income" | "expense">(
     "income",
   );
   const [transaction, setTransaction] = useState<Income & Expense>({
     id: "",
     description: "",
+    type: selectedType,
     amount: 0,
     source: "deposit",
     category: "materials",
     date: new Date().toISOString(),
     notes: "",
-    tailorId: "",
+    userEmail: "",
     createdAt: "",
     updatedAt: "",
   });
@@ -198,7 +198,7 @@ const CreateTransactionScreen = () => {
       }
     }
 
-    if (selectedType === "expenses") {
+    if (selectedType === "expense") {
       if (!transaction.category) {
         newErrors.category = "Category is required";
         isValid = false;
@@ -221,26 +221,23 @@ const CreateTransactionScreen = () => {
         ...(isIncome ? { source: source } : { category: category }),
         id: isIncome ? generateIncomeId() : generateExpenseId(),
         amount,
-        tailorId: getCurrentUserEmail(),
+        userEmail: getCurrentUserEmail(),
         date: now,
         createdAt: now,
         updatedAt: now,
       };
 
-      if (isIncome) {
-        await saveIncome(payload as Income);
-      } else {
-        await saveExpense(payload as Expense);
-      }
+      await saveTransaction(payload as any, selectedType as any);
       setTransaction({
         id: "",
+        type: selectedType,
         description: "",
         amount: 0,
         source: "deposit",
         category: "materials",
         date: new Date().toISOString(),
         notes: "",
-        tailorId: "",
+        userEmail: "",
         createdAt: "",
         updatedAt: "",
       });
@@ -378,7 +375,7 @@ const CreateTransactionScreen = () => {
                 ) : null}
               </View>
 
-              {selectedType === "expenses" ? (
+              {selectedType === "expense" ? (
                 <Animated.View
                   style={Styles.inputContainer}
                   entering={FadeIn.duration(400)}

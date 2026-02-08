@@ -1,5 +1,6 @@
 import { useUserStore } from "@/src/stores/userSlice";
 import { InvoiceData } from "@/src/types/Invoice";
+import { formatInvoiceDate } from "@/src/utils/random";
 
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
@@ -15,10 +16,28 @@ export const createAndShareInvoice = async (invoice: InvoiceData) => {
   await Sharing.shareAsync(uri);
 };
 
+export function formatFirestoreTimestamp(ts?: {
+  seconds: number;
+  nanoseconds: number;
+}): string {
+  if (!ts?.seconds) return "";
+
+  const date = new Date(ts.seconds * 1000);
+
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export const generateInvoiceHTML = (data: InvoiceData) => {
   const userLogo = useUserStore.getState().user?.logo;
+  const brandSetting = useUserStore.getState().brandSetting;
 
-  const subtotal = data.items.reduce((sum, i) => sum + i.qty * i.rate, 0);
+  console.log("brand settings invoice", brandSetting);
+
+  const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.price, 0);
 
   const TAX_RATE = 7.5; // 7.5%
   const taxAmount = (subtotal * TAX_RATE) / 100;
@@ -164,17 +183,17 @@ padding-top: 30px
 <div class="row">
   <div class="header-left">
     ${
-      userLogo
+      brandSetting?.logoUrl
         ? `<img 
-      src="${userLogo}" 
+      src="${brandSetting.logoUrl}" 
       class="logo" 
       alt="User Logo" 
       style="max-width: 150px; height: auto; object-fit: contain;" 
     />`
         : ""
     }
-    <div class="business-name padding-top">${data.businessName}</div>
-    <div class="business-address">${data.businessAddress}</div>
+    <div class="business-name padding-top">${brandSetting?.businessName}</div>
+    <div class="business-address">${brandSetting?.businessAddress}</div>
   </div>
 
   <div class="right">
@@ -190,14 +209,15 @@ padding-top: 30px
     <!-- BILL INFO -->
     <div class="row padding-top">
       <div>
-       Bill To<br/>
-        <b>${data.billTo}</b>
+       <b>Bill To</b><br/>
+        <div>${data.clientName}</div>
+        <div>${data.clientPhone}</div>
       </div>
 
       <div class="right right-gap">
-        <div>Invoice Date:            ${data.invoiceDate}</div>
-        <div>Due Date:            ${data.dueDate}</div>
-        <div>Terms:            ${data.terms}</div>
+        <div>Invoice Date:            ${data.invoiceDate ?? formatInvoiceDate(new Date().toISOString())}</div>
+       <div>Due Date:            ${formatInvoiceDate(data.dueDate)}</div>
+        <div>Terms:            ${brandSetting?.termsAndConditions ?? ""}</div>
       </div>
     </div>
 
@@ -217,10 +237,10 @@ padding-top: 30px
           (item, i) => `
         <tr>
           <td>${i + 1}</td>
-          <td>${item.name}</td>
-          <td class="right">${item.qty}</td>
-          <td class="right">${formatMoney(item.rate)}</td>
-          <td class="right">${formatMoney(item.qty * item.rate)}</td>
+          <td>${item.description}</td>
+          <td class="right">${item.quantity}</td>
+          <td class="right">${formatMoney(item.price)}</td>
+          <td class="right">${formatMoney(item.quantity * item.price)}</td>
         </tr>
       `,
         )

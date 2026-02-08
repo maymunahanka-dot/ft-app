@@ -12,7 +12,6 @@ import {
   CapitalizeFirstName,
   GetDetailedDate,
   GetDetailedTime,
-  normalizeToISODateTime,
   numberize,
   scale,
   scaleFontSize,
@@ -83,21 +82,11 @@ const EditAppointmentScreen = () => {
   const editAppointment = useAppointmentStore((state) => state.editAppoinment);
 
   const clients = useClientStore((state) => state.clients);
-  const [selectedClient, setSelectedClient] = useState<Client>(
-    clients.find(
-      (prev) =>
-        prev.id === (foundAppointment.clientId ?? foundAppointment.clientPhone),
-    )!,
+  const [selectedClient, setSelectedClient] = useState<Client | undefined>(
+    clients.find((prev) => prev.phone === foundAppointment.clientPhone),
   );
 
-  console.log(
-    "found client",
-    JSON.stringify(
-      clients.find((prev) => prev.id === foundAppointment.clientId),
-      null,
-      2,
-    ),
-  );
+  console.log("found client", foundAppointment.clientPhone);
 
   const [clientModal, setClientModal] = useState(false);
   const toggleClientModal = () => setClientModal((prev) => !prev);
@@ -112,16 +101,20 @@ const EditAppointmentScreen = () => {
 
   const [data, setData] = useState<Appointment>({
     id: foundAppointment.id,
-    clientName: selectedClient.name,
-    clientPhone: selectedClient.phone,
-    clientId: selectedClient.id,
+    clientName: selectedClient?.name ?? "",
+    clientPhone: selectedClient?.phone ?? "",
+    clientId: selectedClient?.id ?? "",
     date: foundAppointment.date,
-    time: normalizeToISODateTime(foundAppointment.date, foundAppointment.time),
-    type: foundAppointment.type,
+    service: foundAppointment?.service
+      ? foundAppointment.service
+      : foundAppointment.purpose,
+    purpose: foundAppointment?.purpose
+      ? foundAppointment.purpose
+      : foundAppointment.service,
     status: foundAppointment.status,
     notes: foundAppointment.notes ?? "",
     duration: foundAppointment.duration,
-    tailorId: foundAppointment.tailorId,
+    userEmail: foundAppointment.userEmail,
     createdAt: foundAppointment.createdAt,
     updatedAt: foundAppointment.updatedAt,
   });
@@ -182,12 +175,6 @@ const EditAppointmentScreen = () => {
     // Date
     if (!data.date) {
       newErrors.date = "Appointment date is required";
-      isValid = false;
-    }
-
-    // Time
-    if (!data.time) {
-      newErrors.time = "Appointment time is required";
       isValid = false;
     }
 
@@ -329,11 +316,11 @@ const EditAppointmentScreen = () => {
                     style={styles.datePicker}
                     onPress={() => setDatePickerFor("time")}
                   >
-                    {data.time ? (
+                    {data.date ? (
                       <Text
                         style={[Styles.reg12, { color: "rgba(10, 10, 10, 1)" }]}
                       >
-                        {GetDetailedTime(data.time)}
+                        {GetDetailedTime(data.date)}
                       </Text>
                     ) : (
                       <Text style={styles.reg12}>00:00</Text>
@@ -357,8 +344,8 @@ const EditAppointmentScreen = () => {
                   date={
                     datePickerFor === "date" && data.date
                       ? new Date(data.date)
-                      : datePickerFor === "time" && data.time
-                        ? new Date(data.time)
+                      : datePickerFor === "time" && data.date
+                        ? new Date(data.date)
                         : new Date()
                   }
                   mode={datePickerFor}
@@ -368,7 +355,7 @@ const EditAppointmentScreen = () => {
                     if (datePickerFor === "date") {
                       handleDataChange("date", value);
                     } else {
-                      handleDataChange("time", value);
+                      handleDataChange("date", value);
                     }
                     setDatePickerFor(null);
                   }}
@@ -387,7 +374,7 @@ const EditAppointmentScreen = () => {
                   <Text
                     style={[Styles.reg16, { color: "rgba(10, 10, 10, 1)" }]}
                   >
-                    {CapitalizeFirstName(data.type)}
+                    {CapitalizeFirstName(data.service)}
                   </Text>
 
                   <ChevronDown size={scale(20)} color={Colors.grey} />
@@ -505,8 +492,11 @@ const EditAppointmentScreen = () => {
         <SelectFilterModal
           data={PurposeList}
           visible={purposeModal}
-          handleOption={(option) => handleDataChange("type", option)}
-          selected={data.type}
+          handleOption={(option) => {
+            handleDataChange("service", option);
+            handleDataChange("purpose", option);
+          }}
+          selected={data.service}
           onClose={() => setPurposeModal(false)}
         />
       )}

@@ -7,6 +7,7 @@ import InvoiceItem from "@/src/components/invoice/Item";
 import OrderItem from "@/src/components/orders/OrderItem";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { useClientStore } from "@/src/stores/clientSlice";
 import { useDesignStore } from "@/src/stores/designSlice";
 import { useInvoiceStore } from "@/src/stores/invoiceSlice";
@@ -32,7 +33,7 @@ import {
   Plus,
   Ruler,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dimensions,
   Pressable,
@@ -53,8 +54,9 @@ type TabProps = {
 const OverViewTab = ({ client }: TabProps) => {
   const invoices = useInvoiceStore((state) => state.invoices);
   const clientInvoices = invoices.filter(
-    (prev) => prev.clientId === client?.id,
+    (prev) => prev.clientEmail === client?.email,
   );
+  // console.log("client invoice", JSON.stringify(clientInvoices, null, 2));
   const [editNoteModal, setEditNoteModal] = useState(false);
   const toggleEditNoteModal = () => setEditNoteModal((prev) => !prev);
 
@@ -388,11 +390,11 @@ const OrdersTab = ({ client }: TabProps) => {
 const InvoicesTab = ({ client }: TabProps) => {
   const invoices = useInvoiceStore((state) => state.invoices);
   const clientInvoices = invoices.filter(
-    (prev) => prev.clientId === client?.id,
+    (prev) => prev.clientEmail === client?.email,
   );
   const totalInvoiceAmount = clientInvoices.reduce((grandTotal, invoice) => {
     const invoiceTotal = invoice.items.reduce((sum, item) => {
-      return sum + item.rate * item.qty;
+      return sum + item.price * item.quantity;
     }, 0);
 
     return grandTotal + invoiceTotal;
@@ -427,7 +429,7 @@ const InvoicesTab = ({ client }: TabProps) => {
       </View>
 
       <View style={styles.invoices}>
-        {invoices.map((invoice, index) => (
+        {clientInvoices.map((invoice, index) => (
           <InvoiceItem invoice={invoice} key={index} />
         ))}
       </View>
@@ -465,10 +467,14 @@ const TABLIST = [
 const ClientDetailsScreen = () => {
   const { id } = useLocalSearchParams();
 
-  const clientId = id.toString();
+  const clientId = encodeURIComponent(id.toString());
 
   const clients = useClientStore((state) => state.clients);
   const client = clients.find((prev) => prev.id === clientId);
+
+  const fetchInvoices = useInvoiceStore((state) => state.getInvoicesByTailor);
+
+  // console.log("client", JSON.stringify(clients, null, 2));
 
   const [selectedTab, setSelectedTab] = useState<TAB>("index");
 
@@ -479,6 +485,10 @@ const ClientDetailsScreen = () => {
     order: <OrdersTab client={client} />,
     invoice: <InvoicesTab client={client} />,
   };
+
+  useEffect(() => {
+    fetchInvoices(getCurrentUserEmail());
+  }, []);
 
   const handleBack = () => {
     router.replace("/(tabs)/Clients");

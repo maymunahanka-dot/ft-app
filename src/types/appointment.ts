@@ -1,4 +1,4 @@
-export type AppointmentStatus = "scheduled" | "completed" | "cancelled";
+export type AppointmentStatus = "pending" | "completed" | "cancelled";
 
 export type AppointmentType =
   | "consultation"
@@ -13,12 +13,13 @@ export type Appointment = {
   clientPhone: string;
   clientId?: string;
   date: string;
-  time: string;
-  type: AppointmentType;
+  // time: string;
+  service: AppointmentType;
+  purpose: AppointmentType;
   status: AppointmentStatus;
   notes: string;
   duration: number;
-  tailorId: string;
+  userEmail: string;
   createdAt: string;
   updatedAt: string;
 };

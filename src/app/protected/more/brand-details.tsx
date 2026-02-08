@@ -4,8 +4,10 @@ import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useAuth } from "@/src/hooks/auth";
 import { useUserImage } from "@/src/hooks/useUserImage";
+import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { useUserStore } from "@/src/stores/userSlice";
-import { GetInitials, scale, scaleFontSize, spacing } from "@/src/utils/random";
+import { BrandSettings } from "@/src/types/auth";
+import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { uploadImageToCloudinary } from "@/src/utils/uploadImageToCloudinary";
 import { router } from "expo-router";
 import { ChevronLeft, Pencil } from "lucide-react-native";
@@ -23,25 +25,34 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const BrandDetailsScreen = () => {
-  const user = useUserStore((state) => state.user);
-  const updateUserDetails = useUserStore((state) => state.updateUserDetails);
+  const brandSetting = useUserStore((state) => state.brandSetting);
+  const editBrandSettings = useUserStore((state) => state.editBrandSettings);
+  const fetchBrandSettings = useUserStore((state) => state.fetchBrandSettings);
 
   const { refreshUser } = useAuth();
 
-  const [userData, setUserData] = useState({
-    businessName: "",
-    businessAddress: "",
-    website: "",
-    instagram: "",
-    logo: "",
+  const [brandSettingData, setBrandSettingData] = useState<BrandSettings>({
+    businessName: brandSetting?.businessName ?? "",
+    businessAddress: brandSetting?.businessAddress ?? "",
+    businessWebsite: brandSetting?.businessWebsite ?? "",
+    logoUrl: brandSetting?.logoUrl ?? "",
+    businessPhone: brandSetting?.businessPhone ?? "",
+    footerText: brandSetting?.footerText ?? "",
+    termsAndConditions: brandSetting?.termsAndConditions ?? "",
+    updatedAt: "",
+    userEmail: getCurrentUserEmail(),
   });
 
-  const [error, setError] = useState({
+  const [error, setError] = useState<BrandSettings>({
     businessName: "",
     businessAddress: "",
-    website: "",
-    instagram: "",
-    logo: "",
+    businessWebsite: "",
+    logoUrl: "",
+    businessPhone: "",
+    footerText: "",
+    termsAndConditions: "",
+    updatedAt: "",
+    userEmail: "",
   });
 
   const { image, pickImage, getImageUri } = useUserImage({
@@ -52,8 +63,11 @@ const BrandDetailsScreen = () => {
 
   const [loading, setLoading] = useState(false);
 
-  const handleDataChange = (field: keyof typeof userData, value: string) => {
-    setUserData({ ...userData, [field]: value });
+  const handleDataChange = (
+    field: keyof typeof brandSettingData,
+    value: string,
+  ) => {
+    setBrandSettingData({ ...brandSettingData, [field]: value });
     // console.log(`${field}:${value}`);
     if (error[field as keyof typeof error]) {
       setError((prev) => ({ ...prev, [field]: "" }));
@@ -62,10 +76,15 @@ const BrandDetailsScreen = () => {
 
   useEffect(() => {
     if (image) {
-      handleDataChange("logo", image);
+      handleDataChange("logoUrl", image);
       // console.log("image", image);
     }
   }, [image]);
+
+  useEffect(() => {
+    fetchBrandSettings();
+    console.log("brand settings here ", brandSetting);
+  }, []);
 
   const handlePickImage = async () => {
     try {
@@ -77,10 +96,13 @@ const BrandDetailsScreen = () => {
 
   const handleUpdate = async () => {
     setLoading(true);
-    if (!user) return;
+    if (!brandSetting) return;
 
-    const logo = await uploadImageToCloudinary(userData.logo);
-    console.log("image url", logo);
+    if (brandSettingData.logoUrl) {
+      const logo = await uploadImageToCloudinary(brandSettingData.logoUrl);
+      console.log("image url", logo);
+      if (logo) brandSettingData.logoUrl = logo;
+    }
     // setLoading(false);
     // if (!logo) {
     //   setLoading(false);
@@ -88,12 +110,12 @@ const BrandDetailsScreen = () => {
     // }
 
     try {
-      console.log("brand details", userData);
-      const success = await updateUserDetails({
-        ...user,
-        ...userData,
-        logo: logo ? logo : userData.logo,
-        storeName: userData.businessName,
+      console.log("brand details", brandSettingData);
+      const success = await editBrandSettings({
+        ...brandSetting,
+        ...brandSettingData,
+        logoUrl: brandSettingData.logoUrl ?? "",
+        businessName: brandSettingData.businessName,
       });
 
       if (success) {
@@ -108,18 +130,16 @@ const BrandDetailsScreen = () => {
   };
 
   useEffect(() => {
-    if (!user) return;
-    setUserData({
-      businessName: user.storeName ?? "",
-      businessAddress: user.businessAddress ?? "",
-      website: user.website ?? "",
-      instagram: user.instagram ?? "",
-      logo: user.logo ?? "",
-    });
+    if (!brandSettingData) return;
+    setBrandSettingData(brandSettingData);
     console.log("changed");
-  }, [user]);
+  }, [brandSettingData]);
 
-  const imageUrl = image ? image : user?.logo ? user.logo : null;
+  const imageUrl = image
+    ? image
+    : brandSettingData?.logoUrl
+      ? brandSettingData.logoUrl
+      : undefined;
 
   const handleBack = () => {
     router.replace("/(tabs)/More");
@@ -174,41 +194,41 @@ const BrandDetailsScreen = () => {
           keyboardDismissMode="interactive"
         >
           <View style={styles.content}>
-            {imageUrl ? (
-              <View style={styles.imagePic}>
-                <Image
-                  source={{ uri: getImageUri(imageUrl) }}
-                  style={{
-                    width: 80,
-                    aspectRatio: 1,
-                    alignSelf: "center",
-                    borderRadius: 14,
-                    borderWidth: 0.2,
-                    borderColor: "rgba(0,0,0,0.8)",
-                  }}
-                />
+            <View style={styles.imagePic}>
+              <Image
+                source={{ uri: getImageUri(imageUrl) }}
+                style={{
+                  width: 80,
+                  aspectRatio: 1,
+                  alignSelf: "center",
+                  borderRadius: 14,
+                  borderWidth: 0.2,
+                  borderColor: "rgba(0,0,0,0.8)",
+                }}
+              />
 
-                <HapticTab
-                  hitSlop={20}
-                  style={styles.pickIcon}
-                  onPress={handlePickImage}
-                >
-                  <Pencil size={scale(15)} color={"white"} />
-                </HapticTab>
-              </View>
-            ) : (
+              <HapticTab
+                hitSlop={20}
+                style={styles.pickIcon}
+                onPress={handlePickImage}
+              >
+                <Pencil size={scale(15)} color={"white"} />
+              </HapticTab>
+            </View>
+            {/* 
               <View style={styles.iconWrapper}>
                 <Text style={styles.reg30}>
-                  {GetInitials(user?.storeName ?? "Fashion Designer")}
+                  {GetInitials(
+                    brandSettingData?.businessName ?? "Fashion Designer",
+                  )}
                 </Text>
-              </View>
-            )}
+              </View> */}
 
             <View style={styles.inputs}>
               <View style={Styles.inputContainer}>
                 <Text style={Styles.label}>Business Name</Text>
                 <TextInput
-                  value={userData.businessName}
+                  value={brandSettingData.businessName}
                   onChangeText={(text) =>
                     handleDataChange("businessName", text)
                   }
@@ -230,7 +250,7 @@ const BrandDetailsScreen = () => {
               <View style={Styles.inputContainer}>
                 <Text style={Styles.label}>Business Address</Text>
                 <TextInput
-                  value={userData.businessAddress}
+                  value={brandSettingData.businessAddress}
                   onChangeText={(text) =>
                     handleDataChange("businessAddress", text)
                   }
@@ -252,8 +272,10 @@ const BrandDetailsScreen = () => {
               <View style={Styles.inputContainer}>
                 <Text style={Styles.label}>Website</Text>
                 <TextInput
-                  value={userData.website}
-                  onChangeText={(text) => handleDataChange("website", text)}
+                  value={brandSettingData.businessWebsite}
+                  onChangeText={(text) =>
+                    handleDataChange("businessWebsite", text)
+                  }
                   placeholder="Website"
                   placeholderTextColor={Colors.grayText}
                   returnKeyLabel="next"
@@ -261,30 +283,77 @@ const BrandDetailsScreen = () => {
                   autoCorrect={false}
                   style={[Styles.input, { paddingVertical: 0 }]}
                 />
-                {error.website ? (
+                {error.businessWebsite ? (
                   <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.website}
+                    {error.businessWebsite}
                   </Text>
                 ) : null}
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Instagram Handle</Text>
+                <Text style={Styles.label}>Invoice footer text</Text>
                 <TextInput
-                  value={userData.instagram}
-                  onChangeText={(text) => handleDataChange("instagram", text)}
-                  placeholder="E.g. @fashionTally"
+                  value={brandSettingData.footerText}
+                  onChangeText={(text) => handleDataChange("footerText", text)}
+                  placeholder="E.g. Account number. Thank your for your patronage"
                   placeholderTextColor={Colors.grayText}
                   textContentType="addressCity"
                   returnKeyLabel="next"
                   returnKeyType="next"
                   keyboardType="default"
                   autoCorrect={false}
-                  style={[Styles.input, { paddingVertical: 0 }]}
+                  multiline
+                  numberOfLines={2}
+                  style={[
+                    Styles.input,
+                    {
+                      height: 80,
+                      textAlignVertical: "top",
+                      paddingTop: spacing(15),
+                      paddingVertical: 0,
+                      backgroundColor: "white",
+                      paddingHorizontal: spacing(16),
+                    },
+                  ]}
                 />
-                {error.instagram ? (
+                {error.footerText ? (
                   <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.instagram}
+                    {error.footerText}
+                  </Text>
+                ) : null}
+              </View>
+
+              <View style={Styles.inputContainer}>
+                <Text style={Styles.label}>Terms & condition</Text>
+                <TextInput
+                  value={brandSettingData.termsAndConditions}
+                  onChangeText={(text) =>
+                    handleDataChange("termsAndConditions", text)
+                  }
+                  placeholder="E.g. A minimum of 60% is required before sewing commences"
+                  placeholderTextColor={Colors.grayText}
+                  textContentType="addressCity"
+                  returnKeyLabel="next"
+                  returnKeyType="next"
+                  keyboardType="default"
+                  autoCorrect={false}
+                  multiline
+                  numberOfLines={2}
+                  style={[
+                    Styles.input,
+                    {
+                      height: 80,
+                      textAlignVertical: "top",
+                      paddingTop: spacing(15),
+                      paddingVertical: 0,
+                      backgroundColor: "white",
+                      paddingHorizontal: spacing(16),
+                    },
+                  ]}
+                />
+                {error.termsAndConditions ? (
+                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
+                    {error.termsAndConditions}
                   </Text>
                 ) : null}
               </View>

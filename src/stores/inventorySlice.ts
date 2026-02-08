@@ -34,7 +34,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   async saveInventoryItem(item) {
     set({ loading: true });
     try {
-      const itemRef = doc(db, "fashiontally_inventories", item.id);
+      const itemRef = doc(db, "fashiontally_inventory", item.id);
       await setDoc(itemRef, {
         ...item,
         updatedAt: new Date().toISOString(),
@@ -61,7 +61,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   async getInventoryItemById(id) {
     set({ loading: true });
     try {
-      const itemRef = doc(db, "fashiontally_inventories", id);
+      const itemRef = doc(db, "fashiontally_inventory", id);
       const itemDoc = await getDoc(itemRef);
 
       if (itemDoc.exists()) {
@@ -87,10 +87,10 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   async getInventoryByTailor(tailorId) {
     set({ loading: true });
     try {
-      const inventoryRef = collection(db, "fashiontally_inventories");
+      const inventoryRef = collection(db, "fashiontally_inventory");
       const q = query(
         inventoryRef,
-        where("tailorId", "==", tailorId),
+        where("userEmail", "==", tailorId),
         orderBy("name", "asc"),
       );
       const querySnapshot = await getDocs(q);
@@ -116,7 +116,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   async editInventoryItem(itemId, updates) {
     set({ loading: true });
     try {
-      const itemRef = doc(db, "fashiontally_inventories", itemId);
+      const itemRef = doc(db, "fashiontally_inventory", itemId);
 
       const updateData = {
         ...updates,
@@ -152,7 +152,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   async deleteInventoryItem(itemId) {
     set({ loading: true });
     try {
-      const itemRef = doc(db, "fashiontally_inventories", itemId);
+      const itemRef = doc(db, "fashiontally_inventory", itemId);
       await deleteDoc(itemRef);
       console.log(`Inventory item ${itemId} successfully deleted`);
 

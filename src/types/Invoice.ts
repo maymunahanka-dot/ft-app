@@ -1,7 +1,7 @@
 export type InvoiceItem = {
-  name: string;
-  qty: number;
-  rate: number;
+  description: string;
+  quantity: number;
+  price: number;
 };
 
 export type InvoiceData = {
@@ -14,7 +14,10 @@ export type InvoiceData = {
   businessAddress: string;
   logoUrl: string;
 
-  billTo: string;
+  // billTo: string;
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
 
   clientId?: string;
 

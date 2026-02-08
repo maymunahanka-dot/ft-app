@@ -174,20 +174,13 @@ export const CalculateBoxWidth = ({
  * * @param time - A string in the format "HH:MM" (e.g., "22:44")
  * @returns "AM" or "PM"
  */
-export const GetAmPm = (time: string): "AM" | "PM" => {
-  // 1. Split the string by the colon ":"
-  // "22:44" becomes ["22", "44"]
-  const [hoursStr] = time.split(":");
+export const GetAmPm = (isoDate: string): "AM" | "PM" => {
+  if (!isoDate) return "AM";
 
-  // 2. Convert the hours string into a number
-  const hours = parseInt(hoursStr, 10);
+  const date = new Date(isoDate);
+  const hours = date.getHours(); // 0–23
 
-  // 3. Logic: 12:00 through 23:59 are PM, 00:00 through 11:59 are AM
-  if (hours >= 12) {
-    return "PM";
-  } else {
-    return "AM";
-  }
+  return hours >= 12 ? "PM" : "AM";
 };
 
 /**

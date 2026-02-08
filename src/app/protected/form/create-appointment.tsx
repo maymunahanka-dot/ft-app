@@ -114,12 +114,12 @@ const CreateAppoinmentScreen = () => {
     clientPhone: "",
     clientId: "",
     date: new Date().toISOString(),
-    time: "",
-    type: "consultation",
-    status: "scheduled",
+    service: "consultation",
+    purpose: "consultation",
+    status: "pending",
     notes: "",
     duration: 1,
-    tailorId: getCurrentUserEmail(),
+    userEmail: getCurrentUserEmail(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
@@ -129,7 +129,6 @@ const CreateAppoinmentScreen = () => {
     clientPhone: "",
     clientId: "",
     date: "",
-    time: "",
     type: "",
     status: "",
     notes: "",
@@ -152,7 +151,6 @@ const CreateAppoinmentScreen = () => {
       clientPhone: "",
       clientId: "",
       date: "",
-      time: "",
       type: "",
       status: "",
       notes: "",
@@ -183,12 +181,6 @@ const CreateAppoinmentScreen = () => {
       isValid = false;
     }
 
-    // Time
-    if (!data.time) {
-      newErrors.time = "Appointment time is required";
-      isValid = false;
-    }
-
     // Duration
     if (!data.duration || data.duration < 1) {
       newErrors.duration = "Duration must be at least 1 hour";
@@ -206,10 +198,7 @@ const CreateAppoinmentScreen = () => {
     if (!isValid) return;
 
     try {
-      await createAppointment({
-        ...data,
-        updatedAt: new Date().toISOString(),
-      });
+      await createAppointment(data);
       handleBack();
     } catch (err) {
       console.error("Failed to create appointment", err);
@@ -330,22 +319,22 @@ const CreateAppoinmentScreen = () => {
                     style={styles.datePicker}
                     onPress={() => setDatePickerFor("time")}
                   >
-                    {data.time ? (
+                    {data.date ? (
                       <Text
                         style={[Styles.reg12, { color: "rgba(10, 10, 10, 1)" }]}
                       >
-                        {GetDetailedTime(data.time)}
+                        {GetDetailedTime(data.date)}
                       </Text>
                     ) : (
                       <Text style={styles.reg12}>00:00</Text>
                     )}
                     <Calendar size={scale(15)} color={Colors.grey} />
                   </Pressable>
-                  {error.time ? (
+                  {error.date ? (
                     <Text
                       style={{ ...Styles.reg12, color: "red", marginTop: 4 }}
                     >
-                      {error.time}
+                      {error.date}
                     </Text>
                   ) : null}
                 </View>
@@ -358,8 +347,8 @@ const CreateAppoinmentScreen = () => {
                   date={
                     datePickerFor === "date" && data.date
                       ? new Date(data.date)
-                      : datePickerFor === "time" && data.time
-                        ? new Date(data.time)
+                      : datePickerFor === "time" && data.date
+                        ? new Date(data.date)
                         : new Date()
                   }
                   mode={datePickerFor}
@@ -369,7 +358,7 @@ const CreateAppoinmentScreen = () => {
                     if (datePickerFor === "date") {
                       handleDataChange("date", value);
                     } else {
-                      handleDataChange("time", value);
+                      handleDataChange("date", value);
                     }
                     setDatePickerFor(null);
                   }}
@@ -388,7 +377,7 @@ const CreateAppoinmentScreen = () => {
                   <Text
                     style={[Styles.reg16, { color: "rgba(10, 10, 10, 1)" }]}
                   >
-                    {CapitalizeFirstName(data.type)}
+                    {CapitalizeFirstName(data.service)}
                   </Text>
 
                   <ChevronDown size={scale(20)} color={Colors.grey} />
@@ -506,8 +495,11 @@ const CreateAppoinmentScreen = () => {
         <SelectFilterModal
           data={PurposeList}
           visible={purposeModal}
-          handleOption={(option) => handleDataChange("type", option)}
-          selected={data.type}
+          handleOption={(option) => {
+            handleDataChange("service", option);
+            handleDataChange("purpose", option);
+          }}
+          selected={data.service}
           onClose={() => setPurposeModal(false)}
         />
       )}

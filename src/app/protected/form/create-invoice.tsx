@@ -62,18 +62,20 @@ const CreateInvoiceScreen = () => {
     invoiceDate: new Date().toISOString(),
     dueDate: "",
     terms: "Due on Receipt",
-    businessName: user ? (user.businessName ?? user.name ?? "") : "",
-    businessAddress: user ? (user.businessAddress ?? "") : "",
+    businessName: user ? (user.name ?? "") : "",
+    businessAddress: user ? (user.storeName ?? "") : "",
     logoUrl: user ? (user.logo ?? "") : "",
-    billTo: "",
+    clientName: "",
+    clientPhone: "",
+    clientEmail: "",
     currency: "NGN",
-    items: [{ name: "", qty: 0, rate: 0 }],
+    items: [{ description: "", quantity: 0, price: 0 }],
     notes: ["MalaabisbyMaymz Couture LTD", "Zenith Bank - 1015057791"],
     termsAndConditions: "NO REFUND AFTER PAYMENT",
   });
 
   const [error, setError] = useState({
-    billTo: "",
+    clientName: "",
     invoiceDate: "",
     dueDate: "",
     terms: "",
@@ -84,7 +86,7 @@ const CreateInvoiceScreen = () => {
 
   const totals = useMemo(() => {
     const sub = invoiceData.items.reduce(
-      (sum, i) => sum + Number(i.qty) * Number(i.rate),
+      (sum, i) => sum + Number(i.quantity) * Number(i.price),
       0,
     );
     const t = (7.5 / 100) * sub;
@@ -109,7 +111,7 @@ const CreateInvoiceScreen = () => {
   const handleAddItem = () => {
     setInvoiceData((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", qty: 1, rate: 0 }],
+      items: [...prev.items, { description: "", quantity: 1, price: 0 }],
     }));
     setItemErrors((prev) => {
       const next = { ...prev };
@@ -136,11 +138,13 @@ const CreateInvoiceScreen = () => {
     setInvoiceData((prev) => {
       const items = [...prev.items];
       const item = { ...items[index], [field]: value };
-      if (field === "name" && typeof value === "string") item.name = value;
-      else if (field === "qty")
-        item.qty = typeof value === "number" ? value : parseInt(value, 10) || 0;
-      else if (field === "rate")
-        item.rate =
+      if (field === "description" && typeof value === "string")
+        item.description = value;
+      else if (field === "quantity")
+        item.quantity =
+          typeof value === "number" ? value : parseInt(value, 10) || 0;
+      else if (field === "price")
+        item.price =
           typeof value === "number"
             ? value
             : parseFloat(String(value).replace(/[^0-9.]/g, "")) || 0;
@@ -155,7 +159,7 @@ const CreateInvoiceScreen = () => {
 
   const validateForm = (): boolean => {
     const newErrors = {
-      billTo: "",
+      clientName: "",
       invoiceDate: "",
       dueDate: "",
       terms: "",
@@ -165,8 +169,8 @@ const CreateInvoiceScreen = () => {
 
     let isValid = true;
 
-    if (!invoiceData.billTo.trim()) {
-      newErrors.billTo = "Bill to (client) is required";
+    if (!invoiceData.clientName?.trim()) {
+      newErrors.clientName = "Bill to (client) is required";
       isValid = false;
     }
 
@@ -181,7 +185,7 @@ const CreateInvoiceScreen = () => {
     }
 
     const hasValidItem = invoiceData.items.some(
-      (i) => i.name.trim() && i.qty >= 1 && i.rate > 0,
+      (i) => i.description.trim() && i.quantity >= 1 && i.price > 0,
     );
     if (!hasValidItem) {
       newErrors.items =
@@ -190,10 +194,13 @@ const CreateInvoiceScreen = () => {
     }
 
     invoiceData.items.forEach((item, index) => {
-      if (!item.name.trim() && (item.qty > 0 || item.rate > 0)) {
+      if (!item.description.trim() && (item.quantity > 0 || item.price > 0)) {
         newItemErrors[index] = "Description is required";
         isValid = false;
-      } else if (item.name.trim() && (item.qty < 1 || item.rate <= 0)) {
+      } else if (
+        item.description.trim() &&
+        (item.quantity < 1 || item.price <= 0)
+      ) {
         newItemErrors[index] =
           "Quantity must be at least 1 and price greater than 0";
         isValid = false;
@@ -211,7 +218,7 @@ const CreateInvoiceScreen = () => {
 
     try {
       const validItems = invoiceData.items.filter(
-        (i) => i.name.trim() && i.qty >= 1 && i.rate > 0,
+        (i) => i.description.trim() && i.quantity >= 1 && i.price > 0,
       );
       await createInvoice({
         ...invoiceData,
@@ -232,9 +239,8 @@ const CreateInvoiceScreen = () => {
       setSelectedClient(foundClient);
       setInvoiceData((prev) => ({
         ...prev,
-        billTo: [foundClient.name, foundClient.phone]
-          .filter(Boolean)
-          .join("\n"),
+        clientName: foundClient.name,
+        clientPhone: foundClient.phone,
       }));
     }
   }, [foundClient]);
@@ -312,9 +318,9 @@ const CreateInvoiceScreen = () => {
 
                   <ChevronDown size={scale(20)} color={Colors.grey} />
                 </Pressable>
-                {error.billTo ? (
+                {error.clientName ? (
                   <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.billTo}
+                    {error.clientName}
                   </Text>
                 ) : null}
               </View>
@@ -457,9 +463,9 @@ const CreateInvoiceScreen = () => {
                         </View>
                       )}
                       <TextInput
-                        value={item.name}
+                        value={item.description}
                         onChangeText={(text) =>
-                          handleItemChange(index, "name", text)
+                          handleItemChange(index, "description", text)
                         }
                         placeholder="Description"
                         placeholderTextColor={"grey"}
@@ -473,11 +479,15 @@ const CreateInvoiceScreen = () => {
                           </Text>
 
                           <TextInput
-                            value={item.qty === 0 ? "" : item.qty.toString()}
+                            value={
+                              item.quantity === 0
+                                ? ""
+                                : item.quantity.toString()
+                            }
                             onChangeText={(text) =>
                               handleItemChange(
                                 index,
-                                "qty",
+                                "quantity",
                                 parseInt(text, 10) || 0,
                               )
                             }
@@ -495,12 +505,12 @@ const CreateInvoiceScreen = () => {
 
                           <TextInput
                             value={formatPrice(
-                              item.rate === 0 ? "" : item.rate.toString(),
+                              item.price === 0 ? "" : item.price.toString(),
                             )}
                             onChangeText={(text) =>
                               handleItemChange(
                                 index,
-                                "rate",
+                                "price",
                                 parseFloat(text.replace(/[^0-9.]/g, "")) || 0,
                               )
                             }
@@ -622,9 +632,12 @@ const CreateInvoiceScreen = () => {
             setSelectedClient(client);
             setInvoiceData((prev) => ({
               ...prev,
-              billTo: [client.name, client.phone].filter(Boolean).join("\n"),
+              clientName: client.name,
+              clientPhone: client.phone,
+              clientEmail: client.email,
             }));
-            if (error.billTo) setError((prev) => ({ ...prev, billTo: "" }));
+            if (error.clientName)
+              setError((prev) => ({ ...prev, clientName: "" }));
           }}
           onClose={() => setClientModal(false)}
         />

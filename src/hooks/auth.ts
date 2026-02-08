@@ -6,19 +6,31 @@ import {
   signInWithEmailAndPassword,
   User,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { auth, db } from "../context/firebase";
+import { getCurrentUserEmail } from "../lib/auth-utils";
 import { useUserStore } from "../stores/userSlice";
 import { RegisterUserData } from "../types/auth";
-import { ShowToastMessage } from "../utils/random";
+import { FormatFirebaseError, ShowToastMessage } from "../utils/random";
 import { uploadImageToCloudinary } from "../utils/uploadImageToCloudinary";
 
 export function useAuth() {
   //   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const setUserData = useUserStore.getState().updateUser;
+
+  const fetchBrandSettings = useUserStore.getState().fetchBrandSettings;
+  const editBrandSettings = useUserStore.getState().editBrandSettings;
 
   const [firebaseUser, setUser] = useState<User | null>(null);
 
@@ -34,6 +46,7 @@ export function useAuth() {
       try {
         const profile = await fetchUserProfile(user.uid);
         setUserData(profile);
+        if (profile) await fetchBrandSettings();
       } catch (error) {
         console.error("Error fetching user data:", error);
         // ShowToastMessage({
@@ -53,24 +66,41 @@ export function useAuth() {
     uid: string,
   ): Promise<RegisterUserData | null> => {
     try {
-      const userDocRef = doc(db, "fashiontally_users", uid);
-      const docSnap = await getDoc(userDocRef);
+      if (uid) {
+        const ref = doc(db, "fashiontally_users", uid);
+        const docSnap = await getDoc(ref);
 
-      if (!docSnap.exists()) {
-        console.warn("[FETCH_USER_PROFILE] User profile not found", { uid });
-        ShowToastMessage({
-          title: "User does not exists",
-          preset: "error",
-          haptic: "error",
-        });
-        return null;
+        if (docSnap.exists()) {
+          return docSnap.data() as RegisterUserData;
+        }
       }
 
-      return docSnap.data() as RegisterUserData;
+      const email = getCurrentUserEmail();
+      if (email) {
+        const q = query(
+          collection(db, "fashiontally_users"),
+          where("email", "==", email),
+        );
+
+        const snap = await getDocs(q);
+
+        if (!snap.empty) {
+          return snap.docs[0].data() as RegisterUserData;
+        }
+      }
+
+      console.warn("[FETCH_USER_PROFILE] No profile found", { uid, email });
+      return null;
     } catch (error: any) {
       console.error("[FETCH_USER_PROFILE] Failed to fetch user profile", {
         uid,
         error,
+      });
+      ShowToastMessage({
+        title: "Error fetching user",
+        message: FormatFirebaseError(error),
+        preset: "error",
+        haptic: "error",
       });
       return null;
     }
@@ -81,6 +111,8 @@ export function useAuth() {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
       const profile = await fetchUserProfile(cred.user.uid);
+
+      await fetchBrandSettings();
 
       setUser(cred.user);
       setUserData(profile);
@@ -110,6 +142,22 @@ export function useAuth() {
         console.log("image url", imageUrl);
         if (!imageUrl) return;
         data.logo = imageUrl;
+      }
+
+      if (userDataInput.storeName) {
+        await editBrandSettings({
+          id: "",
+          logoUrl: userDataInput.logo,
+          businessName: userDataInput.storeName,
+          businessAddress: "",
+          businessEmail: userDataInput.email,
+          businessWebsite: "",
+          businessPhone: userDataInput.phone,
+          footerText: "",
+          termsAndConditions: "",
+          updatedAt: "",
+          userEmail: getCurrentUserEmail(),
+        });
       }
 
       const userCredential = await createUserWithEmailAndPassword(
@@ -199,6 +247,7 @@ export function useAuth() {
         if (docSnap.exists()) {
           const fetchedData = docSnap.data() as RegisterUserData;
           setUserData(fetchedData);
+          await fetchBrandSettings();
         }
       } catch (error: any) {
         console.error("Error refreshing user data:", error);

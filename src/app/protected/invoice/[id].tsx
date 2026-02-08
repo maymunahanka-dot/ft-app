@@ -3,6 +3,7 @@ import SelectClientModal from "@/src/components/form/order/SelectClientModal";
 import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { useClientStore } from "@/src/stores/clientSlice";
 import { useInvoiceStore } from "@/src/stores/invoiceSlice";
 import { useUserStore } from "@/src/stores/userSlice";
@@ -45,6 +46,7 @@ const EditInvoiceScreen = () => {
   const { id } = useLocalSearchParams();
   const invoices = useInvoiceStore((state) => state.invoices);
   const foundInvoice = invoices.find((prev) => prev.id === id.toString())!;
+  const fetchClients = useClientStore((state) => state.getClientsByTailor);
   const clients = useClientStore((state) => state.clients);
   const foundClient = clients.find(
     (prev) => prev.id === foundInvoice.clientId?.toString(),
@@ -70,7 +72,9 @@ const EditInvoiceScreen = () => {
     businessName: foundInvoice.businessName ?? "",
     businessAddress: foundInvoice.businessAddress ?? "",
     logoUrl: user?.logo ?? "",
-    billTo: foundInvoice.billTo,
+    clientName: foundInvoice.clientName,
+    clientPhone: foundInvoice.clientPhone,
+    clientEmail: foundClient?.email,
     currency: "NGN",
     items: foundInvoice.items,
     notes: foundInvoice.notes,
@@ -78,7 +82,7 @@ const EditInvoiceScreen = () => {
   });
 
   const [error, setError] = useState({
-    billTo: "",
+    clientName: "",
     invoiceDate: "",
     dueDate: "",
     terms: "",
@@ -89,7 +93,7 @@ const EditInvoiceScreen = () => {
 
   const totals = useMemo(() => {
     const sub = invoiceData.items.reduce(
-      (sum, i) => sum + Number(i.qty) * Number(i.rate),
+      (sum, i) => sum + Number(i.quantity) * Number(i.price),
       0,
     );
     const t = (7.5 / 100) * sub;
@@ -114,7 +118,7 @@ const EditInvoiceScreen = () => {
   const handleAddItem = () => {
     setInvoiceData((prev) => ({
       ...prev,
-      items: [...prev.items, { name: "", qty: 1, rate: 0 }],
+      items: [...prev.items, { description: "", quantity: 1, price: 0 }],
     }));
     setItemErrors((prev) => {
       const next = { ...prev };
@@ -141,11 +145,13 @@ const EditInvoiceScreen = () => {
     setInvoiceData((prev) => {
       const items = [...prev.items];
       const item = { ...items[index], [field]: value };
-      if (field === "name" && typeof value === "string") item.name = value;
-      else if (field === "qty")
-        item.qty = typeof value === "number" ? value : parseInt(value, 10) || 0;
-      else if (field === "rate")
-        item.rate =
+      if (field === "description" && typeof value === "string")
+        item.description = value;
+      else if (field === "quantity")
+        item.quantity =
+          typeof value === "number" ? value : parseInt(value, 10) || 0;
+      else if (field === "price")
+        item.price =
           typeof value === "number"
             ? value
             : parseFloat(String(value).replace(/[^0-9.]/g, "")) || 0;
@@ -160,7 +166,7 @@ const EditInvoiceScreen = () => {
 
   const validateForm = (): boolean => {
     const newErrors = {
-      billTo: "",
+      clientName: "",
       invoiceDate: "",
       dueDate: "",
       terms: "",
@@ -170,8 +176,8 @@ const EditInvoiceScreen = () => {
 
     let isValid = true;
 
-    if (!invoiceData.billTo.trim()) {
-      newErrors.billTo = "Bill to (client) is required";
+    if (!invoiceData.clientName?.trim()) {
+      newErrors.clientName = "Bill to (client) is required";
       isValid = false;
     }
 
@@ -186,7 +192,7 @@ const EditInvoiceScreen = () => {
     }
 
     const hasValidItem = invoiceData.items.some(
-      (i) => i.name.trim() && i.qty >= 1 && i.rate > 0,
+      (i) => i.description.trim() && i.quantity >= 1 && i.price > 0,
     );
     if (!hasValidItem) {
       newErrors.items =
@@ -195,10 +201,13 @@ const EditInvoiceScreen = () => {
     }
 
     invoiceData.items.forEach((item, index) => {
-      if (!item.name.trim() && (item.qty > 0 || item.rate > 0)) {
+      if (!item.description.trim() && (item.quantity > 0 || item.price > 0)) {
         newItemErrors[index] = "Description is required";
         isValid = false;
-      } else if (item.name.trim() && (item.qty < 1 || item.rate <= 0)) {
+      } else if (
+        item.description.trim() &&
+        (item.quantity < 1 || item.price <= 0)
+      ) {
         newItemErrors[index] =
           "Quantity must be at least 1 and price greater than 0";
         isValid = false;
@@ -216,7 +225,7 @@ const EditInvoiceScreen = () => {
 
     try {
       const validItems = invoiceData.items.filter(
-        (i) => i.name.trim() && i.qty >= 1 && i.rate > 0,
+        (i) => i.description.trim() && i.quantity >= 1 && i.price > 0,
       );
       await editInvoice(foundInvoice.id, {
         ...invoiceData,
@@ -231,6 +240,10 @@ const EditInvoiceScreen = () => {
       console.error("Error editing invoice", err);
     }
   };
+
+  useEffect(() => {
+    fetchClients(getCurrentUserEmail());
+  }, []);
 
   useEffect(() => {
     if (foundClient) {
@@ -317,9 +330,9 @@ const EditInvoiceScreen = () => {
 
                   <ChevronDown size={scale(20)} color={Colors.grey} />
                 </Pressable>
-                {error.billTo ? (
+                {error.clientName ? (
                   <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.billTo}
+                    {error.clientName}
                   </Text>
                 ) : null}
               </View>
@@ -462,9 +475,9 @@ const EditInvoiceScreen = () => {
                         </View>
                       )}
                       <TextInput
-                        value={item.name}
+                        value={item.description}
                         onChangeText={(text) =>
-                          handleItemChange(index, "name", text)
+                          handleItemChange(index, "description", text)
                         }
                         placeholder="Description"
                         placeholderTextColor={"grey"}
@@ -483,11 +496,15 @@ const EditInvoiceScreen = () => {
                           </Text>
 
                           <TextInput
-                            value={item.qty === 0 ? "" : item.qty.toString()}
+                            value={
+                              item.quantity === 0
+                                ? ""
+                                : item.quantity.toString()
+                            }
                             onChangeText={(text) =>
                               handleItemChange(
                                 index,
-                                "qty",
+                                "quantity",
                                 parseInt(text, 10) || 0,
                               )
                             }
@@ -505,12 +522,12 @@ const EditInvoiceScreen = () => {
 
                           <TextInput
                             value={formatPrice(
-                              item.rate === 0 ? "" : item.rate.toString(),
+                              item.price === 0 ? "" : item.price.toString(),
                             )}
                             onChangeText={(text) =>
                               handleItemChange(
                                 index,
-                                "rate",
+                                "price",
                                 parseFloat(text.replace(/[^0-9.]/g, "")) || 0,
                               )
                             }
@@ -632,9 +649,12 @@ const EditInvoiceScreen = () => {
             setSelectedClient(client);
             setInvoiceData((prev) => ({
               ...prev,
-              billTo: [client.name, client.phone].filter(Boolean).join("\n"),
+              clientName: client.name,
+              clientPhone: client.phone,
+              clientEmail: client.email,
             }));
-            if (error.billTo) setError((prev) => ({ ...prev, billTo: "" }));
+            if (error.clientName)
+              setError((prev) => ({ ...prev, clientName: "" }));
           }}
           onClose={() => setClientModal(false)}
         />

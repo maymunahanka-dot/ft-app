@@ -35,12 +35,12 @@ const TabImageBackground: React.FC<Props> = ({
   const navigation = useNavigation();
 
   const user = useUserStore((state) => state.user);
-  const fullName =
-    (user?.firstName ?? user?.name?.split(" ")[0] ?? "") +
-    " " +
-    (user?.lastName ?? user?.name?.split(" ")[1] ?? "");
+  const brandSetting = useUserStore((state) => state.brandSetting);
+  const fullName = user?.name ?? "";
   const isBusiness = user?.role === "Business";
-  const name = isBusiness ? (user?.storeName ?? "") : fullName;
+  const name = isBusiness
+    ? (brandSetting?.businessName ?? user.storeName)
+    : fullName;
 
   const { getImageUri } = useUserImage();
 
@@ -72,9 +72,9 @@ const TabImageBackground: React.FC<Props> = ({
             <RightComp />
           </View>
           <View style={styles.startRow}>
-            {user?.logo ? (
+            {brandSetting?.logoUrl ? (
               <Image
-                source={{ uri: getImageUri(user.logo) }}
+                source={{ uri: getImageUri(brandSetting.logoUrl) }}
                 style={{ width: 50, aspectRatio: 1, borderRadius: 100 }}
               />
             ) : (

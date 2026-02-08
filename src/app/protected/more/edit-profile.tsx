@@ -23,6 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const EditProfileScreen = () => {
   const user = useUserStore((state) => state.user);
   const updateUserDetails = useUserStore((state) => state.updateUserDetails);
+  const editBrandSettings = useUserStore((state) => state.editBrandSettings);
 
   const { refreshUser } = useAuth();
 
@@ -61,8 +62,6 @@ const EditProfileScreen = () => {
     try {
       console.log("user details", userData);
       const success = await updateUserDetails({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
         phone: userData.phone,
         lga: userData.lga,
         state: userData.state,
@@ -73,6 +72,8 @@ const EditProfileScreen = () => {
         country: user.country,
         createdAt: user.createdAt,
       });
+
+      await editBrandSettings({ businessName: user.storeName });
 
       if (success) {
         await refreshUser();

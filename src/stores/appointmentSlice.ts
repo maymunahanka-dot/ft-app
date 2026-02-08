@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../context/firebase";
+import { getCurrentUserEmail } from "../lib/auth-utils";
 import { Appointment } from "../types/appointment";
 import { ShowToastMessage } from "../utils/random";
 
@@ -35,7 +36,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       const appointmentsRef = collection(db, "fashiontally_appointments");
       const q = query(
         appointmentsRef,
-        where("tailorId", "==", email),
+        where("userEmail", "==", getCurrentUserEmail()),
         orderBy("date", "asc"),
         orderBy("time", "asc"),
       );
@@ -72,6 +73,13 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         ...appointment,
         updatedAt: new Date().toISOString(),
       });
+      set((state) => ({
+        appointments: state.appointments.some((i) => i.id === appointment.id)
+          ? state.appointments.map((i) =>
+              i.id === appointment.id ? appointment : i,
+            )
+          : [appointment, ...state.appointments],
+      }));
     } catch (error: any) {
       console.error("Error saving appointment:", error);
       ShowToastMessage({
@@ -114,7 +122,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       const appointmentsRef = collection(db, "fashiontally_appointments");
       const q = query(
         appointmentsRef,
-        where("tailorId", "==", email),
+        where("userEmail", "==", email),
         where("date", "==", date),
         orderBy("time", "asc"),
       );

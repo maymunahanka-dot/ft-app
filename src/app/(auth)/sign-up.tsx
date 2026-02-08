@@ -31,8 +31,8 @@ const SignUpScreen = () => {
   };
 
   const [error, setError] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
+    // lastName: "",
     email: "",
     phone: "",
   });
@@ -47,16 +47,16 @@ const SignUpScreen = () => {
     }
   };
 
-  const firstNameRef = useRef<TextInput>(null);
-  const lastNameRef = useRef<TextInput>(null);
+  const nameRef = useRef<TextInput>(null);
+  // const lastNameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
 
   const focusFirstErrorField = () => {
     // Use setTimeout to ensure setError has completed
     setTimeout(() => {
-      if (error.firstName) {
-        firstNameRef.current?.focus();
+      if (error.name) {
+        nameRef.current?.focus();
       } else if (error.email) {
         emailRef.current?.focus();
       } else if (error.phone) {
@@ -67,23 +67,23 @@ const SignUpScreen = () => {
 
   const validateForm = (): boolean => {
     const newErrors = {
-      firstName: "",
-      lastName: "",
+      // firstName: "",
+      name: "",
       email: "",
       phone: "",
     };
     let isValid = true;
 
-    // First Name validation
-    if (!userData.firstName?.trim() && userData.firstName.length < 5) {
-      newErrors.firstName = "First name is required";
+    // Name validation
+    if (!userData.name?.trim() && userData.name.length < 5) {
+      newErrors.name = "First name is required";
       isValid = false;
     }
     // last Name validation
-    if (!userData.lastName?.trim() && userData.lastName.length < 5) {
-      newErrors.lastName = "Last name is required";
-      isValid = false;
-    }
+    // if (!userData.lastName?.trim() && userData.lastName.length < 5) {
+    //   newErrors.lastName = "Last name is required";
+    //   isValid = false;
+    // }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -185,9 +185,9 @@ const SignUpScreen = () => {
                 <View style={Styles.inputContainer}>
                   <Text style={Styles.label}>First Name</Text>
                   <TextInput
-                    ref={firstNameRef}
-                    value={userData.firstName}
-                    onChangeText={(text) => handleDataChange("firstName", text)}
+                    ref={nameRef}
+                    value={userData.name}
+                    onChangeText={(text) => handleDataChange("name", text)}
                     placeholder="First Name"
                     placeholderTextColor={Colors.grayText}
                     textContentType="name"
@@ -197,16 +197,16 @@ const SignUpScreen = () => {
                     autoCorrect={false}
                     style={Styles.input}
                   />
-                  {error.firstName ? (
+                  {error.name ? (
                     <Text
                       style={{ ...Styles.reg12, color: "red", marginTop: 4 }}
                     >
-                      {error.firstName}
+                      {error.name}
                     </Text>
                   ) : null}
                 </View>
 
-                {/* last name */}
+                {/* last name
                 <View style={Styles.inputContainer}>
                   <Text style={Styles.label}>Last Name</Text>
                   <TextInput
@@ -229,7 +229,7 @@ const SignUpScreen = () => {
                       {error.lastName}
                     </Text>
                   ) : null}
-                </View>
+                </View> */}
 
                 {/* email */}
                 <View style={Styles.inputContainer}>

@@ -41,17 +41,18 @@ export const DrawerContentWidth = Dimensions.get("window").width * 0.35;
 export function DrawerContent(props: DrawerContentComponentProps) {
   const { signOut, loading } = useAuth();
 
+  const brandSetting = useUserStore((state) => state.brandSetting);
+
   const { getImageUri } = useUserImage();
 
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   // console.log("user logo", user?.logo);
-  const fullName =
-    (user?.firstName ?? user?.name?.split(" ")[0] ?? "") +
-    " " +
-    (user?.lastName ?? user?.name?.split(" ")[1] ?? "");
+  const fullName = user?.name ?? "";
   const isBusiness = user?.role === "Business";
-  const name = isBusiness ? (user?.storeName ?? "") : fullName;
+  const name = isBusiness
+    ? (brandSetting?.businessName ?? user.storeName)
+    : fullName;
 
   const { top, bottom } = useSafeAreaInsets();
   const drawerItems = useDrawerStore((state) => state.items);
@@ -100,9 +101,9 @@ export function DrawerContent(props: DrawerContentComponentProps) {
         </PressableScale>
 
         <View style={[styles.gapRow, { gap: spacing(11) }]}>
-          {user?.logo ? (
+          {brandSetting?.logoUrl ? (
             <Image
-              source={{ uri: getImageUri(user.logo) }}
+              source={{ uri: getImageUri(brandSetting.logoUrl) }}
               style={styles.logo}
             />
           ) : (

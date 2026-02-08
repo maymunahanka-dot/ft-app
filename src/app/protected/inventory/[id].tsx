@@ -9,6 +9,7 @@ import { useInventoryStore } from "@/src/stores/inventorySlice";
 import { InventoryItem } from "@/src/types/inventory";
 import {
   CapitalizeFirstName,
+  formatPrice,
   scale,
   scaleFontSize,
   spacing,
@@ -107,7 +108,7 @@ const EditInventoryScreen = () => {
     try {
       const payload: InventoryItem = {
         ...stockData,
-        totalValue: stockData.quantity * stockData.sellingPricePerUnit,
+        totalValue: stockData.quantity * (stockData?.sellingPricePerUnit ?? 1),
         tailorId: getCurrentUserEmail(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -325,7 +326,9 @@ const EditInventoryScreen = () => {
                       Price per Unit (₦)<Text style={styles.red}> *</Text>
                     </Text>
                     <TextInput
-                      value={stockData.sellingPricePerUnit.toString()}
+                      value={formatPrice(
+                        (stockData.sellingPricePerUnit ?? 1).toString(),
+                      )}
                       onChangeText={(text) =>
                         handleDataChange("sellingPricePerUnit", Number(text))
                       }
@@ -348,7 +351,7 @@ const EditInventoryScreen = () => {
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
                     <Text style={Styles.label}>Min Stock Alert</Text>
                     <TextInput
-                      value={stockData.minStockLevel.toString()}
+                      value={(stockData.minStockLevel ?? 1).toString()}
                       onChangeText={(text) =>
                         handleDataChange("minStockLevel", Number(text))
                       }

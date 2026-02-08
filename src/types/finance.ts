@@ -21,19 +21,21 @@ export type TransactionType = "income" | "expense";
 
 export type Expense = {
   id: string;
+  type: TransactionType;
   description: string;
   amount: number;
   category: ExpenseCategory;
   date: string; // ISO string
   receiptUrl?: string;
   notes?: string;
-  tailorId: string;
+  userEmail: string;
   createdAt: string;
   updatedAt: string;
 };
 
 export type Income = {
   id: string;
+  type: TransactionType;
   description: string;
   amount: number;
   source: IncomeSource;
@@ -41,7 +43,7 @@ export type Income = {
   orderId?: string; // Link to order if applicable
   clientName?: string;
   notes?: string;
-  tailorId: string;
+  userEmail: string;
   createdAt: string;
   updatedAt: string;
 };
