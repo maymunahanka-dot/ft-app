@@ -42,18 +42,22 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       );
       const querySnapshot = await getDocs(q);
 
-      const appointments = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Appointment[];
+      console.log("Total docs found:", querySnapshot.docs.length);
 
-      //   console.log("appointments", JSON.stringify(appointments, null, 2));
+      const appointments = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        console.log("Document:", doc.id, data);
+        return {
+          id: doc.id,
+          ...data,
+        };
+      }) as Appointment[];
 
       set({ appointments });
     } catch (error: any) {
-      console.error("Error getting appointments", error);
+      console.error("Error getting appointments:", error);
       ShowToastMessage({
-        title: error,
+        title: error.message || "Error fetching appointments",
         preset: "error",
         haptic: "error",
       });
@@ -71,8 +75,12 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       );
       await setDoc(appointmentRef, {
         ...appointment,
+        userEmail: appointment.userEmail,
+        tailorId: appointment.userEmail,
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
+
       set((state) => ({
         appointments: state.appointments.some((i) => i.id === appointment.id)
           ? state.appointments.map((i) =>
@@ -83,7 +91,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     } catch (error: any) {
       console.error("Error saving appointment:", error);
       ShowToastMessage({
-        title: error,
+        title: error.message || "Error saving appointment",
         preset: "error",
         haptic: "error",
       });
