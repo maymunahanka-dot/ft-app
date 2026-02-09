@@ -199,6 +199,10 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         appointmentId,
       );
       await deleteDoc(appointmentRef);
+      set((state) => ({
+        appointments: state.appointments.filter((a) => a.id !== appointmentId),
+      }));
+
       console.log(`Appointment ${appointmentId} successfully deleted`);
     } catch (error: any) {
       console.error("Error deleting appointment:", error);
