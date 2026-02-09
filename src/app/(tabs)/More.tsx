@@ -19,28 +19,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const RowBoxes = () => {
   const user = useUserStore((state) => state.user);
+  const brandSetting = useUserStore((state) => state.brandSetting);
+
+  const businessName = user?.businessName
+    ? user?.businessName
+    : (brandSetting?.businessName ?? user?.name ?? "Fashion House");
 
   return (
     <View style={{}}>
       <GlassCard style={styles.box}>
         <View style={styles.startRow}>
           <View style={styles.placeHolder}>
-            <Text style={styles.med24}>
-              {GetInitials(
-                user?.storeName
-                  ? user?.storeName
-                  : (user?.name ?? "Fashion House"),
-              )}
-            </Text>
+            <Text style={styles.med24}>{GetInitials(businessName)}</Text>
           </View>
 
           <View style={styles.col}>
             <Text style={[styles.med24, { color: "white", lineHeight: 28 }]}>
-              {CapitalizeFirstName(
-                user?.storeName
-                  ? user?.storeName
-                  : (user?.name ?? "Fashion House"),
-              )}
+              {CapitalizeFirstName(businessName)}
             </Text>
             <Text style={[Styles.reg14, { color: "white" }]}>
               {CapitalizeFirstName(user?.name ?? "Fashion Tally")}
@@ -66,7 +61,7 @@ const RowBoxes = () => {
           <View style={styles.startRow}>
             <Smartphone size={scale(14)} color={"white"} />
             <Text style={[Styles.reg14, { color: "white" }]}>
-              {user?.phone}
+              {user?.phoneNumber ?? user?.phone}
             </Text>
           </View>
         </View>

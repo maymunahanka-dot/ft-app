@@ -1,25 +1,30 @@
 import {
+  addDoc,
   collection,
   deleteDoc,
   doc,
   getDoc,
   getDocs,
+  onSnapshot,
   orderBy,
   query,
-  setDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../context/firebase";
-import { getCurrentUserEmail } from "../lib/auth-utils";
 import { Appointment } from "../types/appointment";
+import {
+  createCalendarEvent,
+  deleteCalendarEvent,
+  updateCalendarEvent,
+} from "../utils/calender";
 import { ShowToastMessage } from "../utils/random";
 
 interface AppointmentState {
   appointments: Appointment[];
   loading: boolean;
-  getAppointmentsByTailor: (email: string) => Promise<void>;
+  getAppointmentsByTailor: (email: string) => Promise<(() => void) | undefined>;
   saveAppointment(appointment: Appointment): Promise<void>;
   getAppointmentById(id: string): Promise<Appointment | null>;
   getAppointmentsByDate(email: string, date: string): Promise<Appointment[]>;
@@ -33,27 +38,22 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   async getAppointmentsByTailor(email) {
     set({ loading: true });
     try {
-      const appointmentsRef = collection(db, "fashiontally_appointments");
       const q = query(
-        appointmentsRef,
-        where("userEmail", "==", getCurrentUserEmail()),
-        orderBy("date", "asc"),
-        orderBy("time", "asc"),
+        collection(db, "fashiontally_appointments"),
+        where("userEmail", "==", email),
+        orderBy("date", "desc"),
       );
-      const querySnapshot = await getDocs(q);
 
-      console.log("Total docs found:", querySnapshot.docs.length);
-
-      const appointments = querySnapshot.docs.map((doc) => {
-        const data = doc.data();
-        console.log("Document:", doc.id, data);
-        return {
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const appointmentsData = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...data,
-        };
-      }) as Appointment[];
+          ...doc.data(),
+        })) as Appointment[];
+        set({ appointments: appointmentsData });
+        set({ loading: false });
+      });
 
-      set({ appointments });
+      return () => unsubscribe();
     } catch (error: any) {
       console.error("Error getting appointments:", error);
       ShowToastMessage({
@@ -67,24 +67,27 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   },
   async saveAppointment(appointment) {
     set({ loading: true });
+    let calendarEventId = appointment.calendarEventId;
     try {
-      const appointmentRef = doc(
-        db,
-        "fashiontally_appointments",
-        appointment.id,
-      );
-      await setDoc(appointmentRef, {
+      if (!calendarEventId) {
+        calendarEventId = await createCalendarEvent(appointment);
+        console.log("Calendar event created:", calendarEventId);
+      }
+
+      const now = new Date().toISOString();
+
+      await addDoc(collection(db, "fashiontally_appointments"), {
         ...appointment,
         userEmail: appointment.userEmail,
-        tailorId: appointment.userEmail,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        tailorId: "",
+        createdAt: now,
+        updatedAt: now,
       });
 
       set((state) => ({
         appointments: state.appointments.some((i) => i.id === appointment.id)
           ? state.appointments.map((i) =>
-              i.id === appointment.id ? appointment : i,
+              i.id === appointment.id ? { ...appointment, calendarEventId } : i,
             )
           : [appointment, ...state.appointments],
       }));
@@ -155,8 +158,20 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
   async editAppoinment(itemId, updates) {
     set({ loading: true });
-
+    const currentAppointment = get().appointments.find((a) => a.id === itemId);
     try {
+      if (currentAppointment?.calendarEventId) {
+        const updatedAppointment = { ...currentAppointment, ...updates };
+        await updateCalendarEvent(
+          currentAppointment.calendarEventId,
+          updatedAppointment,
+        );
+        console.log(
+          "Calendar event updated:",
+          currentAppointment.calendarEventId,
+        );
+      }
+
       const itemRef = doc(db, "fashiontally_appointments", itemId);
 
       const updateData = {
@@ -192,7 +207,13 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
   async deleteAppointment(appointmentId: string) {
     set({ loading: true });
+    const appointment = get().appointments.find((a) => a.id === appointmentId);
     try {
+      if (appointment?.calendarEventId) {
+        await deleteCalendarEvent(appointment.calendarEventId);
+        console.log("Calendar event deleted:", appointment.calendarEventId);
+      }
+
       const appointmentRef = doc(
         db,
         "fashiontally_appointments",

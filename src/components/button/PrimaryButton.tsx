@@ -19,7 +19,7 @@ type Props = {
 
 const PrimaryButton = ({ title, onPress, loading = false, props }: Props) => {
   return (
-    <TouchableOpacity onPress={onPress} {...props}>
+    <TouchableOpacity onPress={onPress} {...props} disabled={loading}>
       <LinearGradient
         colors={[
           "rgba(255, 255, 255, 0.4)",

@@ -22,4 +22,6 @@ export type Appointment = {
   userEmail: string;
   createdAt: string;
   updatedAt: string;
+
+  calendarEventId?: string;
 };

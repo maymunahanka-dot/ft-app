@@ -4,7 +4,13 @@ import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useAuth } from "@/src/hooks/auth";
 import { useUserStore } from "@/src/stores/userSlice";
-import { GetInitials, scale, scaleFontSize, spacing } from "@/src/utils/random";
+import {
+  convertToDate,
+  GetInitials,
+  scale,
+  scaleFontSize,
+  spacing,
+} from "@/src/utils/random";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -67,13 +73,15 @@ const EditProfileScreen = () => {
         state: userData.state,
         name: `${userData.firstName} ${userData.lastName}`,
         email: user.email,
-        storeName: user.storeName ?? "",
+        businessName: user.businessName ?? "",
         role: user.role,
         country: user.country,
-        createdAt: user.createdAt,
+        createdAt:
+          user?.createdAt ??
+          convertToDate(user.meta.creation_timestamp).toDateString(),
       });
 
-      await editBrandSettings({ businessName: user.storeName });
+      await editBrandSettings({ businessName: user?.businessName ?? "" });
 
       if (success) {
         await refreshUser();
@@ -201,7 +209,9 @@ const EditProfileScreen = () => {
 
               <View style={Styles.inputContainer}>
                 <Text style={Styles.label}>Email Address</Text>
-                <View style={[Styles.input, { opacity: 0.4 }]}>
+                <View
+                  style={[Styles.input2, { opacity: 0.4, paddingVertical: 0 }]}
+                >
                   <Text style={[Styles.reg12, { color: Colors.black }]}>
                     {userData.email}
                   </Text>

@@ -36,6 +36,7 @@ const CreateClientScreen = () => {
     email: "",
     lastVisit: "",
     tailorId: getCurrentUserEmail(),
+    userEmail: getCurrentUserEmail(),
     createdAt: "",
     notes: "",
   });
@@ -84,16 +85,16 @@ const CreateClientScreen = () => {
     }
 
     // Phone
-    if (!clientData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
+    if (!clientData.phone.trim() || clientData.phone.length < 11) {
+      newErrors.phone = "Phone number is invalid";
       isValid = false;
     } else {
       // Basic Nigerian phone validation
-      const phoneRegex = /^(\+234|0)[789][01]\d{8}$/;
-      if (!phoneRegex.test(clientData.phone.replace(/\s/g, ""))) {
-        newErrors.phone = "Enter a valid Nigerian phone number";
-        isValid = false;
-      }
+      // const phoneRegex = /^(\+234|0)[789][01]\d{8}$/;
+      // if (!phoneRegex.test(clientData.phone.replace(/\s/g, ""))) {
+      //   newErrors.phone = "Enter a valid Nigerian phone number";
+      //   isValid = false;
+      // }
     }
 
     setError(newErrors);
@@ -237,7 +238,7 @@ const CreateClientScreen = () => {
                   returnKeyLabel="next"
                   returnKeyType="next"
                   keyboardType="number-pad"
-                  maxLength={14}
+                  maxLength={11}
                   style={[
                     Styles.input,
                     {

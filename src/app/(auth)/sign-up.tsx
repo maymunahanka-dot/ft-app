@@ -280,6 +280,7 @@ const SignUpScreen = () => {
                       placeholder="Enter your Phone number"
                       keyboardType="number-pad"
                       textContentType="telephoneNumber"
+                      maxLength={10}
                       placeholderTextColor={Colors.grayText}
                       style={{ ...Styles.inputFontPadding, flex: 1 }}
                     />

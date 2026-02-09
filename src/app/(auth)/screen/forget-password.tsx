@@ -130,7 +130,7 @@ const ForgetPasswordScreen = () => {
               </Text>
             </View>
 
-            <Text style={[Styles.bold12]}>
+            {/* <Text style={[Styles.bold12]}>
               Already have an account?{"  "}
               <Text
                 style={[
@@ -144,7 +144,7 @@ const ForgetPasswordScreen = () => {
               >
                 Sign in
               </Text>
-            </Text>
+            </Text> */}
           </View>
         </ImageBackground>
         <KeyboardAvoidingView
@@ -182,7 +182,7 @@ const ForgetPasswordScreen = () => {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
-                    style={Styles.input}
+                    style={[Styles.input, { paddingVertical: 0 }]}
                   />
                   {error.email ? (
                     <Text

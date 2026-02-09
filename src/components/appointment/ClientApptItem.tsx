@@ -1,17 +1,32 @@
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useAppointmentStore } from "@/src/stores/appointmentSlice";
 import { Appointment } from "@/src/types/appointment";
 import {
   CapitalizeFirstName,
-  GetAmPm,
   GetDetailedDate,
   scale,
   spacing,
 } from "@/src/utils/random";
 import { router } from "expo-router";
-import { Calendar, Clock, Info, Phone, User } from "lucide-react-native";
+import {
+  Calendar,
+  Clock,
+  Info,
+  Phone,
+  Trash2,
+  User,
+} from "lucide-react-native";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { formatFirestoreTimestamp } from "../invoice/util";
 
 const getTimeFromISO = (value?: string | Date): string => {
   if (!value) return "";
@@ -45,7 +60,37 @@ const ClientApptItem = ({ item }: Props) => {
       ? "rgba(255, 226, 226, 1)"
       : "rgba(239, 246, 255, 1)";
 
-  console.log("appointemts", item);
+  const loading = useAppointmentStore((state) => state.loading);
+  const deleteAppointment = useAppointmentStore(
+    (state) => state.deleteAppointment,
+  );
+
+  const handleDeleteAppt = () => {
+    Alert.alert(
+      "Delete Appointment",
+      "Are you sure you want to delete this appointment? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteAppointment(item.id);
+            } catch (error) {
+              console.error("Error deleting appointment:", error);
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  };
+
+  // console.log("user email to appointment", item.userEmail, item?.tailorId);
 
   return (
     <Pressable
@@ -102,8 +147,9 @@ const ClientApptItem = ({ item }: Props) => {
         <View style={[styles.startRow, { gap: spacing(8) }]}>
           <Clock size={scale(16)} color={Colors.primary} />
           <Text style={[Styles.reg14, { color: Colors.text.black }]}>
-            {GetDetailedDate(item.date)} at {getTimeFromISO(item.date)}{" "}
-            {GetAmPm(item.date)}
+            {typeof item.date === "object"
+              ? formatFirestoreTimestamp(item.date as any)
+              : GetDetailedDate(item.date)}
           </Text>
         </View>
 
@@ -133,19 +179,29 @@ const ClientApptItem = ({ item }: Props) => {
             </Text>
           </View>
 
-          {/* <View style={[styles.gapRow, { gap: spacing(4) }]}>
-            <Info size={scale(12)} color={Colors.grey} />
-            <Text style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
-              1hr reminder
+          <View style={styles.duration}>
+            <Text style={[Styles.reg12, { color: "white" }]}>
+              Duration: {item.duration} hours
             </Text>
-          </View> */}
+          </View>
         </View>
 
-        <View style={styles.duration}>
-          <Text style={[Styles.reg12, { color: "white" }]}>
-            Duration: {item.duration} hours
-          </Text>
-        </View>
+        <Pressable
+          hitSlop={20}
+          style={{
+            width: 30,
+            aspectRatio: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+          onPress={handleDeleteAppt}
+        >
+          {loading ? (
+            <ActivityIndicator size={"small"} color={"black"} />
+          ) : (
+            <Trash2 size={scale(15)} color={"red"} />
+          )}
+        </Pressable>
       </View>
     </Pressable>
   );

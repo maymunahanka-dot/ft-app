@@ -1,6 +1,6 @@
 import { useUserStore } from "@/src/stores/userSlice";
 import { InvoiceData } from "@/src/types/Invoice";
-import { formatInvoiceDate } from "@/src/utils/random";
+import { GetDetailedDate } from "@/src/utils/random";
 
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
@@ -215,9 +215,9 @@ padding-top: 30px
       </div>
 
       <div class="right right-gap">
-        <div>Invoice Date:            ${data.invoiceDate ?? formatInvoiceDate(new Date().toISOString())}</div>
-       <div>Due Date:            ${formatInvoiceDate(data.dueDate)}</div>
-        <div>Terms:            ${brandSetting?.termsAndConditions ?? ""}</div>
+        <div>Invoice Date:            ${data?.invoiceDate ?? GetDetailedDate(new Date().toISOString())}</div>
+       <div>Due Date:            ${GetDetailedDate(data.dueDate)}</div>
+
       </div>
     </div>
 

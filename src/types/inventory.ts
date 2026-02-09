@@ -50,6 +50,7 @@ export type InventoryItem = {
   imageUrl?: string; // Optional, for item images
   notes?: string;
   tailorId: string;
+  userEmail: string;
   createdAt: string;
   updatedAt: string;
 };

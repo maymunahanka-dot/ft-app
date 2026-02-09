@@ -52,10 +52,10 @@ const AppointmentsList = () => {
   useEffect(() => {
     if (user) {
       fetchAppointments(user.email);
-      console.log(
-        "today aappt",
-        appointments.filter((appt) => isToday(appt.createdAt)),
-      );
+      // console.log(
+      //   "today aappt",
+      //   appointments.filter((appt) => isToday(appt.createdAt)),
+      // );
     }
   }, [user]);
 

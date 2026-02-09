@@ -134,6 +134,10 @@ const FinanceScreen = () => {
     fetchTransactions("");
   }, []);
 
+  const hasTransactions = incomes.length > 0 || expenses.length > 0;
+
+  console.log("transactions", incomes, expenses);
+
   console.log("transactions", incomes, expenses);
   return (
     <SafeAreaView
@@ -152,6 +156,7 @@ const FinanceScreen = () => {
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, paddingBottom: spacing(50) }}
           horizontal={false}
+          nestedScrollEnabled
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="interactive"
         >
@@ -167,7 +172,16 @@ const FinanceScreen = () => {
                 Add Transaction
               </Text>
             </Pressable>
-            <IncomeExpenseChart incomes={incomes} expenses={expenses} />
+            {hasTransactions ? (
+              <IncomeExpenseChart incomes={incomes} expenses={expenses} />
+            ) : (
+              <View style={styles.emptyChartContainer}>
+                <Text style={styles.emptyChartText}>
+                  No transactions yet. Add your first transaction to see your
+                  financial overview.
+                </Text>
+              </View>
+            )}
 
             <View style={styles.section}>
               <View style={styles.row}>
@@ -182,6 +196,7 @@ const FinanceScreen = () => {
               </View>
 
               {/* recent transactions */}
+              {/* recent transactions */}
               {loading ? (
                 <View
                   style={{
@@ -192,10 +207,24 @@ const FinanceScreen = () => {
                 >
                   <ActivityIndicator size={"small"} color={"black"} />
                 </View>
+              ) : hasTransactions ? (
+                [...incomes, ...expenses]
+                  .sort(
+                    (a, b) =>
+                      new Date(b.date).getTime() - new Date(a.date).getTime(),
+                  )
+                  .map((transaction, index) => (
+                    <TransactionItem
+                      key={transaction.id || index}
+                      item={transaction}
+                    />
+                  ))
               ) : (
-                [...incomes, ...expenses].map((transaction, index) => (
-                  <TransactionItem key={index} item={transaction} />
-                ))
+                <View style={styles.emptyState}>
+                  <Text style={styles.emptyStateText}>
+                    No transactions to display
+                  </Text>
+                </View>
               )}
             </View>
           </View>
@@ -250,5 +279,28 @@ const styles = StyleSheet.create({
     gap: spacing(5),
     height: 40,
     borderRadius: 12,
+  },
+  emptyChartContainer: {
+    padding: spacing(30),
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 100,
+  },
+  emptyChartText: {
+    fontFamily: "regular",
+    fontSize: scaleFontSize(14),
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  emptyState: {
+    padding: spacing(30),
+    alignItems: "center",
+  },
+  emptyStateText: {
+    fontFamily: "regular",
+    fontSize: scaleFontSize(14),
+    color: "#999",
   },
 });

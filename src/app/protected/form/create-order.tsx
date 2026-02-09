@@ -657,7 +657,9 @@ const CreateOrderScreen = () => {
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
                     <Text style={Styles.label}>Base Price (₦)</Text>
                     <TextInput
-                      value={orderData.price.toString()}
+                      value={
+                        orderData.price === 0 ? "" : orderData.price.toString()
+                      }
                       onChangeText={(text) =>
                         handleDataChange("price", Number(text))
                       }
@@ -681,7 +683,11 @@ const CreateOrderScreen = () => {
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
                     <Text style={Styles.label}>Deposit Paid (₦)</Text>
                     <TextInput
-                      value={orderData.deposit.toString()}
+                      value={
+                        orderData.deposit === 0
+                          ? ""
+                          : orderData.deposit.toString()
+                      }
                       onChangeText={(text) =>
                         handleDataChange("deposit", Number(text))
                       }

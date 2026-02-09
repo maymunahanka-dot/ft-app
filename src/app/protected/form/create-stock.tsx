@@ -43,7 +43,7 @@ const CreateStockItemScreen = () => {
   const [stockData, setStockData] = useState<InventoryItem>({
     id: generateInventoryId(),
     name: "",
-    category: "accessory",
+    category: "accessories",
     description: "",
     supplier: "",
     color: "",
@@ -58,6 +58,7 @@ const CreateStockItemScreen = () => {
     purchaseDate: "",
     notes: "",
     tailorId: "",
+    userEmail: "",
     createdAt: "",
     updatedAt: "",
   });
@@ -122,8 +123,9 @@ const CreateStockItemScreen = () => {
     try {
       const payload: InventoryItem = {
         ...stockData,
-        totalValue: stockData.quantity * stockData.sellingPricePerUnit,
+        totalValue: stockData.quantity * (stockData.sellingPricePerUnit ?? 1),
         tailorId: getCurrentUserEmail(),
+        userEmail: getCurrentUserEmail(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -265,7 +267,11 @@ const CreateStockItemScreen = () => {
                       Quantity<Text style={styles.red}> *</Text>
                     </Text>
                     <TextInput
-                      value={stockData.quantity.toString()}
+                      value={
+                        stockData.quantity === 0
+                          ? ""
+                          : stockData.quantity.toString()
+                      }
                       onChangeText={(text) =>
                         handleDataChange("quantity", Number(text))
                       }
@@ -340,7 +346,10 @@ const CreateStockItemScreen = () => {
                       Price per Unit (₦)<Text style={styles.red}> *</Text>
                     </Text>
                     <TextInput
-                      value={stockData.sellingPricePerUnit.toString()}
+                      value={((stockData?.sellingPricePerUnit ?? 1) === 0
+                        ? ""
+                        : (stockData?.sellingPricePerUnit ?? 1)
+                      ).toString()}
                       onChangeText={(text) =>
                         handleDataChange("sellingPricePerUnit", Number(text))
                       }
@@ -363,7 +372,10 @@ const CreateStockItemScreen = () => {
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
                     <Text style={Styles.label}>Min Stock Alert</Text>
                     <TextInput
-                      value={stockData.minStockLevel.toString()}
+                      value={((stockData?.minStockLevel ?? 1) === 0
+                        ? ""
+                        : (stockData?.minStockLevel ?? 1)
+                      ).toString()}
                       onChangeText={(text) =>
                         handleDataChange("minStockLevel", Number(text))
                       }

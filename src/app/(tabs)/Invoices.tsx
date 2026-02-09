@@ -37,7 +37,7 @@ const InvoicesScreen = () => {
 
     const q = searchValue.toLowerCase();
     return invoices.filter((c: Invoice) => {
-      const billTo = String(c?.billTo ?? "").toLowerCase();
+      const billTo = String(c?.clientName ?? "").toLowerCase();
       return billTo.includes(q);
     });
   }, [searchValue, invoices]);

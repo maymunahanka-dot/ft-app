@@ -19,7 +19,7 @@
         "monochromeImage": "./assets/brand/fashionTally_logo.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": true,
+      "predictiveBackGestureEnabled": false,
       "package": "com.esys.fashiontally"
     },
     "web": {

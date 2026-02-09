@@ -90,6 +90,11 @@ export function useAuth() {
       }
 
       console.warn("[FETCH_USER_PROFILE] No profile found", { uid, email });
+      ShowToastMessage({
+        title: "User does not exist",
+        preset: "error",
+        haptic: "error",
+      });
       return null;
     } catch (error: any) {
       console.error("[FETCH_USER_PROFILE] Failed to fetch user profile", {
@@ -144,11 +149,11 @@ export function useAuth() {
         data.logo = imageUrl;
       }
 
-      if (userDataInput.storeName) {
+      if (userDataInput.businessName) {
         await editBrandSettings({
           id: "",
           logoUrl: userDataInput.logo,
-          businessName: userDataInput.storeName,
+          businessName: userDataInput.businessName,
           businessAddress: "",
           businessEmail: userDataInput.email,
           businessWebsite: "",

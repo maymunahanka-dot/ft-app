@@ -48,11 +48,13 @@ export function DrawerContent(props: DrawerContentComponentProps) {
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   // console.log("user logo", user?.logo);
-  const fullName = user?.name ?? "";
-  const isBusiness = user?.role === "Business";
-  const name = isBusiness
-    ? (brandSetting?.businessName ?? user.storeName)
-    : fullName;
+  // const fullName = user?.name ?? "";
+  // const isBusiness = user?.role === "Business";
+  const name =
+    user?.businessName ??
+    brandSetting?.businessName.trim() ??
+    user?.name ??
+    "Unknown";
 
   const { top, bottom } = useSafeAreaInsets();
   const drawerItems = useDrawerStore((state) => state.items);
@@ -109,7 +111,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
           ) : (
             <ImagePlaceholder name={name} size={40} fontSize={15} />
           )}
-          <Text style={styles.reg16}>{name}</Text>
+          <Text style={[styles.reg16, { color: "black" }]}>{name}</Text>
         </View>
       </View>
 

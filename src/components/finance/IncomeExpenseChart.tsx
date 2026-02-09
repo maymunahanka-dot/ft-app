@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
   Dimensions,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -20,25 +21,41 @@ import Svg, {
 
 const screenWidth = Dimensions.get("window").width;
 
-type TimeFilter = "7days" | "30days" | "90days" | "1year";
-
 interface IncomeExpenseChartProps {
   incomes: Income[];
   expenses: Expense[];
 }
 
-const FILTER_OPTIONS = [
-  { label: "Last 7 Days", value: "7days" as TimeFilter },
-  { label: "Last 30 Days", value: "30days" as TimeFilter },
-  { label: "Last 90 Days", value: "90days" as TimeFilter },
-  { label: "Last Year", value: "1year" as TimeFilter },
+type TimeFilter = "alltime" | `month-${number}`;
+
+const generateMonthOptions = (): { label: string; value: TimeFilter }[] => {
+  const months: { label: string; value: TimeFilter }[] = [];
+  const currentDate = new Date();
+
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(currentDate.getFullYear(), i, 1);
+    months.push({
+      label: date.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      }),
+      value: `month-${i}` as TimeFilter,
+    });
+  }
+
+  return months;
+};
+
+const FILTER_OPTIONS: { label: string; value: TimeFilter }[] = [
+  { label: "All Time", value: "alltime" },
+  ...generateMonthOptions(),
 ];
 
 const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
   incomes,
   expenses,
 }) => {
-  const [selectedFilter, setSelectedFilter] = useState<TimeFilter>("7days");
+  const [selectedFilter, setSelectedFilter] = useState<TimeFilter>("alltime");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   const chartWidth = screenWidth - 32; // padding
@@ -52,6 +69,10 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
   const plotHeight = chartHeight - paddingTop - paddingBottom;
 
   const chartData = useMemo(() => {
+    if (incomes.length === 0 && expenses.length === 0) {
+      return [];
+    }
+
     const now = new Date();
     let startDate: Date;
     const aggregatedData: { label: string; income: number; expense: number }[] =
@@ -59,62 +80,52 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
 
     const getDateKey = (d: Date) => d.toISOString().split("T")[0];
 
-    if (selectedFilter === "7days") {
-      // Last 7 days → daily points
-      startDate = new Date();
-      startDate.setDate(now.getDate() - 6);
+    // Check if it's a month filter (format: "month-0" to "month-11")
+    if (selectedFilter.startsWith("month-")) {
+      const monthIndex = parseInt(selectedFilter.split("-")[1]);
+      const year = now.getFullYear();
 
+      // Get first and last day of the selected month
+      startDate = new Date(year, monthIndex, 1);
+      const endDate = new Date(year, monthIndex + 1, 0); // Last day of month
+
+      // Initialize daily data for the entire month
       const dailyData: Record<string, { income: number; expense: number }> = {};
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(startDate);
-        d.setDate(startDate.getDate() + i);
-        dailyData[getDateKey(d)] = { income: 0, expense: 0 };
+      for (
+        let d = new Date(startDate);
+        d <= endDate;
+        d.setDate(d.getDate() + 1)
+      ) {
+        dailyData[getDateKey(new Date(d))] = { income: 0, expense: 0 };
       }
 
+      // Aggregate income and expense data
       incomes.forEach((inc) => {
-        const key = getDateKey(new Date(inc.date));
-        if (dailyData[key]) dailyData[key].income += inc.amount;
+        const incDate = new Date(inc.date);
+        if (
+          incDate.getMonth() === monthIndex &&
+          incDate.getFullYear() === year
+        ) {
+          const key = getDateKey(incDate);
+          if (dailyData[key]) dailyData[key].income += inc.amount;
+        }
       });
 
       expenses.forEach((exp) => {
-        const key = getDateKey(new Date(exp.date));
-        if (dailyData[key]) dailyData[key].expense += exp.amount;
+        const expDate = new Date(exp.date);
+        if (
+          expDate.getMonth() === monthIndex &&
+          expDate.getFullYear() === year
+        ) {
+          const key = getDateKey(expDate);
+          if (dailyData[key]) dailyData[key].expense += exp.amount;
+        }
       });
 
-      Object.keys(dailyData)
-        .sort()
-        .forEach((date) => {
-          const d = new Date(date);
-          aggregatedData.push({
-            label: d.toLocaleDateString("en-US", { weekday: "short" }),
-            income: dailyData[date].income,
-            expense: dailyData[date].expense,
-          });
-        });
-    } else if (selectedFilter === "30days") {
-      // Last 30 days → weekly points (7-day chunks)
-      startDate = new Date();
-      startDate.setDate(now.getDate() - 29);
-
-      const dailyData: Record<string, { income: number; expense: number }> = {};
-      for (let i = 0; i < 30; i++) {
-        const d = new Date(startDate);
-        d.setDate(startDate.getDate() + i);
-        dailyData[getDateKey(d)] = { income: 0, expense: 0 };
-      }
-
-      incomes.forEach((inc) => {
-        const key = getDateKey(new Date(inc.date));
-        if (dailyData[key]) dailyData[key].income += inc.amount;
-      });
-
-      expenses.forEach((exp) => {
-        const key = getDateKey(new Date(exp.date));
-        if (dailyData[key]) dailyData[key].expense += exp.amount;
-      });
-
+      // Group by weeks (7-day chunks)
       const sortedDates = Object.keys(dailyData).sort();
       const weekSize = 7;
+
       for (let i = 0; i < sortedDates.length; i += weekSize) {
         const weekDates = sortedDates.slice(i, i + weekSize);
         const weekIncome = weekDates.reduce(
@@ -125,93 +136,140 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
           (sum, d) => sum + dailyData[d].expense,
           0,
         );
+
+        // Label format: "Week 1", "Week 2", etc.
+        const weekNumber = Math.floor(i / weekSize) + 1;
+        const startOfWeek = new Date(weekDates[0]);
+
         aggregatedData.push({
-          label: `W${Math.floor(i / weekSize) + 1}`,
+          label: `W${weekNumber}`,
           income: weekIncome,
           expense: weekExpense,
         });
       }
-    } else if (selectedFilter === "90days") {
-      // Last 90 days → 30-day chunks (3 points)
-      startDate = new Date();
-      startDate.setDate(now.getDate() - 89);
+    } else if (selectedFilter === "alltime") {
+      // All time → max 10 points, distributed evenly
+      const MAX_POINTS = 10;
 
-      const dailyData: Record<string, { income: number; expense: number }> = {};
-      for (let i = 0; i < 90; i++) {
-        const d = new Date(startDate);
-        d.setDate(startDate.getDate() + i);
-        dailyData[getDateKey(d)] = { income: 0, expense: 0 };
+      // Combine all dates from incomes and expenses
+      const allDates = [
+        ...incomes.map((inc) => new Date(inc.date)),
+        ...expenses.map((exp) => new Date(exp.date)),
+      ];
+
+      if (allDates.length === 0) {
+        // No data, return empty
+        return [];
       }
 
-      incomes.forEach((inc) => {
-        const key = getDateKey(new Date(inc.date));
-        if (dailyData[key]) dailyData[key].income += inc.amount;
-      });
+      // Find earliest and latest dates
+      const earliestDate = new Date(
+        Math.min(...allDates.map((d) => d.getTime())),
+      );
+      const latestDate = new Date(
+        Math.max(...allDates.map((d) => d.getTime())),
+      );
 
-      expenses.forEach((exp) => {
-        const key = getDateKey(new Date(exp.date));
-        if (dailyData[key]) dailyData[key].expense += exp.amount;
-      });
+      // Calculate total days span
+      const totalDays = Math.ceil(
+        (latestDate.getTime() - earliestDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
 
-      const sortedDates = Object.keys(dailyData).sort();
-      const chunkSize = 30;
-      for (let i = 0; i < sortedDates.length; i += chunkSize) {
-        const chunkDates = sortedDates.slice(i, i + chunkSize);
-        const chunkIncome = chunkDates.reduce(
-          (sum, d) => sum + dailyData[d].income,
-          0,
-        );
-        const chunkExpense = chunkDates.reduce(
-          (sum, d) => sum + dailyData[d].expense,
-          0,
-        );
-        const labelDate = new Date(chunkDates[0]);
+      if (totalDays === 0) {
+        // Single day data
+        const dailyData: Record<string, { income: number; expense: number }> =
+          {};
+        const key = getDateKey(earliestDate);
+        dailyData[key] = { income: 0, expense: 0 };
+
+        incomes.forEach((inc) => {
+          const incKey = getDateKey(new Date(inc.date));
+          if (dailyData[incKey]) dailyData[incKey].income += inc.amount;
+        });
+
+        expenses.forEach((exp) => {
+          const expKey = getDateKey(new Date(exp.date));
+          if (dailyData[expKey]) dailyData[expKey].expense += exp.amount;
+        });
+
         aggregatedData.push({
-          label: labelDate.toLocaleDateString("en-US", { month: "short" }),
-          income: chunkIncome,
-          expense: chunkExpense,
+          label: earliestDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+          income: dailyData[key].income,
+          expense: dailyData[key].expense,
         });
-      }
-    } else if (selectedFilter === "1year") {
-      // Last year → monthly points (12 points)
-      startDate = new Date(now);
-      startDate.setMonth(now.getMonth() - 11);
+      } else {
+        // Divide into chunks
+        const chunkSizeDays = Math.ceil(totalDays / MAX_POINTS);
 
-      const dailyData: Record<string, { income: number; expense: number }> = {};
-      for (let d = new Date(startDate); d <= now; d.setDate(d.getDate() + 1)) {
-        dailyData[getDateKey(new Date(d))] = { income: 0, expense: 0 };
-      }
+        // Initialize daily data
+        const dailyData: Record<string, { income: number; expense: number }> =
+          {};
+        for (
+          let d = new Date(earliestDate);
+          d <= latestDate;
+          d.setDate(d.getDate() + 1)
+        ) {
+          dailyData[getDateKey(new Date(d))] = { income: 0, expense: 0 };
+        }
 
-      incomes.forEach((inc) => {
-        const key = getDateKey(new Date(inc.date));
-        if (dailyData[key]) dailyData[key].income += inc.amount;
-      });
+        incomes.forEach((inc) => {
+          const key = getDateKey(new Date(inc.date));
+          if (dailyData[key]) dailyData[key].income += inc.amount;
+        });
 
-      expenses.forEach((exp) => {
-        const key = getDateKey(new Date(exp.date));
-        if (dailyData[key]) dailyData[key].expense += exp.amount;
-      });
+        expenses.forEach((exp) => {
+          const key = getDateKey(new Date(exp.date));
+          if (dailyData[key]) dailyData[key].expense += exp.amount;
+        });
 
-      const monthGroups: Record<string, { income: number; expense: number }> =
-        {};
-      Object.keys(dailyData).forEach((date) => {
-        const monthKey = date.substring(0, 7);
-        if (!monthGroups[monthKey])
-          monthGroups[monthKey] = { income: 0, expense: 0 };
-        monthGroups[monthKey].income += dailyData[date].income;
-        monthGroups[monthKey].expense += dailyData[date].expense;
-      });
+        const sortedDates = Object.keys(dailyData).sort();
 
-      Object.keys(monthGroups)
-        .sort()
-        .forEach((monthKey) => {
-          const dateObj = new Date(monthKey + "-01");
+        for (let i = 0; i < sortedDates.length; i += chunkSizeDays) {
+          const chunkDates = sortedDates.slice(i, i + chunkSizeDays);
+          const chunkIncome = chunkDates.reduce(
+            (sum, d) => sum + dailyData[d].income,
+            0,
+          );
+          const chunkExpense = chunkDates.reduce(
+            (sum, d) => sum + dailyData[d].expense,
+            0,
+          );
+
+          const chunkStartDate = new Date(chunkDates[0]);
+          const chunkEndDate = new Date(chunkDates[chunkDates.length - 1]);
+
+          // Smart labeling based on date range
+          let label: string;
+          if (totalDays > 365) {
+            // More than a year → show month/year
+            label = chunkStartDate.toLocaleDateString("en-US", {
+              month: "short",
+              year: "2-digit",
+            });
+          } else if (totalDays > 60) {
+            // More than 2 months → show month/day
+            label = chunkStartDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            });
+          } else {
+            // Less than 2 months → show month/day
+            label = chunkStartDate.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            });
+          }
+
           aggregatedData.push({
-            label: dateObj.toLocaleDateString("en-US", { month: "short" }),
-            income: monthGroups[monthKey].income,
-            expense: monthGroups[monthKey].expense,
+            label,
+            income: chunkIncome,
+            expense: chunkExpense,
           });
-        });
+        }
+      }
     }
 
     return aggregatedData;
@@ -264,8 +322,8 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
     };
 
     const getX = (index: number) => {
-      if (chartData.length === 1) return paddingLeft + plotWidth / 2; // single point in chart
-      const spacing = plotWidth / (chartData.length - 1); // uniform spacing for all points
+      if (chartData.length === 1) return paddingLeft + plotWidth / 2;
+      const spacing = plotWidth / (chartData.length - 1);
       return paddingLeft + index * spacing;
     };
 
@@ -286,9 +344,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         incomeArea += ` L ${x} ${y}`;
       }
     });
-    incomeArea += ` L ${getX(chartData.length - 1)} ${
-      plotHeight + paddingTop
-    } Z`;
+    incomeArea += ` L ${getX(chartData.length - 1)} ${plotHeight + paddingTop} Z`;
 
     let expensePath = "";
     let expenseArea = "";
@@ -307,9 +363,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         expenseArea += ` L ${x} ${y}`;
       }
     });
-    expenseArea += ` L ${getX(chartData.length - 1)} ${
-      plotHeight + paddingTop
-    } Z`;
+    expenseArea += ` L ${getX(chartData.length - 1)} ${plotHeight + paddingTop} Z`;
 
     return {
       yAxisMax,
@@ -339,7 +393,11 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
       </View>
 
       {showFilterDropdown && (
-        <View style={styles.dropdown}>
+        <ScrollView
+          style={styles.dropdown}
+          nestedScrollEnabled={true}
+          showsVerticalScrollIndicator={true}
+        >
           {FILTER_OPTIONS.map((option) => (
             <TouchableOpacity
               key={option.value}
@@ -360,7 +418,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
               </Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       )}
 
       <View style={styles.chartContainer}>
@@ -508,19 +566,39 @@ const styles = StyleSheet.create({
     fontFamily: "regular",
     color: "#666",
   },
+  dropdownWrapper: {
+    // position: "absolute",
+    // top: 60,
+    // right: 16,
+    // backgroundColor: "#fff",
+    // borderRadius: 8,
+    // borderWidth: 1,
+    // borderColor: "#e0e0e0",
+    // maxHeight: 250,
+    // width: 200,
+    // zIndex: 1000,
+    // elevation: 5,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.25,
+    // shadowRadius: 3.84,
+  },
   dropdown: {
     position: "absolute",
-    top: 60,
+    top: 60, // Adjust based on your header height
     right: 16,
-    backgroundColor: "white",
+    backgroundColor: "#fff",
     borderRadius: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    maxHeight: 250, // Maximum height before scrolling
+    width: 200, // Adjust width as needed
     zIndex: 1000,
-    minWidth: 150,
+    elevation: 5, // Shadow for Android
+    shadowColor: "#000", // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   dropdownItem: {
     paddingHorizontal: spacing(16),

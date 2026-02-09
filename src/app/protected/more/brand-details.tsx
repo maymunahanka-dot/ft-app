@@ -27,7 +27,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const BrandDetailsScreen = () => {
   const brandSetting = useUserStore((state) => state.brandSetting);
   const editBrandSettings = useUserStore((state) => state.editBrandSettings);
-  const fetchBrandSettings = useUserStore((state) => state.fetchBrandSettings);
 
   const { refreshUser } = useAuth();
 
@@ -80,11 +79,6 @@ const BrandDetailsScreen = () => {
       // console.log("image", image);
     }
   }, [image]);
-
-  useEffect(() => {
-    fetchBrandSettings();
-    console.log("brand settings here ", brandSetting);
-  }, []);
 
   const handlePickImage = async () => {
     try {
@@ -364,6 +358,7 @@ const BrandDetailsScreen = () => {
                 title="Save Changes"
                 onPress={handleUpdate}
                 loading={loading}
+                props={{ disabled: loading }}
               />
             </View>
           </View>

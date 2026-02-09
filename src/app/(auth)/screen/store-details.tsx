@@ -45,7 +45,7 @@ const StoreDetailsScreen = () => {
   const [selectedCountry, setSelectedCountry] = useState("Nigeria");
 
   const [error, setError] = useState({
-    storeName: "",
+    businessName: "",
     country: "",
     logo: "",
   });
@@ -77,15 +77,15 @@ const StoreDetailsScreen = () => {
 
   const validateForm = () => {
     const newErrors = {
-      storeName: "",
+      businessName: "",
       country: "",
       logo: "",
     };
     let isValid = true;
 
     // store Name validation
-    if (!userData.storeName?.trim() && userData.storeName.length < 5) {
-      newErrors.storeName = "Store name is required";
+    if (!userData.businessName?.trim() && userData.businessName.length < 5) {
+      newErrors.businessName = "Store name is required";
       isValid = false;
     }
     // logo validation
@@ -211,9 +211,9 @@ const StoreDetailsScreen = () => {
                       Store Name<Text style={styles.red}> *</Text>
                     </Text>
                     <TextInput
-                      value={userData.storeName}
+                      value={userData.businessName}
                       onChangeText={(value) =>
-                        handleDataChange("storeName", value)
+                        handleDataChange("businessName", value)
                       }
                       placeholder="Enter your store name"
                       placeholderTextColor={Colors.grayText}
@@ -222,8 +222,8 @@ const StoreDetailsScreen = () => {
                       returnKeyType="next"
                       style={Styles.input}
                     />
-                    {error.storeName ? (
-                      <Text style={Styles.errorText}>{error.storeName}</Text>
+                    {error.businessName ? (
+                      <Text style={Styles.errorText}>{error.businessName}</Text>
                     ) : null}
                   </View>
 

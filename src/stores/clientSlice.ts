@@ -37,6 +37,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
       const clientRef = doc(db, "fashiontally_clients", client.phone);
       await setDoc(clientRef, {
         ...client,
+        userEmail: getCurrentUserEmail(),
         lastUpdated: new Date().toISOString(),
       });
       set((state) => ({
@@ -175,6 +176,8 @@ export const useClientStore = create<ClientState>((set, get) => ({
         id: doc.id,
         ...doc.data(),
       })) as Client[];
+
+      console.log("clients", clients);
 
       set({ clients });
     } catch (error: any) {

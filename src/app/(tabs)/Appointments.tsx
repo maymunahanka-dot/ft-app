@@ -19,13 +19,10 @@ import {
   TextInput,
   View,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const AppointmentsScreen = () => {
-  const { bottom } = useSafeAreaInsets();
+  // const { bottom } = useSafeAreaInsets();
 
   const [searchValue, setSearchValue] = useState("");
 
@@ -37,7 +34,7 @@ const AppointmentsScreen = () => {
 
   useEffect(() => {
     fetchAppointments(getCurrentUserEmail());
-    console.log("appointment", JSON.stringify(appointments, null, 2));
+    // console.log("appointment", JSON.stringify(appointments, null, 2));
   }, []);
 
   const filteredListData = useMemo(() => {

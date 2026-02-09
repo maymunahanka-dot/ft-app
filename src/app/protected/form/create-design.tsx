@@ -9,7 +9,6 @@ import { useDesignStore } from "@/src/stores/designSlice";
 import { Client } from "@/src/types/client";
 import { validateDesignForm } from "@/src/utils/formValidation";
 import { formatPrice, scale, scaleFontSize, spacing } from "@/src/utils/random";
-import { uploadImageToCloudinary } from "@/src/utils/uploadImageToCloudinary";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronDown, ChevronLeft, Upload } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
@@ -99,10 +98,6 @@ const CreateDesignScreen = () => {
     console.log("details", isValid, error, client);
     if (!isValid || !client) return;
 
-    const imageUrl = await uploadImageToCloudinary(designDetails.imageUrl);
-    console.log("image url", imageUrl);
-    if (!imageUrl) return;
-
     try {
       const priceNum =
         parseFloat(designDetails.price.replace(/[^0-9.]/g, "")) || 0;
@@ -112,7 +107,7 @@ const CreateDesignScreen = () => {
         price: priceNum,
         description: designDetails.description?.trim() || "",
         notes: designDetails.notes?.trim() || "",
-        imageUrl,
+        imageUrl: designDetails.imageUrl,
         clientId: client,
       });
       handleBack();

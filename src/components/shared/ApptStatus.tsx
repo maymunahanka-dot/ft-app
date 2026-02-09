@@ -15,15 +15,15 @@ const statusConfigs: Record<AppointmentStatus, { bg: string; text: string }> = {
 };
 
 const ApptStatus = ({ status }: Props) => {
-  const theme = statusConfigs[status];
+  const theme = statusConfigs[status] ?? { bg: "#E0E7FF", text: "#4338CA" };
 
   const formatStatus = (str: string) => {
     return str.replace("-", " ").replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
   return (
-    <View style={[styles.badge, { backgroundColor: theme.bg }]}>
-      <Text style={[styles.text, { color: theme.text }]}>
+    <View style={[styles.badge, { backgroundColor: theme?.bg }]}>
+      <Text style={[styles.text, { color: theme?.text }]}>
         {formatStatus(status)}
       </Text>
     </View>

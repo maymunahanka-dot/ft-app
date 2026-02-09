@@ -1,8 +1,11 @@
 import InvoicePreviewScreen from "@/src/components/invoice/InvoicePreviewScreen";
+import { Colors } from "@/src/constants/theme";
 import { useInvoiceStore } from "@/src/stores/invoiceSlice";
-import { spacing } from "@/src/utils/random";
-import { useLocalSearchParams } from "expo-router";
+import { scale, spacing } from "@/src/utils/random";
+import { router, useLocalSearchParams } from "expo-router";
+import { MoveLeft } from "lucide-react-native";
 import React from "react";
+import { Pressable, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // const invoice = {
@@ -29,8 +32,15 @@ const InvoicePreview = () => {
   const invoices = useInvoiceStore((state) => state.invoices);
   const invoice = invoices.find((prev) => prev.id === invoiceId.toString())!;
 
+  const handleBack = () => {
+    router.replace("/(tabs)/Invoices");
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, paddingTop: spacing(20) }}>
+      <Pressable style={styles.backBtn} onPress={handleBack}>
+        <MoveLeft size={scale(18)} color={"black"} />
+      </Pressable>
       <InvoicePreviewScreen invoice={invoice} />
     </SafeAreaView>
   );
@@ -38,4 +48,15 @@ const InvoicePreview = () => {
 
 export default InvoicePreview;
 
-// const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  backBtn: {
+    width: 35,
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 100,
+    marginHorizontal: spacing(20),
+    marginBottom: spacing(20),
+    backgroundColor: Colors.primary20,
+  },
+});

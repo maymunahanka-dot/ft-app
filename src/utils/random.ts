@@ -354,8 +354,8 @@ export const GetCurrentMonthYear = (): string => {
   }).format(now);
 };
 
-export const GetDetailedDate = (date: Date | string): string => {
-  const now = new Date(date);
+export const GetDetailedDate = (date: Date | string | any): string => {
+  const now = convertToDate(date);
 
   console.log("date detailed date", date);
 
@@ -404,8 +404,8 @@ export const normalizeToISODateTime = (
   return base.toISOString();
 };
 
-export const GetDetailedTime = (date: Date | string): string => {
-  const now = new Date(date);
+export const GetDetailedTime = (date: Date | string | any): string => {
+  const now = convertToDate(date);
 
   return new Intl.DateTimeFormat("en-GB", {
     hour: "numeric",
@@ -414,6 +414,19 @@ export const GetDetailedTime = (date: Date | string): string => {
   })
     .format(now)
     .toLowerCase(); // makes AM/PM → am/pm
+};
+
+export const convertToDate = (date: Date | string | any): Date => {
+  if (
+    typeof date === "object" &&
+    date !== null &&
+    "seconds" in date &&
+    "nanoseconds" in date
+  ) {
+    return new Date(date.seconds * 1000 + date.nanoseconds / 1000000);
+  }
+
+  return new Date(date);
 };
 
 /**

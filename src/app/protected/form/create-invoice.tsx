@@ -46,6 +46,7 @@ const CreateInvoiceScreen = () => {
   const foundClient = clients.find((prev) => prev.id === clientId?.toString());
 
   const user = useUserStore((state) => state.user);
+  const brandSetting = useUserStore((state) => state.brandSetting);
   const createInvoice = useInvoiceStore((state) => state.createInvoice);
   const loading = useInvoiceStore((state) => state.loading);
 
@@ -63,7 +64,7 @@ const CreateInvoiceScreen = () => {
     dueDate: "",
     terms: "Due on Receipt",
     businessName: user ? (user.name ?? "") : "",
-    businessAddress: user ? (user.storeName ?? "") : "",
+    businessAddress: brandSetting ? (brandSetting.businessAddress ?? "") : "",
     logoUrl: user ? (user.logo ?? "") : "",
     clientName: "",
     clientPhone: "",

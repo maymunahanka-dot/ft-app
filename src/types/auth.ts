@@ -4,7 +4,8 @@ export type RegisterUserData = {
   // lastName: string;
   email: string;
   phone: string;
-  storeName: string;
+  phoneNumber?: string;
+  businessName: string;
   role: "Designer" | "Business";
   lga: string;
   state: string;
@@ -14,6 +15,7 @@ export type RegisterUserData = {
   //   lga: string;
   //   address: string;
   logo?: string;
+  meta?: any;
   // businessName?: string;
   // businessAddress?: string;
   // website?: string;
@@ -26,7 +28,7 @@ export const emptyUserData: RegisterUserData = {
   name: "",
   email: "",
   phone: "",
-  storeName: "",
+  businessName: "",
   role: "Designer",
   country: "Nigeria",
   logo: "",

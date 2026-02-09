@@ -85,7 +85,7 @@ const ClientsScreen = () => {
           ) : (
             <FlatList
               data={filteredListData}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item, index) => item.id + index.toString()}
               style={{ flex: 1 }}
               contentContainerStyle={{
                 flexGrow: 1,

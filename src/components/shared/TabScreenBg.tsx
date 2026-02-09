@@ -36,11 +36,14 @@ const TabImageBackground: React.FC<Props> = ({
 
   const user = useUserStore((state) => state.user);
   const brandSetting = useUserStore((state) => state.brandSetting);
-  const fullName = user?.name ?? "";
-  const isBusiness = user?.role === "Business";
-  const name = isBusiness
-    ? (brandSetting?.businessName ?? user.storeName)
-    : fullName;
+  // const name = user?.name ?? "";
+  const name =
+    user?.businessName ??
+    brandSetting?.businessName.trim() ??
+    user?.name ??
+    "Unknown";
+
+  console.log("name", user?.name);
 
   const { getImageUri } = useUserImage();
 
@@ -83,7 +86,7 @@ const TabImageBackground: React.FC<Props> = ({
             <View style={styles.col}>
               <Text style={styles.reg16}>Welcome back,</Text>
               <Text style={styles.bold16} numberOfLines={1}>
-                {fullName}
+                {name}
               </Text>
             </View>
           </View>

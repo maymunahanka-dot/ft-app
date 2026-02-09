@@ -63,7 +63,7 @@ const SelectClientModal = ({ visible, onClose, handleOption }: Props) => {
       <BottomSheetFlatList
         contentContainerStyle={styles.modalContent}
         data={clients}
-        keyExtractor={(item: Client, index: number) => `index-${item.id}`}
+        keyExtractor={(item: Client, index: number) => `${index}-${item.id}`}
         renderItem={({ item }: { item: Client }) => (
           <Pressable
             style={styles.item}

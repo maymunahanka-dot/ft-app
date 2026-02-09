@@ -32,12 +32,22 @@ export const useDesignStore = create<DesignState>((set, get) => ({
 
   async createDesign(payload) {
     set({ loading: true });
+    const body = {
+      ...payload,
+    };
+    if (!body.imageUrl) return;
     try {
+      const imageUrl = await uploadImageToCloudinary(body.imageUrl);
+      console.log("image url", imageUrl);
+      if (!imageUrl) {
+        return;
+      }
       const id = generateDesignId();
       const now = new Date().toISOString();
       const design: Design = {
         ...payload,
         id,
+        imageUrl,
         createdAt: now,
         category: payload.category ?? "Others",
         status: payload.status ?? "Active",

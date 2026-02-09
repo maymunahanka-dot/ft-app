@@ -10,6 +10,7 @@ import { Colors } from "@/src/constants/theme";
 import { useTimeSince } from "@/src/hooks/timeSince";
 import { useFinanceStore } from "@/src/stores/financeSlice";
 import { useOrderStore } from "@/src/stores/orderSlice";
+import { useUserStore } from "@/src/stores/userSlice";
 import { CalculateMonthlyIncrement } from "@/src/types/finance";
 import {
   GetAverageOrderValue,
@@ -28,7 +29,7 @@ import {
   Plus,
   UserRoundPlus,
 } from "lucide-react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -39,6 +40,8 @@ const DashboardScreen = () => {
   // const { loading, signOut } = useAuth();
 
   // const user = useUserStore((state) => state.user);
+  const fetchBrandSettings = useUserStore((state) => state.fetchBrandSettings);
+  const brandSetting = useUserStore((state) => state.brandSetting);
 
   const timeAgo = useTimeSince();
 
@@ -51,23 +54,10 @@ const DashboardScreen = () => {
   const orderCompletionRate = GetOrderCompletionRate(orders);
   const avgValue = GetAverageOrderValue(orders);
 
-  // const fetchData = useCallback(async () => {
-  //   if (!user) return;
-  //   try {
-  //     await Promise.all([fetchOrder(user.email)]);
-  //     console.log("fetched data success!!");
-  //   } catch (error) {
-  //     console.error("error fetching data", error);
-  //   }
-  // }, [fetchOrder, user]);
-
-  // useEffect(() => {
-  //   fetchData();
-  // }, [fetchData]);
-
-  // useEffect(() => {
-  //   signOut();
-  // }, []);
+  useEffect(() => {
+    fetchBrandSettings();
+    console.log("brand settings here ", brandSetting);
+  }, []);
 
   return (
     <SafeAreaView

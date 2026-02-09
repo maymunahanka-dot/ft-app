@@ -109,7 +109,7 @@ export const GetOrderCompletionRate = (orders: Order[]): number => {
 
   // 2. Filter orders that have the "completed" status
   const completedOrders = orders.filter(
-    (order) => order.status === "completed"
+    (order) => order.status === "completed",
   );
 
   // 3. Calculate the percentage

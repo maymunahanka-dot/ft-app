@@ -23,10 +23,10 @@ interface CrmState {
 
 // Collection references
 const loyaltyMembersCollection = collection(db, "loyaltyMembers");
-const rewardsCollection = collection(db, "rewards");
+// const rewardsCollection = collection(db, "rewards");
 const campaignsCollection = collection(db, "campaigns");
-const templatesCollection = collection(db, "templates");
-const feedbackCollection = collection(db, "feedback");
+// const templatesCollection = collection(db, "templates");
+// const feedbackCollection = collection(db, "feedback");
 
 export const useCrmStore = create<CrmState>((set, get) => ({
   loyaltyMembers: [],
@@ -40,11 +40,11 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       const q = query(
         loyaltyMembersCollection,
         where("tailorId", "==", userId),
-        orderBy("points", "desc")
+        orderBy("points", "desc"),
       );
       const snapshot = await getDocs(q);
       const members = snapshot.docs.map(
-        (doc) => ({ id: doc.id, ...doc.data() } as LoyaltyMember)
+        (doc) => ({ id: doc.id, ...doc.data() }) as LoyaltyMember,
       );
       set({ loyaltyMembers: members });
     } catch (error) {
@@ -71,7 +71,7 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       set((state) => ({
         loyaltyMembers: state.loyaltyMembers.some((i) => i.id === newMember.id)
           ? state.loyaltyMembers.map((i) =>
-              i.id === newMember.id ? newMember : i
+              i.id === newMember.id ? newMember : i,
             )
           : [newMember, ...state.loyaltyMembers],
       }));
@@ -89,11 +89,11 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       const q = query(
         campaignsCollection,
         where("tailorId", "==", userId),
-        orderBy("createdAt", "desc")
+        orderBy("createdAt", "desc"),
       );
       const snapshot = await getDocs(q);
       const campaigns = snapshot.docs.map(
-        (doc) => ({ id: doc.id, ...doc.data() } as EmailCampaign)
+        (doc) => ({ id: doc.id, ...doc.data() }) as EmailCampaign,
       );
       set({ campaigns });
     } catch (error) {
@@ -121,7 +121,7 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       set((state) => ({
         campaigns: state.campaigns.some((i) => i.id === newCampaign.id)
           ? state.campaigns.map((i) =>
-              i.id === newCampaign.id ? newCampaign : i
+              i.id === newCampaign.id ? newCampaign : i,
             )
           : [newCampaign, ...state.campaigns],
       }));
