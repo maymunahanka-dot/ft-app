@@ -1,18 +1,18 @@
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
   getDoc,
   getDocs,
-  onSnapshot,
   orderBy,
   query,
+  setDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../context/firebase";
+import { getCurrentUserEmail } from "../lib/auth-utils";
 import { Appointment } from "../types/appointment";
 import {
   createCalendarEvent,
@@ -24,7 +24,7 @@ import { ShowToastMessage } from "../utils/random";
 interface AppointmentState {
   appointments: Appointment[];
   loading: boolean;
-  getAppointmentsByTailor: (email: string) => Promise<(() => void) | undefined>;
+  getAppointmentsByTailor: (email: string) => Promise<void | undefined>;
   saveAppointment(appointment: Appointment): Promise<void>;
   getAppointmentById(id: string): Promise<Appointment | null>;
   getAppointmentsByDate(email: string, date: string): Promise<Appointment[]>;
@@ -38,22 +38,25 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   async getAppointmentsByTailor(email) {
     set({ loading: true });
     try {
-      const q = query(
-        collection(db, "fashiontally_appointments"),
-        where("userEmail", "==", email),
-        orderBy("date", "desc"),
-      );
+      const ordersRef = collection(db, "fashiontally_appointments");
+      const q = query(ordersRef, where("userEmail", "==", email));
+      const querySnapshot = await getDocs(q);
 
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const appointmentsData = snapshot.docs.map((doc) => ({
+      console.log(
+        "appointments",
+        querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        })) as Appointment[];
-        set({ appointments: appointmentsData });
-        set({ loading: false });
-      });
+        })),
+        getCurrentUserEmail(),
+      );
 
-      return () => unsubscribe();
+      const appointments = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Appointment[];
+
+      set({ appointments });
     } catch (error: any) {
       console.error("Error getting appointments:", error);
       ShowToastMessage({
@@ -75,13 +78,37 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       }
 
       const now = new Date().toISOString();
+      const appointmentRef = doc(
+        db,
+        "fashiontally_appointments",
+        appointment.id,
+      );
 
-      await addDoc(collection(db, "fashiontally_appointments"), {
+      await setDoc(appointmentRef, {
         ...appointment,
-        userEmail: appointment.userEmail,
-        tailorId: "",
+        userEmail: getCurrentUserEmail(),
+        tailorId: getCurrentUserEmail(),
+        calendarEventId,
         createdAt: now,
         updatedAt: now,
+      });
+
+      set((state) => ({
+        appointments: [
+          {
+            ...appointment,
+            calendarEventId,
+            createdAt: now,
+            updatedAt: now,
+          },
+          ...state.appointments,
+        ],
+      }));
+
+      ShowToastMessage({
+        title: "Appointment created",
+        preset: "done",
+        haptic: "success",
       });
 
       set((state) => ({
@@ -172,14 +199,16 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         );
       }
 
-      const itemRef = doc(db, "fashiontally_appointments", itemId);
+      // const itemRef = doc(db, "fashiontally_appointments", itemId);
 
       const updateData = {
         ...updates,
         updatedAt: new Date().toISOString(),
       };
 
-      await updateDoc(itemRef, updateData);
+      await updateDoc(doc(db, "fashiontally_appointments", itemId), updateData);
+
+      // await updateDoc(itemRef, updateData);
 
       set((state) => ({
         appointments: state.appointments.map((item) =>
@@ -214,15 +243,16 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         console.log("Calendar event deleted:", appointment.calendarEventId);
       }
 
-      const appointmentRef = doc(
-        db,
-        "fashiontally_appointments",
-        appointmentId,
-      );
-      await deleteDoc(appointmentRef);
+      await deleteDoc(doc(db, "fashiontally_appointments", appointmentId));
       set((state) => ({
         appointments: state.appointments.filter((a) => a.id !== appointmentId),
       }));
+
+      ShowToastMessage({
+        title: "Appointment deleted successfully",
+        preset: "done",
+        haptic: "success",
+      });
 
       console.log(`Appointment ${appointmentId} successfully deleted`);
     } catch (error: any) {

@@ -42,6 +42,7 @@ export type Order = {
   dueDate: string; // ISO string
   completionDate?: string; // ISO string, optional
   tailorId: string;
+  userEmail: string;
   createdAt: string;
   updatedAt: string;
 };

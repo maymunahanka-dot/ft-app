@@ -4,6 +4,7 @@ import { HapticTab } from "@/src/components/haptic-tab";
 import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { GenerateOrderId } from "@/src/lib/order";
 import { useClientStore } from "@/src/stores/clientSlice";
 import { useOrderStore } from "@/src/stores/orderSlice";
@@ -143,7 +144,8 @@ const CreateOrderScreen = () => {
     },
     balance: 0,
     paymentStatus: "unpaid",
-    tailorId: "",
+    tailorId: getCurrentUserEmail(),
+    userEmail: getCurrentUserEmail(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
@@ -272,7 +274,6 @@ const CreateOrderScreen = () => {
             : orderData.deposit > 0
               ? "partial"
               : "unpaid",
-        updatedAt: new Date().toISOString(),
       };
 
       await createOrder(payload);

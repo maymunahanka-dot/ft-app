@@ -80,6 +80,7 @@ const ClientApptItem = ({ item }: Props) => {
           onPress: async () => {
             try {
               await deleteAppointment(item.id);
+              console.log("id", item.id);
             } catch (error) {
               console.error("Error deleting appointment:", error);
             }

@@ -4,9 +4,9 @@ import {
   doc,
   getDoc,
   getDocs,
-  orderBy,
   query,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
@@ -31,25 +31,23 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     set({ loading: true });
     try {
       const ordersRef = collection(db, "fashiontally_orders");
-      const q = query(
-        ordersRef,
-        where("tailorId", "==", tailorId),
-        orderBy("orderDate", "desc"),
-      );
+      const q = query(ordersRef, where("tailorId", "==", tailorId));
       const querySnapshot = await getDocs(q);
 
-      console.log(
-        "orders",
-        querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
-      );
+      // console.log(
+      //   "orders",
+      //   querySnapshot.docs.map((doc) => ({
+      //     id: doc.id,
+      //     ...doc.data(),
+      //   })),
+      // );
 
       const orders = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Order[];
+
+      console.log("orders", orders.length);
 
       set({ orders });
     } catch (error: any) {
@@ -72,6 +70,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         ...order,
         updatedAt: new Date().toISOString(),
       });
+
       set((state) => ({
         orders: state.orders.some((i) => i.id === order.id)
           ? state.orders.map((i) => (i.id === order.id ? order : i))
@@ -119,18 +118,23 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     set({ loading: true });
 
     try {
-      const orderRef = doc(db, "fashiontally_orders", orderId);
+      // const orderRef = doc(db, "fashiontally_orders", orderId);
 
       const updatedAt = new Date().toISOString();
 
-      await setDoc(
-        orderRef,
-        {
-          status,
-          updatedAt,
-        },
-        { merge: true },
-      );
+      // await setDoc(
+      //   orderRef,
+      //   {
+      //     status,
+      //     updatedAt,
+      //   },
+      //   { merge: true },
+      // );
+
+      await updateDoc(doc(db, "fashiontally_orders", orderId), {
+        status,
+        updatedAt,
+      });
 
       set((state) => ({
         orders: state.orders.map((order) =>
@@ -151,8 +155,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   async deleteOrder(orderId) {
     set({ loading: true });
     try {
-      const orderRef = doc(db, "fashiontally_orders", orderId);
-      await deleteDoc(orderRef);
+      await deleteDoc(doc(db, "fashiontally_orders", orderId));
       console.log(`Order ${orderId} successfully deleted`);
 
       set((state) => ({

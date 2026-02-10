@@ -22,9 +22,9 @@ export function getAppointmentTypeLabel(type: AppointmentType): string {
 
 export function getAppointmentStatusLabel(status: AppointmentStatus): string {
   const labels: Record<AppointmentStatus, string> = {
-    scheduled: "Scheduled",
-    confirmed: "Confirmed",
-    "in-progress": "In Progress",
+    pending: "Pending",
+    // confirmed: "Confirmed",
+    // "in-progress": "In Progress",
     completed: "Completed",
     cancelled: "Cancelled",
   };

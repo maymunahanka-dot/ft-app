@@ -86,7 +86,7 @@ const EditAppointmentScreen = () => {
     clients.find((prev) => prev.phone === foundAppointment.clientPhone),
   );
 
-  console.log("found client", foundAppointment.clientPhone);
+  console.log("found client", foundAppointment?.clientPhone);
 
   const [clientModal, setClientModal] = useState(false);
   const toggleClientModal = () => setClientModal((prev) => !prev);
