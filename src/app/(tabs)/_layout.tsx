@@ -1,120 +1,83 @@
-import { Tabs } from "expo-router";
 import React from "react";
 
-import { HapticTab } from "@/src/components/haptic-tab";
-import { Colors } from "@/src/constants/theme";
-
-import { scaleFontSize } from "@/src/utils/random";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  DrawerContent,
+  DrawerContentWidth,
+} from "@/src/components/drawer/DrawerContent";
+import Drawer from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
-import { Box, LayoutDashboard, Menu, Users } from "lucide-react-native";
-import { StyleSheet, View } from "react-native";
+import { Dimensions } from "react-native";
+
+const WIDTH = Dimensions.get("window").width;
+
+const drawerOptions = {
+  headerShown: false,
+  drawerPosition: "left",
+  drawerStyle: {
+    backgroundColor: "black",
+    width: Math.max(WIDTH * 0.7, 270),
+  },
+  drawerActiveTintColor: "#000",
+  drawerInactiveTintColor: "#666",
+  drawerLabelStyle: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  overlayColor: "rgba(0, 0, 0, 0.5)",
+  swipeEnabled: true,
+  swipeEdgeWidth: DrawerContentWidth,
+} as const;
 
 export default function TabLayout() {
   return (
     <>
       <StatusBar style="inverted" />
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: Colors.tintTabColor,
-          tabBarInactiveTintColor: "rgba(106, 114, 130, 1)",
-          headerShown: false,
-          tabBarButton: HapticTab,
-          tabBarStyle: {
-            height: 80,
-            elevation: 0,
-            paddingTop: 5,
-            display: "none",
-          },
-          tabBarBackground: () => (
-            <View
-              style={{
-                height: 80,
-                backgroundColor: "white",
-              }}
-            />
-          ),
-          tabBarLabelStyle: {
-            fontFamily: "medium",
-            fontSize: scaleFontSize(10),
-          },
-        }}
+      <Drawer
+        screenOptions={drawerOptions}
+        drawerContent={(props) => <DrawerContent {...props} />}
+        backBehavior="history"
+        initialRouteName={undefined}
       >
-        <Tabs.Screen
-          name="Dashboard"
+        <Drawer.Screen
+          name="(auth)"
           options={{
-            title: "Dashboard",
-            tabBarIcon: ({ color, focused }) => (
-              <>
-                {focused && <View style={styles.activeLine} />}
-                <LayoutDashboard size={24} color={color} />
-              </>
-            ),
+            headerShown: false,
+            drawerItemStyle: { display: "none" },
           }}
         />
-        <Tabs.Screen
-          name="Clients"
+        <Drawer.Screen
+          name="protected"
           options={{
-            title: "Clients",
-            tabBarIcon: ({ color, focused }) => (
-              <>
-                {focused && <View style={styles.activeLine} />}
-                <Users size={24} color={color} />
-              </>
-            ),
+            headerShown: false,
+            drawerItemStyle: { display: "none" },
           }}
         />
-        <Tabs.Screen
-          name="Inventory"
+        <Drawer.Screen
+          name="(tabs)"
           options={{
-            title: "Inventory",
-            tabBarIcon: ({ color, focused }) => (
-              <>
-                {focused && <View style={styles.activeLine} />}
-                <Box size={24} color={color} />
-              </>
-            ),
+            headerShown: false,
+            title: "Home",
+            drawerLabel: "Home",
           }}
         />
-        <Tabs.Screen
-          name="Finance"
+        <Drawer.Screen
+          name="index"
           options={{
-            title: "Finance",
-            tabBarIcon: ({ color, focused }) => (
-              <>
-                {focused && <View style={styles.activeLine} />}
-                <MaterialCommunityIcons
-                  name="finance"
-                  size={24}
-                  color={color}
-                />
-              </>
-            ),
+            headerShown: false,
+            drawerItemStyle: { display: "none" },
           }}
         />
-        <Tabs.Screen
-          name="More"
-          options={{
-            title: "More",
-            tabBarIcon: ({ color, focused }) => (
-              <>
-                {focused && <View style={styles.activeLine} />}
-                <Menu size={24} color={color} />
-              </>
-            ),
-          }}
-        />
-      </Tabs>
+      </Drawer>
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  activeLine: {
-    position: "absolute",
-    top: -11,
-    height: 3,
-    width: "100%",
-    backgroundColor: Colors.tintTabColor,
-  },
-});
+// const styles = StyleSheet.create({
+//   activeLine: {
+//     position: "absolute",
+//     top: -11,
+//     height: 3,
+//     width: "100%",
+//     backgroundColor: Colors.tintTabColor,
+//   },
+// });

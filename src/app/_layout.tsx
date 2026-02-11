@@ -1,19 +1,12 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useFonts } from "expo-font";
-import { usePathname, useRouter, useSegments } from "expo-router";
-import Drawer from "expo-router/drawer";
+import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Updates from "expo-updates";
 import { useEffect } from "react";
-import { Dimensions } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import {
-  DrawerContent,
-  DrawerContentWidth,
-} from "../components/drawer/DrawerContent";
 import { useAuth } from "../hooks/auth";
-import useBackHandler from "../hooks/useBackHandler";
 import { useSubscriptionGuard } from "../hooks/useSubscriptionGuard";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
 import { useUserStore } from "../stores/userSlice";
@@ -24,29 +17,27 @@ import { useUserStore } from "../stores/userSlice";
 //   anchor: "(tabs)",
 // };
 
-const WIDTH = Dimensions.get("window").width;
+// const WIDTH = Dimensions.get("window").width;
 
-const drawerOptions = {
-  headerShown: false,
-  drawerPosition: "left",
-  drawerStyle: {
-    backgroundColor: "black",
-    width: Math.max(WIDTH * 0.7, 270),
-  },
-  drawerActiveTintColor: "#000",
-  drawerInactiveTintColor: "#666",
-  drawerLabelStyle: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  overlayColor: "rgba(0, 0, 0, 0.5)",
-  swipeEnabled: true,
-  swipeEdgeWidth: DrawerContentWidth,
-} as const;
+// const drawerOptions = {
+//   headerShown: false,
+//   drawerPosition: "left",
+//   drawerStyle: {
+//     backgroundColor: "black",
+//     width: Math.max(WIDTH * 0.7, 270),
+//   },
+//   drawerActiveTintColor: "#000",
+//   drawerInactiveTintColor: "#666",
+//   drawerLabelStyle: {
+//     fontSize: 16,
+//     fontWeight: "500",
+//   },
+//   overlayColor: "rgba(0, 0, 0, 0.5)",
+//   swipeEnabled: true,
+//   swipeEdgeWidth: DrawerContentWidth,
+// } as const;
 
 export default function RootLayout() {
-  useBackHandler();
-
   const [loaded] = useFonts({
     regular: require("@/assets/fonts/Baloo2-Regular.ttf"),
     medium: require("@/assets/fonts/Baloo2-Medium.ttf"),
@@ -141,7 +132,7 @@ export default function RootLayout() {
     <>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
-          <Drawer
+          {/* <Drawer
             screenOptions={drawerOptions}
             drawerContent={(props) => <DrawerContent {...props} />}
             backBehavior="history"
@@ -176,7 +167,8 @@ export default function RootLayout() {
                 drawerItemStyle: { display: "none" },
               }}
             />
-          </Drawer>
+          </Drawer> */}
+          <Stack screenOptions={{ headerShown: false }} />
           <StatusBar style="auto" />
         </BottomSheetModalProvider>
       </GestureHandlerRootView>

@@ -35,9 +35,11 @@ const TransactionDetailScreen = () => {
     (prev) => prev.id === transactionId,
   );
 
-  const isExpenses = transaction && "category" in transaction;
-  const sourceLabel = isExpenses ? "Category" : "Source";
-  const source = isExpenses ? transaction.category : transaction?.source;
+  const isExpense = transaction && transaction.type !== "income";
+  const sourceLabel = isExpense ? "Category" : "Source";
+  const source = isExpense
+    ? (transaction as any)?.category
+    : (transaction as any)?.source;
 
   const handleBack = () => {
     router.replace("/(tabs)/Finance");
@@ -87,7 +89,9 @@ const TransactionDetailScreen = () => {
           keyboardDismissMode="interactive"
         >
           <View style={styles.content}>
-            {transaction && <TransactionItem item={transaction} />}
+            {transaction && (
+              <TransactionItem item={transaction} pressable={false} />
+            )}
             <View style={styles.rowDetails}>
               <View style={styles.row}>
                 <Text style={[styles.reg14, { fontSize: scaleFontSize(13) }]}>
@@ -143,11 +147,11 @@ const TransactionDetailScreen = () => {
                     styles.reg24,
                     {
                       fontSize: scaleFontSize(20),
-                      color: isExpenses ? "#E7000B" : "rgba(0, 166, 62, 1)",
+                      color: isExpense ? "#E7000B" : "rgba(0, 166, 62, 1)",
                     },
                   ]}
                 >
-                  {isExpenses ? "-" : "+"}
+                  {isExpense ? "-" : "+"}
                   {FormatCurrency((transaction?.amount ?? 0).toString())}
                 </Text>
               </View>

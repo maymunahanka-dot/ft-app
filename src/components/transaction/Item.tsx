@@ -15,10 +15,11 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = {
   item: Income | Expense;
+  pressable?: boolean;
 };
 
-const TransactionItem = ({ item }: Props) => {
-  const isExpenses = item.type.toLowerCase() === "expense";
+const TransactionItem = ({ item, pressable = true }: Props) => {
+  const isExpenses = item.type !== "income";
   const bgColor = isExpenses
     ? "rgba(255, 226, 226, 1)"
     : "rgba(220, 252, 231, 1)";
@@ -30,14 +31,15 @@ const TransactionItem = ({ item }: Props) => {
   return (
     <Pressable
       style={[styles.container]}
-      onPress={() =>
+      onPress={() => {
+        if (!pressable) return;
         router.push({
           pathname: "/protected/transaction/[id]",
           params: {
             id: item.id,
           },
-        })
-      }
+        });
+      }}
     >
       <View style={[styles.iconWrapper, { backgroundColor: bgColor }]}>
         <ArrowUpCircle size={scale(20)} color={textColor} />

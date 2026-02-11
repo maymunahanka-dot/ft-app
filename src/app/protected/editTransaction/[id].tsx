@@ -238,6 +238,7 @@ const EditTransactionScreen = () => {
         ...restOfTransaction,
         ...(isIncome ? { source: source } : { category: category }),
         id: isIncome ? generateIncomeId() : generateExpenseId(),
+        type: selectedType,
         amount,
         userEmail: getCurrentUserEmail(),
         date: now,
@@ -366,6 +367,7 @@ const EditTransactionScreen = () => {
                         key={type.value}
                         onPress={() => {
                           setSelectedType(type.value as TransactionType);
+                          handleDataChange("type", type.value);
                         }}
                         style={[
                           styles.tranBox,

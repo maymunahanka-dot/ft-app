@@ -331,7 +331,7 @@ const CreateTransactionScreen = () => {
                         key={type.value}
                         onPress={() => {
                           setSelectedType(type.value as TransactionType);
-                          console.log("clicked", type.value);
+                          handleDataChange("type", type.value);
                         }}
                         style={[
                           styles.tranBox,
