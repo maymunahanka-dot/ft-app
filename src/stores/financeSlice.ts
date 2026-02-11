@@ -115,11 +115,11 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
 
       const ref = doc(db, "fashiontally_transactions", data.id);
 
-      const normalizedType = type.toLowerCase() as TransactionType;
+      // const normalizedType = type.toLowerCase() as TransactionType;
 
       await setDoc(ref, {
         ...data,
-        type: normalizedType,
+        // type: normalizedType,
         userEmail,
         date: new Date(data.date),
         createdAt: new Date(data.createdAt),
