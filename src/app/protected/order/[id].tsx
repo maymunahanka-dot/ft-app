@@ -200,7 +200,7 @@ const OrderDetailScreen = () => {
   const handleDeleteOrder = async () => {
     try {
       await deleteOrder(order?.id ?? "");
-      router.back();
+      handleBack();
     } catch (err) {
       console.error("Error deleting order", err);
     }

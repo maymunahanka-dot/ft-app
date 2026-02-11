@@ -18,8 +18,7 @@ type Props = {
 };
 
 const TransactionItem = ({ item }: Props) => {
-  const isExpenses =
-    "category" in item || item.type.toLowerCase() === "expense";
+  const isExpenses = item.type.toLowerCase() === "expense";
   const bgColor = isExpenses
     ? "rgba(255, 226, 226, 1)"
     : "rgba(220, 252, 231, 1)";
