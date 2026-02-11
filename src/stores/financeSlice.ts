@@ -108,8 +108,8 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
   // SAVE (single function, type-safe)
   // ===============================
   async saveTransaction(data: Income | Expense, type: TransactionType) {
-    set({ loading: true });
     if (get().loading) return;
+    set({ loading: true });
     try {
       const userEmail = getCurrentUserEmail();
 
