@@ -1,20 +1,42 @@
-import { Tabs } from "expo-router";
 import React from "react";
 
-import { HapticTab } from "@/src/components/haptic-tab";
-import { Colors } from "@/src/constants/theme";
-
-import { scaleFontSize } from "@/src/utils/random";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  DrawerContent,
+  DrawerContentWidth,
+} from "@/src/components/drawer/DrawerContent";
+import Drawer from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
-import { Box, LayoutDashboard, Menu, Users } from "lucide-react-native";
-import { StyleSheet, View } from "react-native";
+import { Dimensions } from "react-native";
+
+const WIDTH = Dimensions.get("window").width;
+
+const drawerOptions = {
+  headerShown: false,
+  drawerPosition: "left",
+  drawerStyle: {
+    backgroundColor: "black",
+    width: Math.max(WIDTH * 0.7, 270),
+  },
+  drawerActiveTintColor: "#000",
+  drawerInactiveTintColor: "#666",
+  drawerLabelStyle: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  overlayColor: "rgba(0, 0, 0, 0.5)",
+  swipeEnabled: true,
+  swipeEdgeWidth: DrawerContentWidth,
+} as const;
 
 export default function TabLayout() {
   return (
     <>
       <StatusBar style="inverted" />
-      <Tabs
+      <Drawer
+        screenOptions={drawerOptions}
+        drawerContent={(props) => <DrawerContent {...props} />}
+      />
+      {/* <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors.tintTabColor,
           tabBarInactiveTintColor: "rgba(106, 114, 130, 1)",
@@ -104,17 +126,17 @@ export default function TabLayout() {
             ),
           }}
         />
-      </Tabs>
+      </Tabs> */}
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  activeLine: {
-    position: "absolute",
-    top: -11,
-    height: 3,
-    width: "100%",
-    backgroundColor: Colors.tintTabColor,
-  },
-});
+// const styles = StyleSheet.create({
+//   activeLine: {
+//     position: "absolute",
+//     top: -11,
+//     height: 3,
+//     width: "100%",
+//     backgroundColor: Colors.tintTabColor,
+//   },
+// });
