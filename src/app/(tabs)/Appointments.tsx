@@ -2,14 +2,13 @@ import ClientApptItem from "@/src/components/appointment/ClientApptItem";
 import BurgerIcon from "@/src/components/drawer/BurgerIcon";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { useAppointmentStore } from "@/src/stores/appointmentSlice";
 import { Appointment } from "@/src/types/appointment";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Plus, Search } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -28,14 +27,14 @@ const AppointmentsScreen = () => {
 
   const loading = useAppointmentStore((state) => state.loading);
   const appointments = useAppointmentStore((state) => state.appointments);
-  const fetchAppointments = useAppointmentStore(
-    (state) => state.getAppointmentsByTailor,
-  );
+  // const fetchAppointments = useAppointmentStore(
+  //   (state) => state.getAppointmentsByTailor,
+  // );
 
-  useEffect(() => {
-    fetchAppointments(getCurrentUserEmail());
-    // console.log("appointment", JSON.stringify(appointments, null, 2));
-  }, []);
+  // useEffect(() => {
+  //   fetchAppointments(getCurrentUserEmail());
+  //   // console.log("appointment", JSON.stringify(appointments, null, 2));
+  // }, []);
 
   const filteredListData = useMemo(() => {
     if (!searchValue || !searchValue.trim()) return appointments;

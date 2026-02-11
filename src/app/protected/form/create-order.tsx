@@ -12,6 +12,7 @@ import { Client } from "@/src/types/client";
 import { Order } from "@/src/types/Order";
 import {
   CapitalizeFirstName,
+  extractClientMeasurements,
   FormatCurrency,
   FormatDateToYYYYMMDD,
   GetDetailedDate,
@@ -106,6 +107,7 @@ const CreateOrderScreen = () => {
   const loading = useOrderStore((state) => state.loading);
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  // console.log("foundClient", JSON.stringify(selectedClient, null, 2));
   const [clientModal, setClientModal] = useState(false);
   const toggleClientModal = () => setClientModal((prev) => !prev);
 
@@ -141,6 +143,10 @@ const CreateOrderScreen = () => {
       shoulder: "",
       sleeveLength: "",
       waist: "",
+      blouseLength: "",
+      shirtLength: "",
+      skirtLength: "",
+      trouserLength: "",
     },
     balance: 0,
     paymentStatus: "unpaid",
@@ -286,8 +292,18 @@ const CreateOrderScreen = () => {
   useEffect(() => {
     if (foundClient) {
       setSelectedClient(foundClient);
+      setOrderData((prev) => ({
+        ...prev,
+        clientId: foundClient?.id,
+        clientName: foundClient?.name,
+        clientPhone: foundClient?.phone,
+        measurements: {
+          ...prev.measurements,
+          ...extractClientMeasurements(foundClient),
+        },
+      }));
     }
-  }, [foundClient]);
+  }, [foundClient, orderData.measurements]);
 
   const handleBack = () => {
     router.replace("/(tabs)/Orders");
@@ -536,58 +552,53 @@ const CreateOrderScreen = () => {
                 <View
                   style={{
                     flexDirection: "row",
-                    justifyContent: "space-between",
+                    // justifyContent: "space-between",
+                    // gap: "2.5%",
                     alignItems: "center",
                     flexWrap: "wrap",
-                    // gap: spacing(10),
+                    gap: spacing(8),
                   }}
                 >
-                  {[
-                    "chest",
-                    "hips",
-                    "length",
-                    "notes",
-                    "shoulder",
-                    "sleeveLength",
-                    "waist",
-                  ].map((measurement, index) => {
-                    return (
-                      <View
-                        style={[
-                          Styles.inputContainer,
-                          {
-                            width: `${95 / 3}%`,
-                            marginTop: spacing(15),
-                          },
-                        ]}
-                        key={index}
-                      >
-                        <Text style={Styles.label}>
-                          {CapitalizeFirstName(measurement)}
-                        </Text>
-                        <TextInput
-                          value={orderData.measurements[measurement]}
-                          onChangeText={(text) =>
-                            handleMeasurementUpdate(`${measurement}`, text)
-                          }
-                          placeholder={`${CapitalizeFirstName(measurement)}`}
-                          placeholderTextColor={Colors.grayText}
-                          returnKeyLabel="next"
-                          returnKeyType="next"
-                          keyboardType="number-pad"
-                          autoCorrect={false}
+                  {Object.keys(orderData.measurements).map(
+                    (measurement, index) => {
+                      return (
+                        <View
                           style={[
-                            Styles.input,
+                            Styles.inputContainer,
                             {
-                              paddingVertical: 0,
-                              backgroundColor: "white",
-                              paddingHorizontal: spacing(16),
+                              width: `${95 / 3}%`,
+                              marginTop: spacing(15),
                             },
                           ]}
-                        />
-                      </View>
-                    );
-                  })}
+                          key={index}
+                        >
+                          <Text style={Styles.label}>
+                            {CapitalizeFirstName(measurement)}
+                          </Text>
+                          <TextInput
+                            value={orderData.measurements[measurement]}
+                            onChangeText={(text) =>
+                              handleMeasurementUpdate(`${measurement}`, text)
+                            }
+                            placeholder={`${CapitalizeFirstName(measurement)}`}
+                            placeholderTextColor={Colors.grayText}
+                            returnKeyLabel="next"
+                            returnKeyType="next"
+                            keyboardType="number-pad"
+                            autoCorrect={false}
+                            style={[
+                              Styles.input,
+                              {
+                                paddingVertical: 0,
+                                backgroundColor: "white",
+                                paddingHorizontal: spacing(16),
+                              },
+                            ]}
+                          />
+                        </View>
+                      );
+                    },
+                  )}
                 </View>
               </View>
 
@@ -708,13 +719,6 @@ const CreateOrderScreen = () => {
                       ]}
                     />
                   </View>
-                  {error.price || error.deposit ? (
-                    <Text
-                      style={{ ...Styles.reg12, color: "red", marginTop: 4 }}
-                    >
-                      {error.price}, {error.deposit}
-                    </Text>
-                  ) : null}
                 </View>
 
                 <View
@@ -753,6 +757,11 @@ const CreateOrderScreen = () => {
                     {FormatCurrency(totalAmount - orderData.deposit)}
                   </Text>
                 </View>
+                {error.price || error.deposit ? (
+                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
+                    {error.price}-{error.deposit}
+                  </Text>
+                ) : null}
               </View>
 
               <View style={Styles.inputContainer}>
@@ -801,9 +810,22 @@ const CreateOrderScreen = () => {
             setSelectedClient(client);
             setOrderData((prev) => ({
               ...prev,
-              clientName: client.name,
-              clientPhone: client.phone,
+              clientId: client?.id,
+              clientName: client?.name,
+              clientPhone: client?.phone,
+              measurements: {
+                ...prev.measurements,
+                ...extractClientMeasurements(client),
+              },
             }));
+            console.log(
+              "client measurements",
+              JSON.stringify(client?.measurements, null, 2),
+            );
+            console.log(
+              "measurements",
+              JSON.stringify(orderData.measurements, null, 2),
+            );
           }}
           onClose={() => setClientModal(false)}
         />

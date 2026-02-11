@@ -11,7 +11,7 @@ import {
 } from "@/src/utils/random";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Pencil, Trash2 } from "lucide-react-native";
+import { Eye, Trash2 } from "lucide-react-native";
 import React from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -117,7 +117,7 @@ const StockItem = ({ item }: Props) => {
               });
             }}
           >
-            <Pencil size={scale(15)} color={"rgba(74, 85, 101, 1)"} />
+            <Eye size={scale(15)} color={"rgba(74, 85, 101, 1)"} />
           </Pressable>
           <Pressable
             hitSlop={20}

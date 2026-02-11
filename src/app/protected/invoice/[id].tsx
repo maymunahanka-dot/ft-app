@@ -243,6 +243,8 @@ const EditInvoiceScreen = () => {
 
   useEffect(() => {
     fetchClients(getCurrentUserEmail());
+
+    console.log("invoice", JSON.stringify(foundInvoice, null, 2));
   }, []);
 
   useEffect(() => {

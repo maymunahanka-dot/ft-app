@@ -4,6 +4,7 @@ export const uploadImageToCloudinary = async (
   base64: string,
 ): Promise<string | null> => {
   try {
+    if (base64.startsWith("https")) return base64;
     if (!base64) return null;
 
     const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;

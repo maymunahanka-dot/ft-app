@@ -1,9 +1,58 @@
+import { generateInvoiceId } from "@/src/lib/invoice";
 import { useUserStore } from "@/src/stores/userSlice";
 import { InvoiceData } from "@/src/types/Invoice";
-import { GetDetailedDate } from "@/src/utils/random";
 
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+
+import { Timestamp } from "firebase/firestore";
+
+export type AnyDate =
+  | string
+  | number
+  | Date
+  | Timestamp
+  | { seconds: number; nanoseconds: number }
+  | undefined
+  | null;
+
+// ALWAYS return Date
+export const toDate = (input: AnyDate): Date => {
+  if (!input) return new Date();
+
+  // Firestore Timestamp instance
+  if (input instanceof Timestamp) return input.toDate();
+
+  // Firestore plain object
+  if (typeof input === "object" && "seconds" in input) {
+    return new Date(input.seconds * 1000);
+  }
+
+  if (input instanceof Date) return input;
+
+  if (typeof input === "number") return new Date(input);
+
+  if (typeof input === "string") {
+    const parsed = new Date(input);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+
+  return new Date();
+};
+
+// ALWAYS return ISO
+export const toISO = (input: AnyDate): string => {
+  return toDate(input).toISOString();
+};
+
+// ALWAYS return display
+export const toDisplay = (input: AnyDate): string => {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(toDate(input));
+};
 
 export const createAndShareInvoice = async (invoice: InvoiceData) => {
   const html = generateInvoiceHTML(invoice);
@@ -29,6 +78,15 @@ export function formatFirestoreTimestamp(ts?: {
     month: "short",
     year: "numeric",
   });
+}
+export function formatFirestoreTimestampToISO(ts?: {
+  seconds: number;
+  nanoseconds: number;
+}): string {
+  if (!ts?.seconds) return ts ? String(ts) : new Date().toISOString();
+
+  const date = new Date(ts.seconds * 1000);
+  return date.toISOString();
 }
 
 export const generateInvoiceHTML = (data: InvoiceData) => {
@@ -198,7 +256,7 @@ padding-top: 30px
 
   <div class="right">
     <h1>INVOICE</h1>
-    <div># ${data.invoiceNumber}</div>
+    <div># ${data?.invoiceNumber ? data.invoiceNumber : generateInvoiceId()}</div>
   </div>
 </div>
 
@@ -215,8 +273,8 @@ padding-top: 30px
       </div>
 
       <div class="right right-gap">
-        <div>Invoice Date:            ${data?.invoiceDate ?? GetDetailedDate(new Date().toISOString())}</div>
-       <div>Due Date:            ${GetDetailedDate(data.dueDate)}</div>
+        <div>Invoice Date:            ${toDisplay(data?.invoiceDate as any) ?? toDisplay(new Date().toISOString())}</div>
+       <div>Due Date:            ${toDisplay(data.dueDate as any)}</div>
 
       </div>
     </div>

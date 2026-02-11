@@ -6,7 +6,7 @@ import { Colors } from "@/src/constants/theme";
 import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { generateExpenseId, generateIncomeId } from "@/src/lib/finance";
 import { useFinanceStore } from "@/src/stores/financeSlice";
-import { Expense, Income } from "@/src/types/finance";
+import { Expense, Income, TransactionType } from "@/src/types/finance";
 import {
   CapitalizeFirstName,
   formatPrice,
@@ -23,7 +23,7 @@ import {
   ChevronDown,
   ChevronLeft,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -35,7 +35,6 @@ import {
   View,
 } from "react-native";
 import DatePicker from "react-native-date-picker";
-import Animated, { FadeIn } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Types = [
@@ -45,7 +44,7 @@ const Types = [
   },
   {
     label: "Expenses",
-    value: "expenses",
+    value: "expense",
   },
 ];
 
@@ -134,9 +133,7 @@ const CreateTransactionScreen = () => {
 
   const [showPicker, setShowPicker] = useState(false);
 
-  const [selectedType, setSelectedType] = useState<"income" | "expense">(
-    "income",
-  );
+  const [selectedType, setSelectedType] = useState<TransactionType>("expense");
   const [transaction, setTransaction] = useState<Income & Expense>({
     id: "",
     description: "",
@@ -247,6 +244,10 @@ const CreateTransactionScreen = () => {
     }
   };
 
+  useEffect(() => {
+    console.log("selected type", selectedType);
+  }, [selectedType]);
+
   const handleBack = () => {
     router.replace("/(tabs)/Finance");
   };
@@ -327,7 +328,10 @@ const CreateTransactionScreen = () => {
                     return (
                       <Pressable
                         key={type.value}
-                        onPress={() => setSelectedType(type.value as any)}
+                        onPress={() => {
+                          setSelectedType(type.value as TransactionType);
+                          console.log("clicked", type.value);
+                        }}
                         style={[
                           styles.tranBox,
                           {
@@ -376,10 +380,7 @@ const CreateTransactionScreen = () => {
               </View>
 
               {selectedType === "expense" ? (
-                <Animated.View
-                  style={Styles.inputContainer}
-                  entering={FadeIn.duration(400)}
-                >
+                <View style={Styles.inputContainer} key={selectedType}>
                   <Text style={Styles.label}>
                     Category<Text style={styles.red}> *</Text>
                   </Text>
@@ -398,12 +399,9 @@ const CreateTransactionScreen = () => {
 
                     <ChevronDown size={scale(20)} color={Colors.grey} />
                   </Pressable>
-                </Animated.View>
+                </View>
               ) : (
-                <Animated.View
-                  style={Styles.inputContainer}
-                  entering={FadeIn.duration(400)}
-                >
+                <View style={Styles.inputContainer} key={selectedType}>
                   <Text style={Styles.label}>
                     Source<Text style={styles.red}> *</Text>
                   </Text>
@@ -422,7 +420,7 @@ const CreateTransactionScreen = () => {
 
                     <ChevronDown size={scale(20)} color={Colors.grey} />
                   </Pressable>
-                </Animated.View>
+                </View>
               )}
 
               <View style={Styles.inputContainer}>

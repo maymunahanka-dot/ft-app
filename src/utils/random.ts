@@ -2,8 +2,9 @@ import * as Burnt from "burnt";
 import { ToastOptions } from "burnt/build/types";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { Timestamp } from "firebase/firestore";
 import { Dimensions, PixelRatio, Platform } from "react-native";
-import { ClientMeasurements } from "../types/client";
+import { Client, ClientMeasurements } from "../types/client";
 
 // Extend dayjs with the parsing plugin
 dayjs.extend(customParseFormat);
@@ -367,16 +368,52 @@ export const GetDetailedDate = (date: Date | string | any): string => {
   }).format(now);
 };
 
-export const ConvertToISO = (dateString: string, form?: string): string => {
-  // Parse using the specific format of your input
-  const date = dayjs(dateString, "DD MMM YYYY");
+export const ConvertToISO = (
+  input?: string | Date | Timestamp | number | null,
+  form?: string,
+): string => {
+  try {
+    if (!input) {
+      console.warn("Missing date:", form);
+      return new Date().toISOString();
+    }
 
-  if (!date.isValid()) {
-    console.error("Invalid date provided:" + form, dateString);
-    return new Date().toISOString(); // Fallback to now
+    // Firestore Timestamp
+    if (input instanceof Timestamp) {
+      return input.toDate().toISOString();
+    }
+
+    // Date object
+    if (input instanceof Date) {
+      return input.toISOString();
+    }
+
+    // number (epoch)
+    if (typeof input === "number") {
+      return new Date(input).toISOString();
+    }
+
+    // string handling
+    if (typeof input === "string") {
+      // ISO string
+      if (!isNaN(Date.parse(input))) {
+        return new Date(input).toISOString();
+      }
+
+      // legacy "DD MMM YYYY"
+      const parsed = dayjs(input, "DD MMM YYYY", true);
+      if (parsed.isValid()) {
+        return parsed.toISOString();
+      }
+    }
+
+    console.warn("Invalid date provided:", form, input);
+    return new Date().toISOString();
+  } catch (e) {
+    console.error("error in convertISO", e);
+    console.warn("Date conversion failed:", form, input);
+    return new Date().toISOString();
   }
-
-  return date.toISOString();
 };
 
 export const normalizeToISODateTime = (
@@ -515,4 +552,38 @@ export const ShowToastMessage = (option: ToastOptions) => {
 export const numberize = (value: string): number => {
   const cleaned = value.replace(/[^0-9.]/g, "");
   return Number(cleaned);
+};
+
+export const extractClientMeasurements = (client: Client) => {
+  const measurementFields = [
+    "chest",
+    "hips",
+    "waist",
+    "shoulder",
+    "sleeveLength",
+    "length",
+    "knees",
+    "shirtLength",
+    "skirtLength",
+    "trouserLength",
+    "blouseLength",
+    "dressType",
+    // Add any other measurement fields from your Client type
+  ];
+
+  // Check if client has a measurements object (new format)
+  if (client.measurements && typeof client.measurements === "object") {
+    return client.measurements;
+  }
+
+  // Legacy format: extract measurements from root level
+  const measurements: { [key: string]: string } = {};
+
+  measurementFields.forEach((field) => {
+    if (client[field as keyof Client]) {
+      measurements[field] = String(client[field as keyof Client]);
+    }
+  });
+
+  return measurements;
 };

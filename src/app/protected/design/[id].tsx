@@ -11,9 +11,10 @@ import { Client } from "@/src/types/client";
 import { validateDesignForm } from "@/src/utils/formValidation";
 import { formatPrice, scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronDown, ChevronLeft, Upload } from "lucide-react-native";
+import { ChevronDown, ChevronLeft, Trash2, Upload } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -41,11 +42,12 @@ const EditDesignScreen = () => {
   const foundDesign = designs.find((prev) => prev.id === id.toString())!;
   //   console.log("found design", JSON.stringify(foundDesign, null, 2));
   const editDesign = useDesignStore((state) => state.editDesign);
+  const deleteDesign = useDesignStore((state) => state.deleteDesign);
   const loading = useDesignStore((state) => state.loading);
 
   const clients = useClientStore((state) => state.clients);
   const [selectedClient, setSelectedClient] = useState<Client>(
-    clients.find((prev) => prev.id === foundDesign.clientId)!,
+    clients.find((prev) => prev.id === foundDesign?.clientId)!,
   );
   const [clientModal, setClientModal] = useState(false);
   const toggleClientModal = () => setClientModal((prev) => !prev);
@@ -77,12 +79,12 @@ const EditDesignScreen = () => {
   };
 
   const [designDetails, setDesignDetails] = useState<DesignDetails>(() => ({
-    imageUrl: foundDesign.imageUrl ?? "",
-    clientId: foundDesign.clientId ?? "",
-    name: foundDesign.name ?? "",
-    price: (foundDesign.price ?? "").toString(),
-    description: foundDesign.description ?? "",
-    notes: foundDesign.notes ?? "",
+    imageUrl: foundDesign?.imageUrl ?? "",
+    clientId: foundDesign?.clientId ?? "",
+    name: foundDesign?.name ?? "",
+    price: (foundDesign?.price ?? "").toString(),
+    description: foundDesign?.description ?? "",
+    notes: foundDesign?.notes ?? "",
   }));
 
   const [error, setError] = useState({
@@ -128,6 +130,15 @@ const EditDesignScreen = () => {
     }
   };
 
+  const handleDeleteDesign = async () => {
+    try {
+      await deleteDesign(foundDesign.id);
+      router.back();
+    } catch (err) {
+      console.error("Error deleting design", err);
+    }
+  };
+
   const handleBack = () => {
     router.replace("/(tabs)/Designs");
   };
@@ -137,24 +148,33 @@ const EditDesignScreen = () => {
       <SafeAreaView
         style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
       >
-        <View style={styles.header}>
-          <HapticTab
-            style={{
-              width: 32,
-              aspectRatio: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onPress={handleBack}
-          >
-            <ChevronLeft
-              size={scale(20)}
-              color={"rgba(54, 65, 83, 1)"}
-              strokeWidth={1.5}
-            />
-          </HapticTab>
+        <View style={[styles.row, { paddingHorizontal: spacing(16) }]}>
+          <View style={styles.header}>
+            <HapticTab
+              style={{
+                height: 32,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onPress={handleBack}
+            >
+              <ChevronLeft
+                size={scale(20)}
+                color={"rgba(54, 65, 83, 1)"}
+                strokeWidth={1.5}
+              />
+            </HapticTab>
 
-          <Text style={styles.reg24}>Edit Design</Text>
+            <Text style={styles.reg24}>Edit Design</Text>
+          </View>
+
+          <Pressable onPress={handleDeleteDesign}>
+            {loading ? (
+              <ActivityIndicator size={scale(20)} color={"red"} />
+            ) : (
+              <Trash2 size={scale(20)} color={"red"} strokeWidth={1.5} />
+            )}
+          </Pressable>
         </View>
 
         <KeyboardAvoidingView

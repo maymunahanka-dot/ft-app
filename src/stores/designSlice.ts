@@ -1,5 +1,6 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   orderBy,
@@ -22,8 +23,8 @@ interface DesignState {
     design: Omit<Design, "id" | "createdAt"> & { userEmail: string },
   ): Promise<void>;
   getDesignsByTailor(email: string): Promise<void>;
-
   editDesign(itemId: string, updates: Partial<Design>): Promise<void>;
+  deleteDesign(designId: string): Promise<void>;
 }
 
 export const useDesignStore = create<DesignState>((set, get) => ({
@@ -133,6 +134,28 @@ export const useDesignStore = create<DesignState>((set, get) => ({
     } catch (error: any) {
       console.error("Error getting clients:", error);
       // throw new Error("Failed to get clients");
+      ShowToastMessage({
+        title: error,
+        preset: "error",
+        haptic: "error",
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+  async deleteDesign(designId) {
+    set({ loading: true });
+    try {
+      const designRef = doc(db, "fashiontally_designs", designId);
+      await deleteDoc(designRef);
+      console.log(`Design ${designId} successfully deleted`);
+
+      set((state) => ({
+        designs: state.designs.filter((i) => i.id !== designId),
+      }));
+    } catch (error: any) {
+      console.error("Error deleting design:", error);
+      // throw new Error("Failed to delete client");
       ShowToastMessage({
         title: error,
         preset: "error",

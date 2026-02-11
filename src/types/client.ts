@@ -25,6 +25,14 @@ export type Client = {
   phone: string;
   lastVisit: string;
   measurements?: ClientMeasurements;
+  blouseLength?: string;
+  chest?: string;
+  hips?: string;
+  shirtLength?: string;
+  skirtLength?: string;
+  trouserLength?: string;
+  dressType?: string;
+  waist?: string;
   notes?: string;
   tailorId: string;
   userEmail: string;

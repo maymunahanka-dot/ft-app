@@ -2,14 +2,17 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   orderBy,
   query,
   setDoc,
   Timestamp,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
+import { formatFirestoreTimestampToISO } from "../components/invoice/util";
 import { db } from "../context/firebase";
 import { getCurrentUserEmail } from "../lib/auth-utils";
 import { Expense, Income, TransactionType } from "../types/finance";
@@ -24,11 +27,15 @@ interface FinancialState {
 
   saveTransaction(data: Income, type: "income"): Promise<void>;
   saveTransaction(data: Expense, type: "expense"): Promise<void>;
-
+  editTransaction(
+    id: string,
+    updates: Partial<Income> | Partial<Expense>,
+    type: TransactionType,
+  ): Promise<void>;
   deleteTransaction(id: string): Promise<void>;
 }
 
-export const useFinanceStore = create<FinancialState>((set) => ({
+export const useFinanceStore = create<FinancialState>((set, get) => ({
   income: [],
   expenses: [],
   loading: false,
@@ -62,22 +69,28 @@ export const useFinanceStore = create<FinancialState>((set) => ({
         console.log("transactions snap", JSON.stringify(raw, null, 2));
         // 🔥 convert timestamps → ISO
         const base = {
-          id: d.id,
           ...raw,
-          date: (raw.date as Timestamp)?.toDate().toISOString(),
-          createdAt: (raw.createdAt as Timestamp)?.toDate().toISOString(),
-          updatedAt: (raw.updatedAt as Timestamp)?.toDate().toISOString(),
+          id: d.id,
+          date: formatFirestoreTimestampToISO(raw.date as Timestamp),
+          createdAt: formatFirestoreTimestampToISO(raw.createdAt as Timestamp),
+          updatedAt: formatFirestoreTimestampToISO(raw.updatedAt as Timestamp),
         };
 
         console.log("transactions", income, expenses);
 
-        if (raw.type.toLowerCase() === "income") {
+        const type = String(raw.type || "").toLowerCase();
+
+        if (type === "income") {
           income.push(base as Income);
         } else {
           expenses.push(base as Expense);
         }
       });
 
+      // const found = [...income, expenses].find(
+      //   (prev) => prev.id === "inc_1770837235324_zo7x2jy8s",
+      // );
+      // console.log("found the delete tranny", JSON.stringify(found, null, 2));
       set({ income, expenses });
     } catch (error) {
       console.error("Error fetching transactions:", error);
@@ -96,15 +109,17 @@ export const useFinanceStore = create<FinancialState>((set) => ({
   // ===============================
   async saveTransaction(data: Income | Expense, type: TransactionType) {
     set({ loading: true });
-
+    if (get().loading) return;
     try {
       const userEmail = getCurrentUserEmail();
 
       const ref = doc(db, "fashiontally_transactions", data.id);
 
+      const normalizedType = type.toLowerCase() as TransactionType;
+
       await setDoc(ref, {
         ...data,
-        type,
+        type: normalizedType,
         userEmail,
         date: new Date(data.date),
         createdAt: new Date(data.createdAt),
@@ -157,6 +172,63 @@ export const useFinanceStore = create<FinancialState>((set) => ({
   },
 
   // ===============================
+  // EDIT
+  // ===============================
+  async editTransaction(id, updates, type) {
+    set({ loading: true });
+    try {
+      const ref = doc(db, "fashiontally_transactions", id);
+
+      const updateData = {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await updateDoc(ref, updateData);
+
+      if (type.toLowerCase() === "income") {
+        set((state) => ({
+          income: state.income.map((i) =>
+            i.id === id
+              ? {
+                  ...i,
+                  ...updates,
+                  updatedAt: new Date().toISOString(),
+                }
+              : i,
+          ),
+        }));
+      } else {
+        set((state) => ({
+          expenses: state.expenses.map((e) =>
+            e.id === id
+              ? {
+                  ...e,
+                  ...updates,
+                  updatedAt: new Date().toISOString(),
+                }
+              : e,
+          ),
+        }));
+      }
+
+      ShowToastMessage({
+        title: "Transaction updated successfully",
+        preset: "done",
+        haptic: "success",
+      });
+    } catch (error) {
+      console.error("Error editing transaction:", error);
+      ShowToastMessage({
+        title: "Update failed",
+        preset: "error",
+      });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // ===============================
   // DELETE
   // ===============================
   async deleteTransaction(id) {
@@ -164,6 +236,8 @@ export const useFinanceStore = create<FinancialState>((set) => ({
 
     try {
       await deleteDoc(doc(db, "fashiontally_transactions", id));
+      const check = await getDoc(doc(db, "fashiontally_transactions", id));
+      console.log("Still exists?", check.exists());
 
       set((state) => ({
         income: state.income.filter((i) => i.id !== id),

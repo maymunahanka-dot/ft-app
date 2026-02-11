@@ -78,7 +78,10 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
     const aggregatedData: { label: string; income: number; expense: number }[] =
       [];
 
-    const getDateKey = (d: Date) => d.toISOString().split("T")[0];
+    const toDate = (v: string | Date) => (v instanceof Date ? v : new Date(v));
+
+    const getDateKey = (v: string | Date) =>
+      toDate(v).toISOString().split("T")[0];
 
     // Check if it's a month filter (format: "month-0" to "month-11")
     if (selectedFilter.startsWith("month-")) {

@@ -2,8 +2,8 @@ import { HapticTab } from "@/src/components/haptic-tab";
 import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import { useClientStore } from "@/src/stores/clientSlice";
 import { useOrderStore } from "@/src/stores/orderSlice";
+import { ClientMeasurements } from "@/src/types/client";
 import { OrderStatus } from "@/src/types/Order";
 import {
   CapitalizeFirstName,
@@ -22,6 +22,7 @@ import {
   Package,
   Phone,
   Ruler,
+  Trash2,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -116,12 +117,13 @@ const OrderDetailScreen = () => {
   const orderId = id.toString();
 
   const loading = useOrderStore((state) => state.loading);
+  const deleteOrder = useOrderStore((state) => state.deleteOrder);
   const updateOrderStatus = useOrderStore((state) => state.updateOrderStatus);
   const orders = useOrderStore((state) => state.orders);
-  const order = orders.find((prev) => prev.id === orderId)!;
+  const order = orders.find((prev) => prev.id === orderId);
 
-  const isCompleted = order.status === "completed";
-  const isCancelled = order.status === "cancelled";
+  const isCompleted = order?.status === "completed";
+  const isCancelled = order?.status === "cancelled";
 
   const textColor = isCompleted
     ? "rgba(0, 130, 54, 1)"
@@ -137,20 +139,38 @@ const OrderDetailScreen = () => {
   const [statusModal, setStatusModal] = useState(false);
   const toggleStatusModal = () => setStatusModal((prev) => !prev);
 
-  const [orderStatus, setOrderStatus] = useState<OrderStatus>(order.status);
-
-  const clients = useClientStore((state) => state.clients);
-  const foundClient = clients.find(
-    (prev) => prev.id === order.clientId?.toString(),
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>(
+    order?.status ?? "pending",
   );
+
+  // const clients = useClientStore((state) => state.clients);
+  // const foundClient = clients.find(
+  //   (prev) => prev.id === order?.clientId?.toString(),
+  // );
 
   const measurementList = FormatMeasurementsForUI(
-    order.measurements &&
-      typeof order.measurements === "object" &&
-      "neck" in order.measurements
-      ? (order.measurements as any)
-      : foundClient?.measurements,
+    (order?.measurements as ClientMeasurements) ?? {
+      neck: "",
+      chest: "",
+      waist: "",
+      hips: "",
+      shoulder: "",
+      sleeve: "",
+      bicep: "",
+      wrist: "",
+      inseam: "",
+      outseam: "",
+      thigh: "",
+      calf: "",
+      ankle: "",
+      back: "",
+      armhole: "",
+      bust: "",
+      length: "",
+    },
   );
+
+  // console.log("measurement list", order);
 
   const ORDER_FLOW: OrderStatus[] = [
     "pending",
@@ -165,15 +185,24 @@ const OrderDetailScreen = () => {
   const currentStatusIndex = getStatusIndex(orderStatus);
 
   const handleOrderUpdate = async () => {
-    if (order.status === orderStatus) {
+    if (order?.status === orderStatus) {
       handleBack();
       return;
     }
     try {
-      await updateOrderStatus(order.id, orderStatus);
+      await updateOrderStatus(order?.id ?? "", orderStatus);
       handleBack();
     } catch (error) {
       console.error("error handling order update", error);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    try {
+      await deleteOrder(order?.id ?? "");
+      router.back();
+    } catch (err) {
+      console.error("Error deleting order", err);
     }
   };
 
@@ -186,24 +215,34 @@ const OrderDetailScreen = () => {
       <SafeAreaView
         style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
       >
-        <View style={styles.header}>
-          <HapticTab
-            style={{
-              width: 32,
-              aspectRatio: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onPress={handleBack}
-          >
-            <ChevronLeft
-              size={scale(20)}
-              color={"rgba(54, 65, 83, 1)"}
-              strokeWidth={1.5}
-            />
-          </HapticTab>
+        <View style={[styles.row, { paddingHorizontal: spacing(16) }]}>
+          <View style={styles.header}>
+            <HapticTab
+              hitSlop={20}
+              style={{
+                height: 32,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              onPress={handleBack}
+            >
+              <ChevronLeft
+                size={scale(20)}
+                color={"rgba(54, 65, 83, 1)"}
+                strokeWidth={1.5}
+              />
+            </HapticTab>
 
-          <Text style={styles.reg24}>Order Details</Text>
+            <Text style={styles.reg24}>Order Details</Text>
+          </View>
+
+          <Pressable onPress={handleDeleteOrder}>
+            {loading ? (
+              <ActivityIndicator size={scale(20)} color={"red"} />
+            ) : (
+              <Trash2 size={scale(20)} color={"red"} strokeWidth={1.5} />
+            )}
+          </Pressable>
         </View>
 
         <ScrollView
@@ -228,7 +267,7 @@ const OrderDetailScreen = () => {
               ]}
             >
               <Text style={[Styles.reg16, { color: textColor }]}>
-                {CapitalizeFirstName(order.status)}
+                {CapitalizeFirstName(order?.status)}
               </Text>
             </View>
 
@@ -238,18 +277,18 @@ const OrderDetailScreen = () => {
                 <View style={[styles.gapRow]}>
                   <View style={styles.bgView}>
                     <Text style={[styles.reg16, { color: "white" }]}>
-                      {GetInitials(order.clientName)}
+                      {GetInitials(order?.clientName)}
                     </Text>
                   </View>
 
                   <Text style={styles.reg14}>
-                    {CapitalizeFirstName(order.clientName)}
+                    {CapitalizeFirstName(order?.clientName)}
                   </Text>
                 </View>
 
                 <View style={styles.gapRow}>
                   <Phone size={scale(18)} color={Colors.primary} />
-                  <Text style={styles.reg14}>{order.clientPhone}</Text>
+                  <Text style={styles.reg14}>{order?.clientPhone}</Text>
                 </View>
               </View>
 
@@ -267,7 +306,7 @@ const OrderDetailScreen = () => {
                         Item
                       </Text>
                       <Text style={styles.reg14}>
-                        {order.garmentDescription}
+                        {order?.garmentDescription}
                       </Text>
                       <Text
                         style={[
@@ -278,7 +317,7 @@ const OrderDetailScreen = () => {
                           },
                         ]}
                       >
-                        {order.garmentType}
+                        {order?.garmentType}
                       </Text>
                     </View>
                   </View>
@@ -294,7 +333,7 @@ const OrderDetailScreen = () => {
                         Fabric
                       </Text>
                       <Text style={styles.reg14}>
-                        {order.fabric ? order.fabric : "Not Specified"}
+                        {order?.fabric ? order?.fabric : "Not Specified"}
                       </Text>
                       <Text
                         style={[
@@ -305,7 +344,8 @@ const OrderDetailScreen = () => {
                           },
                         ]}
                       >
-                        {order.quantity} pc{order.quantity > 1 ? "s" : ""}
+                        {order?.quantity} pc
+                        {(order?.quantity ?? 0) > 1 ? "s" : ""}
                       </Text>
                     </View>
                   </View>
@@ -352,7 +392,7 @@ const OrderDetailScreen = () => {
                       Total Amount
                     </Text>
                     <Text style={[Styles.reg16, { color: Colors.text.black }]}>
-                      {FormatCurrency(order.price)}
+                      {FormatCurrency(order?.price ?? 0)}
                     </Text>
                   </View>
                   <View style={[styles.row]}>
@@ -360,7 +400,7 @@ const OrderDetailScreen = () => {
                       Deposit Paid
                     </Text>
                     <Text style={[Styles.reg16, { color: Colors.text.black }]}>
-                      {FormatCurrency(order.deposit)}
+                      {FormatCurrency(order?.deposit ?? 0)}
                     </Text>
                   </View>
                   <View
@@ -377,7 +417,7 @@ const OrderDetailScreen = () => {
                       Balance Due
                     </Text>
                     <Text style={[Styles.reg16, { color: Colors.text.black }]}>
-                      {FormatCurrency(order.balance)}
+                      {FormatCurrency(order?.balance ?? 0)}
                     </Text>
                   </View>
                 </View>
@@ -395,7 +435,7 @@ const OrderDetailScreen = () => {
               </View>
               <View style={styles.box}>
                 <View style={styles.statusStands}>
-                  {order.status === "cancelled" ? (
+                  {order?.status === "cancelled" ? (
                     <View style={styles.statusStands}>
                       <StatusStand title="Order Cancelled" active />
                     </View>
@@ -414,7 +454,7 @@ const OrderDetailScreen = () => {
 
             <View style={[styles.row, { gap: spacing(30) }]}>
               <Pressable
-                onPress={() => callPhoneNumber(order.clientPhone)}
+                onPress={() => callPhoneNumber(order?.clientPhone ?? "")}
                 style={styles.rowBtn}
               >
                 <Phone size={scale(18)} color={Colors.black} />

@@ -11,9 +11,15 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Pencil, Trash2 } from "lucide-react-native";
 import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const TransactionDetailScreen = () => {
@@ -21,19 +27,29 @@ const TransactionDetailScreen = () => {
 
   const transactionId = id.toString();
 
-  //   const loading = useFinanceStore((state) => state.loading);
+  const loading = useFinanceStore((state) => state.loading);
   const incomes = useFinanceStore((state) => state.income);
   const expenses = useFinanceStore((state) => state.expenses);
+  const deleteTransaction = useFinanceStore((state) => state.deleteTransaction);
   const transaction = [...incomes, ...expenses].find(
     (prev) => prev.id === transactionId,
-  )!;
+  );
 
-  const isExpenses = "category" in transaction;
+  const isExpenses = transaction && "category" in transaction;
   const sourceLabel = isExpenses ? "Category" : "Source";
-  const source = isExpenses ? transaction.category : transaction.source;
+  const source = isExpenses ? transaction.category : transaction?.source;
 
-  const handBack = () => {
+  const handleBack = () => {
     router.replace("/(tabs)/Finance");
+  };
+
+  const handleDeleteTransaction = async () => {
+    try {
+      await deleteTransaction(transaction?.id ?? "");
+      handleBack();
+    } catch (err) {
+      console.error("Error deleting order", err);
+    }
   };
 
   return (
@@ -49,7 +65,7 @@ const TransactionDetailScreen = () => {
               justifyContent: "center",
               alignItems: "center",
             }}
-            onPress={handBack}
+            onPress={handleBack}
           >
             <ChevronLeft
               size={scale(20)}
@@ -71,13 +87,13 @@ const TransactionDetailScreen = () => {
           keyboardDismissMode="interactive"
         >
           <View style={styles.content}>
-            <TransactionItem item={transaction} />
+            {transaction && <TransactionItem item={transaction} />}
             <View style={styles.rowDetails}>
               <View style={styles.row}>
                 <Text style={[styles.reg14, { fontSize: scaleFontSize(13) }]}>
                   Reference Number
                 </Text>
-                <Text style={styles.reg13}>{transaction.id}</Text>
+                <Text style={styles.reg13}>{transaction?.id}</Text>
               </View>
 
               <View style={styles.row}>
@@ -85,7 +101,7 @@ const TransactionDetailScreen = () => {
                   Transaction Time
                 </Text>
                 <Text style={styles.reg13}>
-                  {FormatOrderDate(transaction.date)}
+                  {FormatOrderDate(transaction?.date ?? "")}
                 </Text>
               </View>
 
@@ -107,7 +123,7 @@ const TransactionDetailScreen = () => {
                   Subtotal
                 </Text>
                 <Text style={styles.reg13}>
-                  {FormatCurrency(transaction.amount.toString())}
+                  {FormatCurrency((transaction?.amount ?? 0).toString())}
                 </Text>
               </View>
 
@@ -132,10 +148,49 @@ const TransactionDetailScreen = () => {
                   ]}
                 >
                   {isExpenses ? "-" : "+"}
-                  {FormatCurrency(transaction.amount.toString())}
+                  {FormatCurrency((transaction?.amount ?? 0).toString())}
                 </Text>
               </View>
             </View>
+          </View>
+          <View
+            style={[
+              styles.row,
+              {
+                gap: spacing(20),
+                paddingBottom: spacing(30),
+                paddingHorizontal: 16,
+              },
+            ]}
+          >
+            <HapticTab
+              style={[styles.btn]}
+              onPress={() => {
+                if (!transaction) return;
+                router.push({
+                  pathname: "/protected/editTransaction/[id]",
+                  params: {
+                    id: transaction.id,
+                  },
+                });
+              }}
+            >
+              <Pencil size={scale(12)} color={"white"} />
+              <Text style={[styles.reg14, { color: "white" }]}>Edit</Text>
+            </HapticTab>
+            <HapticTab
+              style={[styles.btn, { backgroundColor: "red" }]}
+              onPress={handleDeleteTransaction}
+            >
+              {loading ? (
+                <ActivityIndicator size={scale(20)} color={"white"} />
+              ) : (
+                <>
+                  <Trash2 size={scale(12)} color={"white"} />
+                  <Text style={[styles.reg14, { color: "white" }]}>Delete</Text>
+                </>
+              )}
+            </HapticTab>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -214,5 +269,15 @@ const styles = StyleSheet.create({
     borderTopColor: "#E5E7EB",
     borderTopWidth: 1,
     paddingTop: spacing(10),
+  },
+  btn: {
+    flex: 1,
+    backgroundColor: Colors.black,
+    height: 40,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: spacing(20),
+    borderRadius: 20,
   },
 });

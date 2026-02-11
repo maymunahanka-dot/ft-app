@@ -13,6 +13,7 @@ import {
   DrawerContentWidth,
 } from "../components/drawer/DrawerContent";
 import { useAuth } from "../hooks/auth";
+import useBackHandler from "../hooks/useBackHandler";
 import { useSubscriptionGuard } from "../hooks/useSubscriptionGuard";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
 import { useUserStore } from "../stores/userSlice";
@@ -44,6 +45,8 @@ const drawerOptions = {
 } as const;
 
 export default function RootLayout() {
+  useBackHandler();
+
   const [loaded] = useFonts({
     regular: require("@/assets/fonts/Baloo2-Regular.ttf"),
     medium: require("@/assets/fonts/Baloo2-Medium.ttf"),

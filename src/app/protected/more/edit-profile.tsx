@@ -78,7 +78,9 @@ const EditProfileScreen = () => {
         country: user.country,
         createdAt:
           user?.createdAt ??
-          convertToDate(user.meta.creation_timestamp).toDateString(),
+          (user?.metadata?.creation_timestamp
+            ? convertToDate(user.metadata.creation_timestamp).toDateString()
+            : new Date().toDateString()),
       });
 
       await editBrandSettings({ businessName: user?.businessName ?? "" });

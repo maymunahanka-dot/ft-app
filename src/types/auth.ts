@@ -15,7 +15,7 @@ export type RegisterUserData = {
   //   lga: string;
   //   address: string;
   logo?: string;
-  meta?: any;
+  metadata?: any;
   // businessName?: string;
   // businessAddress?: string;
   // website?: string;
