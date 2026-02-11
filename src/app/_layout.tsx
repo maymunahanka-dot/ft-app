@@ -1,11 +1,17 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useFonts } from "expo-font";
-import { Stack, usePathname, useRouter, useSegments } from "expo-router";
+import { usePathname, useRouter, useSegments } from "expo-router";
+import Drawer from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
 import * as Updates from "expo-updates";
 import { useEffect } from "react";
+import { Dimensions } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
+import {
+  DrawerContent,
+  DrawerContentWidth,
+} from "../components/drawer/DrawerContent";
 import { useAuth } from "../hooks/auth";
 import { useSubscriptionGuard } from "../hooks/useSubscriptionGuard";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
@@ -17,25 +23,25 @@ import { useUserStore } from "../stores/userSlice";
 //   anchor: "(tabs)",
 // };
 
-// const WIDTH = Dimensions.get("window").width;
+const WIDTH = Dimensions.get("window").width;
 
-// const drawerOptions = {
-//   headerShown: false,
-//   drawerPosition: "left",
-//   drawerStyle: {
-//     backgroundColor: "black",
-//     width: Math.max(WIDTH * 0.7, 270),
-//   },
-//   drawerActiveTintColor: "#000",
-//   drawerInactiveTintColor: "#666",
-//   drawerLabelStyle: {
-//     fontSize: 16,
-//     fontWeight: "500",
-//   },
-//   overlayColor: "rgba(0, 0, 0, 0.5)",
-//   swipeEnabled: true,
-//   swipeEdgeWidth: DrawerContentWidth,
-// } as const;
+const drawerOptions = {
+  headerShown: false,
+  drawerPosition: "left",
+  drawerStyle: {
+    backgroundColor: "black",
+    width: Math.max(WIDTH * 0.7, 270),
+  },
+  drawerActiveTintColor: "#000",
+  drawerInactiveTintColor: "#666",
+  drawerLabelStyle: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  overlayColor: "rgba(0, 0, 0, 0.5)",
+  swipeEnabled: true,
+  swipeEdgeWidth: DrawerContentWidth,
+} as const;
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -132,7 +138,7 @@ export default function RootLayout() {
     <>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
-          {/* <Drawer
+          <Drawer
             screenOptions={drawerOptions}
             drawerContent={(props) => <DrawerContent {...props} />}
             backBehavior="history"
@@ -167,8 +173,8 @@ export default function RootLayout() {
                 drawerItemStyle: { display: "none" },
               }}
             />
-          </Drawer> */}
-          <Stack screenOptions={{ headerShown: false }} />
+          </Drawer>
+          {/* <Stack screenOptions={{ headerShown: false }} /> */}
           <StatusBar style="auto" />
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
