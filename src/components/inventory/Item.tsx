@@ -109,7 +109,7 @@ const StockItem = ({ item }: Props) => {
             hitSlop={20}
             style={styles.actionBtn}
             onPress={() => {
-              router.replace({
+              router.push({
                 pathname: "/protected/inventory/[id]",
                 params: {
                   id: item.id,

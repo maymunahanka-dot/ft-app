@@ -109,7 +109,7 @@ const OrdersScreen = () => {
 
         <Pressable
           style={styles.floatingBtn}
-          onPress={() => router.replace("/protected/form/create-order")}
+          onPress={() => router.push("/protected/form/create-order")}
         >
           <Plus size={scale(20)} color={"white"} />
         </Pressable>

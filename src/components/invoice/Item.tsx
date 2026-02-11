@@ -75,7 +75,7 @@ const InvoiceItem = ({ invoice }: Props) => {
           hitSlop={20}
           style={[styles.btn, { backgroundColor: Colors.inputBorder }]}
           onPress={() => {
-            router.replace({
+            router.push({
               pathname: "/protected/invoice/[id]",
               params: {
                 id: invoice.id,
@@ -93,7 +93,7 @@ const InvoiceItem = ({ invoice }: Props) => {
               console.log("invoice id", invoice.id);
               return;
             }
-            router.replace({
+            router.push({
               pathname: "/protected/invoice-preview",
               params: {
                 invoiceId: invoice.id,

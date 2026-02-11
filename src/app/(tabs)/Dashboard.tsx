@@ -69,7 +69,7 @@ const DashboardScreen = () => {
         rightIcon={() => (
           <HapticTab
             hitSlop={20}
-            onPress={() => router.replace("/protected/form/create-appointment")}
+            onPress={() => router.push("/protected/form/create-appointment")}
           >
             <CalendarClock size={scale(24)} color="white" />
           </HapticTab>
@@ -85,23 +85,23 @@ const DashboardScreen = () => {
             <View style={styles.actions}>
               <ActionItem
                 label="New Order"
-                onPress={() => router.replace("/protected/form/create-order")}
+                onPress={() => router.push("/protected/form/create-order")}
                 icon={FileText}
               />
               <ActionItem
                 label="New Client"
-                onPress={() => router.replace("/protected/form/create-client")}
+                onPress={() => router.push("/protected/form/create-client")}
                 icon={UserRoundPlus}
               />
               <ActionItem
                 label="Add Inventory"
-                onPress={() => router.replace("/protected/form/create-stock")}
+                onPress={() => router.push("/protected/form/create-stock")}
                 icon={Plus}
               />
               {/* <ActionItem
                 label="CRM"
                 onPress={() => {
-                  router.replace("/protected/bg/CRM");
+                  router.push("/protected/bg/CRM");
                 }}
                 icon={UserStar}
               /> */}

@@ -67,7 +67,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
           item={item}
           style={styles.listItem}
           onPress={() => {
-            router.replace(item.route as Href);
+            router.push(item.route as Href);
             closeDrawer();
           }}
         />
@@ -95,7 +95,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
     <View style={[styles.container, { paddingTop: top }]}>
       <View style={styles.header}>
         <PressableScale
-          onPress={() => router.replace("/(tabs)/Dashboard")}
+          onPress={() => router.push("/(tabs)/Dashboard")}
           style={styles.gapRow}
         >
           <Image source={require("@/assets/images/fashion_tally_logo.png")} />

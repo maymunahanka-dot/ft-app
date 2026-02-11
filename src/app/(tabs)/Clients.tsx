@@ -109,7 +109,7 @@ const ClientsScreen = () => {
 
         <Pressable
           style={styles.floatingBtn}
-          onPress={() => router.replace("/protected/form/create-client")}
+          onPress={() => router.push("/protected/form/create-client")}
         >
           <Plus size={scale(20)} color={"white"} />
         </Pressable>

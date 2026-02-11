@@ -100,7 +100,7 @@ const StoreDetailsScreen = () => {
 
   const handleContinue = () => {
     if (validateForm()) {
-      router.replace("/(auth)/screen/create-password");
+      router.push("/(auth)/screen/create-password");
       console.log("user data", JSON.stringify(userData, null, 2));
     } else {
       Alert.alert(
@@ -147,7 +147,7 @@ const StoreDetailsScreen = () => {
                       textDecorationLine: "underline",
                     },
                   ]}
-                  onPress={() => router.replace("/sign-in")}
+                  onPress={() => router.push("/sign-in")}
                 >
                   Sign in
                 </Text>

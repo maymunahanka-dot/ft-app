@@ -32,7 +32,7 @@ const AppoinmentListItem: React.FC<Props> = ({ item }) => {
     <Pressable
       style={styles.apptView}
       onPress={() => {
-        router.replace({
+        router.push({
           pathname: "/protected/appointment/[id]",
           params: {
             id: item.id,

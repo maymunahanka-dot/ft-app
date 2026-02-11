@@ -118,7 +118,7 @@ const AppointmentsScreen = () => {
 
         <Pressable
           style={styles.floatingBtn}
-          onPress={() => router.replace("/protected/form/create-appointment")}
+          onPress={() => router.push("/protected/form/create-appointment")}
         >
           <Plus size={scale(20)} color={"white"} />
         </Pressable>

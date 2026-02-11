@@ -71,7 +71,7 @@ const SecurityDetailsScreen = () => {
           <View style={styles.content}>
             <Pressable
               style={styles.row}
-              onPress={() => router.replace("/(auth)/screen/forget-password")}
+              onPress={() => router.push("/(auth)/screen/forget-password")}
             >
               <View style={{ gap: spacing(4) }}>
                 <Text style={[Styles.reg16, { color: Colors.text.black }]}>

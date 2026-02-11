@@ -162,9 +162,7 @@ const FinanceScreen = () => {
         >
           <View style={styles.content}>
             <Pressable
-              onPress={() =>
-                router.replace("/protected/form/create-transaction")
-              }
+              onPress={() => router.push("/protected/form/create-transaction")}
               style={styles.addBtn}
             >
               <Plus size={scale(16)} color={"white"} />

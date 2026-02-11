@@ -33,7 +33,7 @@ const DesignItem: React.FC<Props> = ({ item, style }) => {
     <HapticTab
       style={[styles.container, style]}
       onPress={() =>
-        router.replace({
+        router.push({
           pathname: "/protected/design/[id]",
           params: {
             id: item.id,

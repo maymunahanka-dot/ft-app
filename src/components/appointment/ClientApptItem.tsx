@@ -97,7 +97,7 @@ const ClientApptItem = ({ item }: Props) => {
     <Pressable
       style={styles.apptContainer}
       onPress={() => {
-        router.replace({
+        router.push({
           pathname: "/protected/appointment/[id]",
           params: {
             id: item.id,

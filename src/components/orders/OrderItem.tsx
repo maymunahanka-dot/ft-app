@@ -36,7 +36,7 @@ const OrderItem = ({ order }: Props) => {
     <Pressable
       style={styles.orderCard}
       onPress={() =>
-        router.replace({
+        router.push({
           pathname: "/protected/order/[id]",
           params: { id: order.id },
         })

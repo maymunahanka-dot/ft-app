@@ -145,7 +145,7 @@ export default function RootLayout() {
             screenOptions={drawerOptions}
             drawerContent={(props) => <DrawerContent {...props} />}
             backBehavior="history"
-            initialRouteName={"index"}
+            initialRouteName={undefined}
           >
             <Drawer.Screen
               name="(auth)"

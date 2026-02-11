@@ -124,7 +124,7 @@ const DesignsScreen = () => {
 
         <Pressable
           style={styles.floatingBtn}
-          onPress={() => router.replace("/protected/form/create-design")}
+          onPress={() => router.push("/protected/form/create-design")}
         >
           <Plus size={scale(20)} color={"white"} />
         </Pressable>

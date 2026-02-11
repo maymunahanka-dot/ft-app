@@ -132,7 +132,7 @@ const InventoryScreen = () => {
         rightIcon={() => (
           <HapticTab
             style={styles.plusBtn}
-            onPress={() => router.replace("/protected/form/create-stock")}
+            onPress={() => router.push("/protected/form/create-stock")}
           >
             <Plus size={24} color={Colors.primary} />
           </HapticTab>
