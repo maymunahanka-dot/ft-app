@@ -68,6 +68,7 @@ const EditProfileScreen = () => {
     try {
       console.log("user details", userData);
       const success = await updateUserDetails({
+        uid: user?.uid,
         phone: userData.phone,
         lga: userData.lga,
         state: userData.state,
@@ -83,7 +84,9 @@ const EditProfileScreen = () => {
             : new Date().toDateString()),
       });
 
-      await editBrandSettings({ businessName: user?.businessName ?? "" });
+      if (user?.businessName && user.businessName.trim()) {
+        await editBrandSettings({ businessName: user.businessName });
+      }
 
       if (success) {
         await refreshUser();
@@ -102,6 +105,10 @@ const EditProfileScreen = () => {
       ...user,
       firstName: user.name?.split(" ")[0] ?? "",
       lastName: user.name?.split(" ")[1] ?? "",
+      phone:
+        user?.phone && user.phone.trim()
+          ? user.phone
+          : (user?.phoneNumber ?? ""),
     });
     console.log("changed");
   }, [user]);

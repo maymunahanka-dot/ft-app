@@ -1,4 +1,5 @@
 export type RegisterUserData = {
+  uid?: string;
   name: string;
   // firstName: string;
   // lastName: string;

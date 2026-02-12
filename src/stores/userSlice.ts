@@ -1,4 +1,13 @@
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../context/firebase";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
@@ -23,21 +32,49 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ user });
   },
   async updateUserDetails(user) {
+    set({ loading: true });
+
     try {
-      const userId = getCurrentUserId();
-      const userRef = doc(db, "fashiontally_users", userId);
-      await updateDoc(userRef, user);
+      const uid = getCurrentUserId();
+      const email = user.email;
+
+      let userRef = doc(db, "fashiontally_users", uid);
+
+      const snap = await getDoc(userRef);
+
+      if (!snap.exists()) {
+        console.log("UID doc missing, trying email fallback...");
+
+        const q = query(
+          collection(db, "fashiontally_users"),
+          where("email", "==", email),
+        );
+
+        const result = await getDocs(q);
+
+        if (!result.empty) {
+          userRef = result.docs[0].ref;
+          console.log("Found legacy user doc:", userRef.id);
+        }
+      }
+
+      await setDoc(userRef, user, { merge: true });
+
       set({ user });
-      console.log("user updated", JSON.stringify(user, null, 2));
+
       return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error("error updating profile", error);
+
       ShowToastMessage({
-        title: "Errir updating profile",
+        title: "Error updating profile",
         preset: "error",
         haptic: "error",
       });
+
       return false;
+    } finally {
+      set({ loading: false });
     }
   },
 
