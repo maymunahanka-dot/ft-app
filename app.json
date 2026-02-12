@@ -62,7 +62,8 @@
         "projectId": "bfd12e68-9360-40b4-98a8-290304ea282b"
       }
     },
-    "owner": "fashiontally",
+    // "owner": "fashiontally",
+    "owner": "koinsave",
     "runtimeVersion": {
       "policy": "appVersion"
     },
