@@ -4,6 +4,8 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { Timestamp } from "firebase/firestore";
 import { Dimensions, PixelRatio, Platform } from "react-native";
+import { getCurrentUserEmail } from "../lib/auth-utils";
+import { BrandSettings } from "../types/auth";
 import { Client, ClientMeasurements } from "../types/client";
 
 // Extend dayjs with the parsing plugin
@@ -586,4 +588,39 @@ export const extractClientMeasurements = (client: Client) => {
   });
 
   return measurements;
+};
+
+export const emptyBrandSettings = (email: string): BrandSettings => ({
+  businessName: "",
+  businessAddress: "",
+  businessWebsite: "",
+  logoUrl: "",
+  businessPhone: "",
+  footerText: "",
+  termsAndConditions: "",
+  updatedAt: "",
+  userEmail: email,
+});
+
+export const sanitizeBrandSettings = (
+  payload: Partial<BrandSettings>,
+): BrandSettings => {
+  const email = payload.userEmail ?? getCurrentUserEmail();
+
+  const base = emptyBrandSettings(email);
+
+  // Force no null/undefined — Firebase safe
+  return {
+    ...base,
+    ...payload,
+    businessName: payload.businessName ?? "",
+    businessAddress: payload.businessAddress ?? "",
+    businessWebsite: payload.businessWebsite ?? "",
+    logoUrl: payload.logoUrl ?? "",
+    businessPhone: payload.businessPhone ?? "",
+    footerText: payload.footerText ?? "",
+    termsAndConditions: payload.termsAndConditions ?? "",
+    updatedAt: payload.updatedAt ?? "",
+    userEmail: email,
+  };
 };

@@ -5,15 +5,13 @@ import {
   getDocs,
   query,
   setDoc,
-  updateDoc,
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
 import { db } from "../context/firebase";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
 import { BrandSettings, RegisterUserData } from "../types/auth";
-import { ShowToastMessage } from "../utils/random";
-
+import { sanitizeBrandSettings, ShowToastMessage } from "../utils/random";
 interface UserState {
   loading: boolean;
   user: RegisterUserData | null;
@@ -33,6 +31,8 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
   async updateUserDetails(user) {
     set({ loading: true });
+
+    console.log("user updating", user);
 
     try {
       const uid = getCurrentUserId();
@@ -106,45 +106,39 @@ export const useUserStore = create<UserState>((set, get) => ({
     }
   },
 
-  async editBrandSettings(updates) {
-    const currentSettings = get().brandSetting;
-
-    if (!currentSettings?.userEmail) {
-      ShowToastMessage({
-        title: "No settings found",
-        message: "Please create brand settings first.",
-        preset: "error",
-      });
-      return false;
-    }
-
+  async editBrandSettings(updates: BrandSettings) {
     set({ loading: true });
-    try {
-      const settingsRef = doc(
-        db,
-        "fashiontally_brand_settings",
-        currentSettings.userEmail,
-      );
 
-      const updateData = {
+    try {
+      const docId = (updates.userEmail ?? "").trim();
+      if (!docId) {
+        ShowToastMessage({
+          title: "Update failed",
+          message: "Missing user email (document id).",
+          preset: "error",
+          haptic: "error",
+        });
+        return false;
+      }
+
+      const settingsRef = doc(db, "fashiontally_brand_settings", docId);
+
+      const updateData: BrandSettings = sanitizeBrandSettings({
         ...updates,
         updatedAt: new Date().toISOString(),
-      };
-
-      await updateDoc(settingsRef, updateData);
-
-      set({
-        brandSetting: {
-          ...currentSettings,
-          ...updateData,
-        },
+        userEmail: docId,
       });
 
+      await setDoc(settingsRef, updateData, { merge: true });
+
+      set({ brandSetting: updateData });
+
       ShowToastMessage({
-        title: "Settings updated",
+        title: "Settings saved",
         preset: "done",
         haptic: "success",
       });
+
       return true;
     } catch (error: any) {
       console.error("Error updating brand settings:", error);

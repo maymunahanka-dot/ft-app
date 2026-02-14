@@ -152,7 +152,7 @@ export function useAuth() {
       if (userDataInput.businessName) {
         await editBrandSettings({
           id: "",
-          logoUrl: userDataInput.logo,
+          logoUrl: data.logo,
           businessName: userDataInput.businessName,
           businessAddress: "",
           businessEmail: userDataInput.email,

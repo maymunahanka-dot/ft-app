@@ -7,7 +7,14 @@ import { useUserImage } from "@/src/hooks/useUserImage";
 import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { useUserStore } from "@/src/stores/userSlice";
 import { BrandSettings } from "@/src/types/auth";
-import { scale, scaleFontSize, spacing } from "@/src/utils/random";
+import {
+  emptyBrandSettings,
+  sanitizeBrandSettings,
+  scale,
+  scaleFontSize,
+  ShowToastMessage,
+  spacing,
+} from "@/src/utils/random";
 import { uploadImageToCloudinary } from "@/src/utils/uploadImageToCloudinary";
 import { router } from "expo-router";
 import { ChevronLeft, Pencil } from "lucide-react-native";
@@ -24,35 +31,49 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const validateBrandSettings = (data: BrandSettings) => {
+  const nextError = emptyBrandSettings(""); // same shape, empty strings
+
+  // Required
+  if (!data.businessName.trim())
+    nextError.businessName = "Business name is required";
+  if (!data?.businessAddress?.trim())
+    nextError.businessAddress = "Business address is required";
+
+  // Optional but validate if present
+  const website = data?.businessWebsite?.trim();
+  if (
+    website &&
+    !/^(https?:\/\/)?(www\.)?[a-z0-9-]+\.[a-z]{2,}(\.[a-z]{2,})?([\/?#].*)?$/i.test(
+      website,
+    )
+  ) {
+    nextError.businessWebsite = "Enter a valid website (e.g. www.example.com)";
+  }
+
+  return nextError;
+};
+
+const hasErrors = (err: BrandSettings) =>
+  Object.entries(err).some(
+    ([key, val]) => key !== "userEmail" && Boolean(val?.trim()),
+  );
+
 const BrandDetailsScreen = () => {
   const brandSetting = useUserStore((state) => state.brandSetting);
   const editBrandSettings = useUserStore((state) => state.editBrandSettings);
 
+  // console.log("brand settings", brandSetting);
+
   const { refreshUser } = useAuth();
 
-  const [brandSettingData, setBrandSettingData] = useState<BrandSettings>({
-    businessName: brandSetting?.businessName ?? "",
-    businessAddress: brandSetting?.businessAddress ?? "",
-    businessWebsite: brandSetting?.businessWebsite ?? "",
-    logoUrl: brandSetting?.logoUrl ?? "",
-    businessPhone: brandSetting?.businessPhone ?? "",
-    footerText: brandSetting?.footerText ?? "",
-    termsAndConditions: brandSetting?.termsAndConditions ?? "",
-    updatedAt: "",
-    userEmail: getCurrentUserEmail(),
-  });
+  const [brandSettingData, setBrandSettingData] = useState<BrandSettings>(() =>
+    sanitizeBrandSettings(brandSetting ?? { userEmail: getCurrentUserEmail() }),
+  );
 
-  const [error, setError] = useState<BrandSettings>({
-    businessName: "",
-    businessAddress: "",
-    businessWebsite: "",
-    logoUrl: "",
-    businessPhone: "",
-    footerText: "",
-    termsAndConditions: "",
-    updatedAt: "",
-    userEmail: "",
-  });
+  const [error, setError] = useState<BrandSettings>(() =>
+    emptyBrandSettings(""),
+  );
 
   const { image, pickImage, getImageUri } = useUserImage({
     returnBase64: true,
@@ -66,7 +87,10 @@ const BrandDetailsScreen = () => {
     field: keyof typeof brandSettingData,
     value: string,
   ) => {
-    setBrandSettingData({ ...brandSettingData, [field]: value });
+    setBrandSettingData((prev) => {
+      const next = { ...prev, [field]: value };
+      return sanitizeBrandSettings(next);
+    });
     // console.log(`${field}:${value}`);
     if (error[field as keyof typeof error]) {
       setError((prev) => ({ ...prev, [field]: "" }));
@@ -74,10 +98,8 @@ const BrandDetailsScreen = () => {
   };
 
   useEffect(() => {
-    if (image) {
-      handleDataChange("logoUrl", image);
-      // console.log("image", image);
-    }
+    if (!image) return;
+    handleDataChange("logoUrl", image);
   }, [image]);
 
   const handlePickImage = async () => {
@@ -90,44 +112,59 @@ const BrandDetailsScreen = () => {
 
   const handleUpdate = async () => {
     setLoading(true);
-    if (!brandSetting) return;
-
-    if (brandSettingData.logoUrl) {
-      const logo = await uploadImageToCloudinary(brandSettingData.logoUrl);
-      console.log("image url", logo);
-      if (logo) brandSettingData.logoUrl = logo;
-    }
-    // setLoading(false);
-    // if (!logo) {
-    //   setLoading(false);
-    //   return;
-    // }
-
     try {
-      console.log("brand details", brandSettingData);
-      const success = await editBrandSettings({
-        ...brandSetting,
-        ...brandSettingData,
-        logoUrl: brandSettingData.logoUrl ?? "",
-        businessName: brandSettingData.businessName,
-      });
+      const clean = sanitizeBrandSettings(brandSettingData);
 
+      const nextError = validateBrandSettings(clean);
+      setError(nextError);
+
+      if (hasErrors(nextError)) {
+        // const messages = Object.values(nextError).filter(Boolean).join("\n");
+
+        ShowToastMessage({
+          title: "Please fix the errors",
+          // message: messages,
+          preset: "error",
+          haptic: "error",
+        });
+
+        return;
+      }
+
+      let finalLogoUrl = clean.logoUrl;
+      if (
+        finalLogoUrl &&
+        (finalLogoUrl.startsWith("data:") || finalLogoUrl.startsWith("file:"))
+      ) {
+        const uploaded = await uploadImageToCloudinary(finalLogoUrl);
+        if (uploaded) finalLogoUrl = uploaded;
+      }
+
+      const payload = sanitizeBrandSettings({
+        ...(brandSetting ?? {}),
+        ...clean,
+        logoUrl: finalLogoUrl,
+        updatedAt: new Date().toISOString(),
+        userEmail: getCurrentUserEmail(),
+      });
+      console.log("payload", payload);
+      const success = await editBrandSettings(payload);
+      console.log("success", success);
       if (success) {
         await refreshUser();
         router.replace("/(tabs)/More");
       }
-    } catch (error) {
-      console.error("error in handleUpdate", error);
+    } catch (e) {
+      console.error("error in handleUpdate", e);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!brandSettingData) return;
-    setBrandSettingData(brandSettingData);
-    console.log("changed");
-  }, [brandSettingData]);
+    if (!brandSetting) return;
+    setBrandSettingData(sanitizeBrandSettings(brandSetting));
+  }, [brandSetting]);
 
   const imageUrl = image
     ? image

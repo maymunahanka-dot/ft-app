@@ -3,12 +3,14 @@ import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useAuth } from "@/src/hooks/auth";
+import { getCurrentUserId } from "@/src/lib/auth-utils";
 import { useUserStore } from "@/src/stores/userSlice";
 import {
   convertToDate,
   GetInitials,
   scale,
   scaleFontSize,
+  ShowToastMessage,
   spacing,
 } from "@/src/utils/random";
 import { LinearGradient } from "expo-linear-gradient";
@@ -29,7 +31,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const EditProfileScreen = () => {
   const user = useUserStore((state) => state.user);
   const updateUserDetails = useUserStore((state) => state.updateUserDetails);
-  const editBrandSettings = useUserStore((state) => state.editBrandSettings);
 
   const { refreshUser } = useAuth();
 
@@ -68,7 +69,7 @@ const EditProfileScreen = () => {
     try {
       console.log("user details", userData);
       const success = await updateUserDetails({
-        uid: user?.uid,
+        uid: user?.uid ?? getCurrentUserId(),
         phone: userData.phone,
         lga: userData.lga,
         state: userData.state,
@@ -84,12 +85,13 @@ const EditProfileScreen = () => {
             : new Date().toDateString()),
       });
 
-      if (user?.businessName && user.businessName.trim()) {
-        await editBrandSettings({ businessName: user.businessName });
-      }
-
       if (success) {
         await refreshUser();
+        ShowToastMessage({
+          title: "User details updated",
+          preset: "done",
+          haptic: "success",
+        });
         router.replace("/(tabs)/More");
       }
     } catch (error) {
