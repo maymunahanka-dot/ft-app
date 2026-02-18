@@ -104,7 +104,7 @@ const CreatePasswordScreen = () => {
     <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
       <View style={styles.container}>
         <ImageBackground
-          source={require("@/assets/images/Star_bg.png")}
+          source={require("@/assets/images/screen_bg.png")}
           style={[styles.headerBg, { paddingTop: insets.top + spacing(20) }]}
         >
           <View style={styles.headerContent}>

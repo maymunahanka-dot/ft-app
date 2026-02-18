@@ -183,12 +183,12 @@ const SignUpScreen = () => {
               <View style={styles.inputs}>
                 {/* first name */}
                 <View style={Styles.inputContainer}>
-                  <Text style={Styles.label}>First Name</Text>
+                  <Text style={Styles.label}>Name</Text>
                   <TextInput
                     ref={nameRef}
                     value={userData.name}
                     onChangeText={(text) => handleDataChange("name", text)}
-                    placeholder="First Name"
+                    placeholder="Name"
                     placeholderTextColor={Colors.grayText}
                     textContentType="name"
                     returnKeyLabel="next"

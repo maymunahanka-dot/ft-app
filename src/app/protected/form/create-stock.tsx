@@ -46,11 +46,12 @@ const CreateStockItemScreen = () => {
     category: "accessories",
     description: "",
     supplier: "",
+    supplierName: "",
     color: "",
     material: "",
     quantity: 0,
     unit: "yards",
-    minStockLevel: 0,
+    reorderPoint: 0,
     costPerUnit: 0,
     sellingPricePerUnit: 0,
     totalValue: 0,
@@ -124,6 +125,7 @@ const CreateStockItemScreen = () => {
       const payload: InventoryItem = {
         ...stockData,
         totalValue: stockData.quantity * (stockData.sellingPricePerUnit ?? 1),
+        supplierName: stockData.supplier,
         tailorId: getCurrentUserEmail(),
         userEmail: getCurrentUserEmail(),
         createdAt: new Date().toISOString(),
@@ -370,16 +372,16 @@ const CreateStockItemScreen = () => {
                     />
                   </View>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={Styles.label}>Min Stock Alert</Text>
+                    <Text style={Styles.label}>Re-order Point</Text>
                     <TextInput
-                      value={((stockData?.minStockLevel ?? 1) === 0
+                      value={((stockData?.reorderPoint ?? 1) === 0
                         ? ""
-                        : (stockData?.minStockLevel ?? 1)
+                        : (stockData?.reorderPoint ?? 1)
                       ).toString()}
                       onChangeText={(text) =>
-                        handleDataChange("minStockLevel", Number(text))
+                        handleDataChange("reorderPoint", Number(text))
                       }
-                      placeholder="Minimum Stock Level"
+                      placeholder="30"
                       placeholderTextColor={Colors.grayText}
                       returnKeyLabel="next"
                       returnKeyType="next"

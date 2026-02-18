@@ -11,10 +11,9 @@ import { Client } from "@/src/types/client";
 import { validateDesignForm } from "@/src/utils/formValidation";
 import { formatPrice, scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronDown, ChevronLeft, Trash2, Upload } from "lucide-react-native";
+import { ChevronDown, ChevronLeft, Upload } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -148,33 +147,24 @@ const EditDesignScreen = () => {
       <SafeAreaView
         style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
       >
-        <View style={[styles.row, { paddingHorizontal: spacing(16) }]}>
-          <View style={styles.header}>
-            <HapticTab
-              style={{
-                height: 32,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-              onPress={handleBack}
-            >
-              <ChevronLeft
-                size={scale(20)}
-                color={"rgba(54, 65, 83, 1)"}
-                strokeWidth={1.5}
-              />
-            </HapticTab>
+        <View style={styles.header}>
+          <HapticTab
+            style={{
+              width: 32,
+              aspectRatio: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={handleBack}
+          >
+            <ChevronLeft
+              size={scale(20)}
+              color={"rgba(54, 65, 83, 1)"}
+              strokeWidth={1.5}
+            />
+          </HapticTab>
 
-            <Text style={styles.reg24}>Edit Design</Text>
-          </View>
-
-          <Pressable onPress={handleDeleteDesign}>
-            {loading ? (
-              <ActivityIndicator size={scale(20)} color={"red"} />
-            ) : (
-              <Trash2 size={scale(20)} color={"red"} strokeWidth={1.5} />
-            )}
-          </Pressable>
+          <Text style={styles.reg24}>Edit Design</Text>
         </View>
 
         <KeyboardAvoidingView

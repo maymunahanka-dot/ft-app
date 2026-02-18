@@ -53,6 +53,7 @@ export const useSubscriptionGuard = ({
 
       // Handle redirect
       if (!result.isSubscribed && autoRedirect) {
+        if (__DEV__) return;
         router.replace({
           pathname: "/protected/subscription-modal",
           params: {
@@ -64,7 +65,7 @@ export const useSubscriptionGuard = ({
       }
     } catch (err) {
       console.error("Subscription check failed:", err);
-
+      if (__DEV__) return;
       setState({ loading: false, isSubscribed: false });
 
       Linking.openURL(paymentUrl).catch((linkErr) =>
@@ -76,7 +77,6 @@ export const useSubscriptionGuard = ({
   }, [email, uuid, paymentUrl, autoRedirect]);
 
   useEffect(() => {
-    if (__DEV__) return;
     if (hasCheckedRef.current || !hasUser) return;
 
     hasCheckedRef.current = true;

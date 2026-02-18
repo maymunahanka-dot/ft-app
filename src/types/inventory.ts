@@ -35,11 +35,13 @@ export type InventoryItem = {
   category: InventoryCategory;
   description: string;
   supplier: string;
+  supplierName: string;
   color: string;
   material: string; // e.g., cotton, silk, polyester
   quantity: number;
   unit: InventoryUnit;
   minStockLevel?: number; // Reorder point
+  reorderPoint?: number;
   costPerUnit?: number;
   sellingPricePerUnit?: number;
   totalValue: number; // quantity * costPerUnit

@@ -34,7 +34,7 @@ const DesignItem: React.FC<Props> = ({ item, style }) => {
       style={[styles.container, style]}
       onPress={() =>
         router.push({
-          pathname: "/protected/design/[id]",
+          pathname: "/protected/view-design/[id]",
           params: {
             id: item.id,
           },

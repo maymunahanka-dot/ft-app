@@ -370,6 +370,35 @@ export const GetDetailedDate = (date: Date | string | any): string => {
   }).format(now);
 };
 
+/**
+ * Formats an ISO date string into "Month Day, Year at Hour:Minute AM/PM"
+ * Example: "2026-03-20T22:59:18" -> "March 20, 2026 at 10:59 PM"
+ */
+export const formatFintechDate = (dateString: string | Date): string => {
+  if (!dateString) return "N/A";
+
+  const date = new Date(dateString);
+
+  // 1. Format the Date part (March 7, 2024)
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  };
+  const datePart = new Intl.DateTimeFormat("en-US", dateOptions).format(date);
+
+  // 2. Format the Time part (07:00 PM)
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  };
+  const timePart = new Intl.DateTimeFormat("en-US", timeOptions).format(date);
+
+  // 3. Combine with "at"
+  return `${datePart} at ${timePart}`;
+};
+
 export const ConvertToISO = (
   input?: string | Date | Timestamp | number | null,
   form?: string,

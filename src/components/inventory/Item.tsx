@@ -1,6 +1,5 @@
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import { useInventoryStore } from "@/src/stores/inventorySlice";
 import { InventoryItem } from "@/src/types/inventory";
 import {
   CapitalizeFirstName,
@@ -11,16 +10,16 @@ import {
 } from "@/src/utils/random";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Eye, Trash2 } from "lucide-react-native";
+import { Eye } from "lucide-react-native";
 import React from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = {
   item: InventoryItem;
 };
 
 const Icons = {
-  fabrics: "🧵",
+  Fabric: "🧵",
   notion: "📌",
   threads: "🧶",
   accessories: "💎",
@@ -30,8 +29,6 @@ const Icons = {
 } as const;
 
 const StockItem = ({ item }: Props) => {
-  const deleteItem = useInventoryStore((state) => state.deleteInventoryItem);
-
   const outOfStock = item.status === "out-of-stock";
   const lowStock =
     item.status === "low-stock" ||
@@ -47,18 +44,6 @@ const StockItem = ({ item }: Props) => {
     ? "rgba(254, 249, 194, 1)"
     : "rgba(198, 233, 212, 1)";
   const textColor = lowStock ? "rgba(166, 95, 0, 1)" : "rgba(21, 177, 83, 0.9)";
-
-  const handleDelete = () => {
-    Alert.alert(
-      "Delete Item",
-      "Are you sure you want to delete this item?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", onPress: () => deleteItem(item.id) },
-      ],
-      { cancelable: true },
-    );
-  };
 
   return (
     <View style={styles.container}>
@@ -110,7 +95,7 @@ const StockItem = ({ item }: Props) => {
             style={styles.actionBtn}
             onPress={() => {
               router.push({
-                pathname: "/protected/inventory/[id]",
+                pathname: "/protected/view-inventory/[id]",
                 params: {
                   id: item.id,
                 },
@@ -119,13 +104,18 @@ const StockItem = ({ item }: Props) => {
           >
             <Eye size={scale(15)} color={"rgba(74, 85, 101, 1)"} />
           </Pressable>
-          <Pressable
+          {/* <Pressable
             hitSlop={20}
             style={styles.actionBtn}
             onPress={handleDelete}
+            disabled={loading}
           >
-            <Trash2 size={scale(15)} color={"rgba(231, 0, 11, 1)"} />
-          </Pressable>
+            {loading ? (
+              <ActivityIndicator size={"small"} color={"rgba(231, 0, 11, 1)"} />
+            ) : (
+              <Trash2 size={scale(15)} color={"rgba(231, 0, 11, 1)"} />
+            )}
+          </Pressable> */}
         </View>
       </View>
 
