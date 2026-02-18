@@ -326,7 +326,6 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   headerBg: {
-    width: "100%",
     height: "auto",
     backgroundColor: Colors.primary,
     padding: spacing(16),
