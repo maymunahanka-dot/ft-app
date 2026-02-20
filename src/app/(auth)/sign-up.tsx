@@ -1,8 +1,9 @@
 import PrimaryButton from "@/src/components/button/PrimaryButton";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { generateOTP, sendOTP } from "@/src/lib/emailService";
 import { useAuthStore } from "@/src/stores/authSlice";
-import { spacing } from "@/src/utils/random";
+import { ShowToastMessage, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -36,6 +37,8 @@ const SignUpScreen = () => {
     email: "",
     phone: "",
   });
+
+  const [loading, setLoading] = useState(false);
 
   const userData = useAuthStore((state) => state.userData);
   const updateUserData = useAuthStore((state) => state.updateUserData);
@@ -111,18 +114,73 @@ const SignUpScreen = () => {
     return isValid;
   };
 
-  const handleContinue = () => {
-    if (validateForm()) {
-      router.replace("/(auth)/screen/store-details");
-    } else {
+  const handleContinue = async () => {
+    setLoading(true);
+    if (!validateForm()) {
       focusFirstErrorField();
       Alert.alert(
         "Validation Error",
         "Please fix the errors in the form before continuing.",
         [{ text: "OK" }],
       );
+      setLoading(false);
+      return;
+    }
+    const otp = generateOTP();
+    try {
+      const result = await sendOTP({
+        mail: userData.email,
+        otp: otp,
+      });
+      if (result.success) {
+        router.push({
+          pathname: "/(auth)/verify-otp/[otp]",
+          params: {
+            otp,
+          },
+        });
+        ShowToastMessage({
+          title: result.message,
+          from: "top",
+          preset: "done",
+        });
+      } else {
+        ShowToastMessage({
+          title: result.message,
+          from: "top",
+          preset: "error",
+        });
+      }
+    } catch (error) {
+      console.error("error handling continue", error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // const handleContinue = () => {
+  //   if (validateForm()) {
+  //     // router.replace("/(auth)/screen/store-details");
+  //     const otp = generateOTP();
+  //     const result = await sendOTP({
+  //       mail: userData.email,
+  //       otp: otp,
+  //     });
+  //     router.push({
+  //       pathname: "/(auth)/verify-otp/[otp]",
+  //       params: {
+  //         otp:
+  //       }
+  //     })
+  //   } else {
+  //     focusFirstErrorField();
+  //     Alert.alert(
+  //       "Validation Error",
+  //       "Please fix the errors in the form before continuing.",
+  //       [{ text: "OK" }],
+  //     );
+  //   }
+  // };
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
@@ -134,7 +192,7 @@ const SignUpScreen = () => {
         >
           <View style={styles.headerContent}>
             <Text style={[Styles.sm15, { color: Colors.secondary }]}>
-              Step 1 Of 3
+              Step 1 Of 4
             </Text>
             <View style={[styles.col, {}]}>
               <Text style={[Styles.bold32]}>Welcome Back To Business</Text>
@@ -296,7 +354,12 @@ const SignUpScreen = () => {
               </View>
 
               <View style={[styles.footer]}>
-                <PrimaryButton title="Continue" onPress={handleContinue} />
+                <PrimaryButton
+                  title="Continue"
+                  onPress={handleContinue}
+                  loading={loading}
+                  props={{ disabled: loading }}
+                />
               </View>
             </View>
           </ScrollView>

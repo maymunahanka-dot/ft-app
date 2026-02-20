@@ -101,148 +101,147 @@ const CreatePasswordScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
-      <View style={styles.container}>
-        <ImageBackground
-          source={require("@/assets/images/screen_bg.png")}
-          style={[styles.headerBg, { paddingTop: insets.top + spacing(20) }]}
-        >
-          <View style={styles.headerContent}>
-            <HapticTab
-              onPress={() => router.back()}
-              hitSlop={20}
-              style={{ paddingVertical: spacing(8) }}
-            >
-              <MoveLeft size={scale(20)} color={"white"} />
-            </HapticTab>
-            <Text style={[Styles.sm15, { color: Colors.secondary }]}>
-              Step 3 Of 3
+    <SafeAreaView style={{ flex: 1 }} edges={["left", "right"]}>
+      {/* <View style={styles.container}> */}
+      <ImageBackground
+        source={require("@/assets/images/screen_bg.png")}
+        style={[styles.headerBg, { paddingTop: insets.top + spacing(20) }]}
+      >
+        <View style={styles.headerContent}>
+          <HapticTab
+            onPress={() => router.back()}
+            hitSlop={20}
+            style={{ paddingVertical: spacing(8) }}
+          >
+            <MoveLeft size={scale(20)} color={"white"} />
+          </HapticTab>
+          <Text style={[Styles.sm15, { color: Colors.secondary }]}>
+            Step 4 Of 4
+          </Text>
+          <View style={[styles.col, {}]}>
+            <Text style={[Styles.bold32]}>
+              One Platform.{"\n"}Powering Business Growth
             </Text>
-            <View style={[styles.col, {}]}>
-              <Text style={[Styles.bold32]}>
-                One Platform.{"\n"}Powering Business Growth
-              </Text>
-              <Text style={[Styles.reg14]}>
-                Almost done. Just one more thing..
-              </Text>
-            </View>
-
-            <Text style={[Styles.bold12]}>
-              Already have an account?{"  "}
-              <Text
-                style={[
-                  Styles.med16,
-                  {
-                    color: Colors.secondary,
-                    textDecorationLine: "underline",
-                  },
-                ]}
-                onPress={() => router.replace("/sign-in")}
-              >
-                Sign in
-              </Text>
+            <Text style={[Styles.reg14]}>
+              Almost done. Just one more thing..
             </Text>
           </View>
-        </ImageBackground>
 
-        <KeyboardAvoidingView
-          style={{
-            flex: 1,
-            backgroundColor: "white",
+          <Text style={[Styles.bold12]}>
+            Already have an account?{"  "}
+            <Text
+              style={[
+                Styles.med16,
+                {
+                  color: Colors.secondary,
+                  textDecorationLine: "underline",
+                },
+              ]}
+              onPress={() => router.replace("/sign-in")}
+            >
+              Sign in
+            </Text>
+          </Text>
+        </View>
+      </ImageBackground>
+
+      <KeyboardAvoidingView
+        style={{
+          flex: 1,
+          backgroundColor: "white",
+        }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={
+          Platform.OS === "ios" ? spacing(50) : spacing(0)
+        }
+      >
+        <ScrollView
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingBottom: spacing(50),
           }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={
-            Platform.OS === "ios" ? spacing(50) : spacing(0)
-          }
+          keyboardDismissMode="interactive"
         >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingBottom: spacing(50),
-            }}
-            keyboardDismissMode="interactive"
-          >
-            <View style={styles.content}>
-              <View style={styles.inputs}>
-                {/* password */}
-                <View style={Styles.inputContainer}>
-                  <Text style={Styles.label}>Password</Text>
-                  <View style={Styles.input2}>
-                    <TextInput
-                      value={details.password}
-                      onChangeText={(value) =>
-                        handleDataChange("password", value)
-                      }
-                      placeholder="*****"
-                      secureTextEntry={isSecure}
-                      textContentType="password"
-                      placeholderTextColor={Colors.grayText}
-                      returnKeyLabel="done"
-                      returnKeyType="done"
-                      autoCorrect={false}
-                      style={{ flex: 1, ...Styles.inputFontPadding }}
-                    />
-                    <TouchableOpacity onPress={toggleVisiblity} hitSlop={20}>
-                      {isSecure ? (
-                        <EyeOff size={scale(15)} color={Colors.iconGrey} />
-                      ) : (
-                        <Eye size={scale(15)} color={Colors.primary} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                  {error.password ? (
-                    <Text style={Styles.errorText}>{error.password}</Text>
-                  ) : null}
+          <View style={styles.content}>
+            <View style={styles.inputs}>
+              {/* password */}
+              <View style={Styles.inputContainer}>
+                <Text style={Styles.label}>Password</Text>
+                <View style={Styles.input2}>
+                  <TextInput
+                    value={details.password}
+                    onChangeText={(value) =>
+                      handleDataChange("password", value)
+                    }
+                    placeholder="*****"
+                    secureTextEntry={isSecure}
+                    textContentType="password"
+                    placeholderTextColor={Colors.grayText}
+                    returnKeyLabel="done"
+                    returnKeyType="done"
+                    autoCorrect={false}
+                    style={{ flex: 1, ...Styles.inputFontPadding }}
+                  />
+                  <TouchableOpacity onPress={toggleVisiblity} hitSlop={20}>
+                    {isSecure ? (
+                      <EyeOff size={scale(15)} color={Colors.iconGrey} />
+                    ) : (
+                      <Eye size={scale(15)} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
                 </View>
-
-                {/* confirm password*/}
-                <View style={Styles.inputContainer}>
-                  <Text style={Styles.label}>Confirm Password</Text>
-                  <View style={Styles.input2}>
-                    <TextInput
-                      value={details.confirmPassword}
-                      onChangeText={(value) =>
-                        handleDataChange("confirmPassword", value)
-                      }
-                      placeholder="*****"
-                      secureTextEntry={isSecure}
-                      placeholderTextColor={Colors.grayText}
-                      textContentType="password"
-                      returnKeyLabel="done"
-                      returnKeyType="done"
-                      autoCorrect={false}
-                      style={{ flex: 1, ...Styles.inputFontPadding }}
-                    />
-                    <TouchableOpacity onPress={toggleVisiblity} hitSlop={20}>
-                      {isSecure ? (
-                        <EyeOff size={scale(15)} color={Colors.iconGrey} />
-                      ) : (
-                        <Eye size={scale(15)} color={Colors.primary} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                  {error.confirmPassword ? (
-                    <Text style={Styles.errorText}>
-                      {error.confirmPassword}
-                    </Text>
-                  ) : null}
-                </View>
+                {error.password ? (
+                  <Text style={Styles.errorText}>{error.password}</Text>
+                ) : null}
               </View>
 
-              <View style={[styles.footer]}>
-                <PrimaryButton
-                  title="Launch Account"
-                  onPress={handleContinue}
-                  props={{ disabled: loading }}
-                  loading={loading}
-                />
+              {/* confirm password*/}
+              <View style={Styles.inputContainer}>
+                <Text style={Styles.label}>Confirm Password</Text>
+                <View style={Styles.input2}>
+                  <TextInput
+                    value={details.confirmPassword}
+                    onChangeText={(value) =>
+                      handleDataChange("confirmPassword", value)
+                    }
+                    placeholder="*****"
+                    secureTextEntry={isSecure}
+                    placeholderTextColor={Colors.grayText}
+                    textContentType="password"
+                    returnKeyLabel="done"
+                    returnKeyType="done"
+                    autoCorrect={false}
+                    style={{ flex: 1, ...Styles.inputFontPadding }}
+                  />
+                  <TouchableOpacity onPress={toggleVisiblity} hitSlop={20}>
+                    {isSecure ? (
+                      <EyeOff size={scale(15)} color={Colors.iconGrey} />
+                    ) : (
+                      <Eye size={scale(15)} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+                {error.confirmPassword ? (
+                  <Text style={Styles.errorText}>{error.confirmPassword}</Text>
+                ) : null}
               </View>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
+
+            <View style={[styles.footer]}>
+              <PrimaryButton
+                title="Launch Account"
+                onPress={handleContinue}
+                props={{ disabled: loading }}
+                loading={loading}
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+      {/* </View> */}
     </SafeAreaView>
   );
 };
@@ -252,7 +251,7 @@ export default CreatePasswordScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "yellow",
   },
   headerBg: {
     height: "auto",

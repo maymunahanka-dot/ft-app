@@ -112,12 +112,12 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const docId = (updates.userEmail ?? "").trim();
       if (!docId) {
-        ShowToastMessage({
-          title: "Update failed",
-          message: "Missing user email (document id).",
-          preset: "error",
-          haptic: "error",
-        });
+        // ShowToastMessage({
+        //   title: "Update failed",
+        //   message: "Missing user email (document id).",
+        //   preset: "error",
+        //   haptic: "error",
+        // });
         return false;
       }
 

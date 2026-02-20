@@ -153,6 +153,13 @@ const BrandDetailsScreen = () => {
       if (success) {
         await refreshUser();
         router.replace("/(tabs)/More");
+      } else {
+        ShowToastMessage({
+          title: "Update failed",
+          message: "Missing user email (document id).",
+          preset: "error",
+          haptic: "error",
+        });
       }
     } catch (e) {
       console.error("error in handleUpdate", e);

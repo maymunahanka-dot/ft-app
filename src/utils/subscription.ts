@@ -89,6 +89,8 @@ export async function checkSubscriptionStatus(
       return { isSubscribed: false, subscriptionType: "free" };
     }
 
+    console.log("user data", userSnap.data());
+
     const userData = userSnap.data() as UserDocData;
 
     return evaluateSubscription(userData);

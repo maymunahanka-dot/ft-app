@@ -129,7 +129,7 @@ const StoreDetailsScreen = () => {
                 <MoveLeft size={scale(20)} color={"white"} />
               </HapticTab>
               <Text style={[Styles.sm15, { color: Colors.secondary }]}>
-                Step 2 Of 3
+                Step 3 Of 4
               </Text>
               <View style={[styles.col, {}]}>
                 <Text style={[Styles.bold32]}>
