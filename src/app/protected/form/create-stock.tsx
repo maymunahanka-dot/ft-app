@@ -27,7 +27,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const CreateStockItemScreen = () => {
   const saveItem = useInventoryStore((state) => state.saveInventoryItem);
@@ -145,8 +144,8 @@ const CreateStockItemScreen = () => {
 
   return (
     <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
+      <View
+        style={{ flex: 1, paddingTop: spacing(50), backgroundColor: "white" }}
       >
         <View style={styles.header}>
           <HapticTab
@@ -441,7 +440,7 @@ const CreateStockItemScreen = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
       {categoryModal && (
         <SelectFilterModal
           data={categoryList}

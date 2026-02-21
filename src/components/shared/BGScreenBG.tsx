@@ -101,7 +101,7 @@ const BGScreenBG: React.FC<Props> = ({
           flex: 1,
           backgroundColor: "white",
         }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
         keyboardVerticalOffset={
           Platform.OS === "ios" ? spacing(50) : spacing(0)
         }

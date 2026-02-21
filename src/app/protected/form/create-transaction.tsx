@@ -35,7 +35,6 @@ import {
   View,
 } from "react-native";
 import DatePicker from "react-native-date-picker";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const Types = [
   {
@@ -255,8 +254,8 @@ const CreateTransactionScreen = () => {
 
   return (
     <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
+      <View
+        style={{ flex: 1, paddingTop: spacing(50), backgroundColor: "white" }}
       >
         <View style={styles.header}>
           <HapticTab
@@ -516,7 +515,7 @@ const CreateTransactionScreen = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
       {categoryModal && (
         <SelectFilterModal
           data={CategoryList}

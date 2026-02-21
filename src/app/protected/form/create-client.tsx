@@ -23,7 +23,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const CreateClientScreen = () => {
   const saveClient = useClientStore((state) => state.saveClient);
@@ -125,8 +124,8 @@ const CreateClientScreen = () => {
 
   return (
     <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
+      <View
+        style={{ flex: 1, paddingTop: spacing(50), backgroundColor: "white" }}
       >
         <View style={styles.header}>
           <HapticTab
@@ -288,7 +287,7 @@ const CreateClientScreen = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </>
   );
 };

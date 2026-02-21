@@ -9,34 +9,47 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { AntDesign } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { Award, Crown, Star } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { HapticTab } from "../haptic-tab";
+import { formatFirestoreTimestampToISO } from "../invoice/util";
 
 type Props = {
   item: LoyaltyMember;
 };
 
 const CrmItem = ({ item }: Props) => {
-  const isGold = item.level === "Gold";
-  const isPlatinum = item.level === "Platinum";
+  const isGold = item.level.toLowerCase() === "gold";
+  const isPlatinum = item.level.toLowerCase() === "platinum";
   // const isSliver = item.level === "Silver";
 
   const iconColor = isGold
     ? "rgba(166, 95, 0, 1)"
     : isPlatinum
-    ? "rgba(130, 0, 219, 1)"
-    : "rgba(54, 65, 83, 1)";
+      ? "rgba(130, 0, 219, 1)"
+      : "rgba(54, 65, 83, 1)";
   const bgColor = isGold
     ? "rgba(254, 249, 194, 1)"
     : isPlatinum
-    ? "rgba(243, 232, 255, 1)"
-    : "rgba(229, 231, 235, 1)";
+      ? "rgba(243, 232, 255, 1)"
+      : "rgba(229, 231, 235, 1)";
 
   const Icon = isGold ? Award : isPlatinum ? Crown : Star;
 
+  // console.log("item", JSON.stringify(item, null, 2));
+
   return (
-    <View style={styles.container}>
+    <HapticTab
+      style={styles.container}
+      onPress={() =>
+        router.push({
+          pathname: "/protected/loyalty-member/[id]",
+          params: { id: item.id ?? "" },
+        })
+      }
+    >
       <View
         style={[
           styles.startRow,
@@ -121,7 +134,10 @@ const CrmItem = ({ item }: Props) => {
                   { lineHeight: 16, color: Colors.text.black },
                 ]}
               >
-                {FormatOrderDate(item.createdAt.toDate().toDateString(), true)}
+                {FormatOrderDate(
+                  item.createdAt?.toDate().toDateString() ?? "",
+                  true,
+                )}
               </Text>
             </View>
             <View style={{ gap: spacing(4) }}>
@@ -140,8 +156,10 @@ const CrmItem = ({ item }: Props) => {
                 ]}
               >
                 {FormatOrderDate(
-                  item.lastActivity.toDate().toDateString(),
-                  false
+                  new Date(
+                    formatFirestoreTimestampToISO(item.lastActivity),
+                  ).toDateString(),
+                  false,
                 )}
               </Text>
             </View>
@@ -154,7 +172,7 @@ const CrmItem = ({ item }: Props) => {
           {CapitalizeFirstName(item.level)}
         </Text>
       </View>
-    </View>
+    </HapticTab>
   );
 };
 

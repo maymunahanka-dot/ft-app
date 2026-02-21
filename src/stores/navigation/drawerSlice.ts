@@ -10,6 +10,7 @@ import {
   ShoppingCart,
   Store,
   UsersIcon,
+  UserStar,
 } from "lucide-react-native";
 import { create } from "zustand";
 
@@ -75,6 +76,12 @@ const drawerItems: DrawerItem[] = [
   },
   {
     id: "9",
+    name: "CRM",
+    route: "/(tabs)/CRM",
+    icon: UserStar,
+  },
+  {
+    id: "10",
     name: "More Settings",
     route: "/(tabs)/More",
     icon: Settings,

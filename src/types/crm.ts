@@ -3,19 +3,20 @@
 import { Timestamp } from "firebase/firestore";
 
 export interface LoyaltyMember {
-  id: string;
+  id?: string;
   name: string;
   email: string;
   level: "Bronze" | "Silver" | "Gold" | "Platinum";
   points: number;
   totalSpent: number;
-  lastActivity: Timestamp;
-  birthday?: Timestamp;
+  lastActivity?: Timestamp;
+  birthday?: Date;
   avatar?: string;
   tags?: string[];
   notes?: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  tailorId: string;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 export interface Reward {
@@ -62,22 +63,28 @@ export interface CommunicationTemplate {
 }
 
 export interface ClientFeedback {
-  id: string;
-  clientId: string;
+  id?: string;
   clientName: string;
   clientEmail: string;
   rating: number;
   comment: string;
-  productName?: string;
-  orderNumber?: string;
-  invoiceNumber?: string;
+  productName: string;
+  orderNumber: string;
+  invoiceNumber: string;
   status: "pending" | "approved" | "hidden";
   isPublic: boolean;
   reply?: string;
+  tailorId: string;
   repliedAt?: Timestamp;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
+
+export const getAverageRating = (feedbacks: ClientFeedback[]): number => {
+  if (!feedbacks.length) return 0;
+  const total = feedbacks.reduce((sum, f) => sum + f.rating, 0);
+  return Math.round((total / feedbacks.length) * 10) / 10; // 1 decimal place
+};
 
 export interface CRMStats {
   totalClients: number;

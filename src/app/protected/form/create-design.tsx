@@ -23,7 +23,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const CreateDesignScreen = () => {
   const { clientId } = useLocalSearchParams<{ clientId?: string }>();
@@ -122,8 +121,8 @@ const CreateDesignScreen = () => {
 
   return (
     <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
+      <View
+        style={{ flex: 1, paddingTop: spacing(50), backgroundColor: "white" }}
       >
         <View style={styles.header}>
           <HapticTab
@@ -358,7 +357,7 @@ const CreateDesignScreen = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
       {clientModal && (
         <SelectClientModal
           visible={clientModal}

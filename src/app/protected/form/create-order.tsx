@@ -34,7 +34,6 @@ import {
   View,
 } from "react-native";
 import DatePicker from "react-native-date-picker";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const orderStatusList = [
   {
@@ -311,8 +310,8 @@ const CreateOrderScreen = () => {
 
   return (
     <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
+      <View
+        style={{ flex: 1, paddingTop: spacing(50), backgroundColor: "white" }}
       >
         <View style={styles.header}>
           <HapticTab
@@ -802,7 +801,7 @@ const CreateOrderScreen = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
       {clientModal && (
         <SelectClientModal
           visible={clientModal}

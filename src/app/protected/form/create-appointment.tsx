@@ -33,7 +33,6 @@ import {
   View,
 } from "react-native";
 import DatePicker from "react-native-date-picker";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const PurposeList = [
   {
@@ -211,8 +210,8 @@ const CreateAppoinmentScreen = () => {
 
   return (
     <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
+      <View
+        style={{ flex: 1, paddingTop: spacing(50), backgroundColor: "white" }}
       >
         <View style={styles.header}>
           <HapticTab
@@ -475,7 +474,7 @@ const CreateAppoinmentScreen = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
       {clientModal && (
         <SelectClientModal
           visible={clientModal}
