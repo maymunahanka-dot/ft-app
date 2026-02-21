@@ -7,8 +7,10 @@ import { router } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
 import React, { useState } from "react";
 import {
+  Alert,
   ImageBackground,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -21,6 +23,21 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+
+export const redirectToExternalURL = async (url: string) => {
+  try {
+    const supported = await Linking.canOpenURL(url);
+
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      Alert.alert("Error", `Don't know how to open this URL: ${url}`);
+    }
+  } catch (error) {
+    console.error("An error occurred", error);
+    Alert.alert("Error", "Failed to open the link. Please try again later.");
+  }
+};
 
 const SignInScreen = () => {
   const paddingTop = useSafeAreaInsets().top;
@@ -246,11 +263,25 @@ const SignInScreen = () => {
                   ]}
                 >
                   By signing up, you agree to the{" "}
-                  <Text style={{ ...Styles.bold12, color: Colors.text.black }}>
+                  <Text
+                    style={{ ...Styles.bold12, color: Colors.text.black }}
+                    onPress={() =>
+                      redirectToExternalURL(
+                        "https://www.fashiontally.co/terms-of-service",
+                      )
+                    }
+                  >
                     Terms of Service
                   </Text>{" "}
                   and{" "}
-                  <Text style={{ ...Styles.bold12, color: Colors.text.black }}>
+                  <Text
+                    style={{ ...Styles.bold12, color: Colors.text.black }}
+                    onPress={() =>
+                      redirectToExternalURL(
+                        "https://www.fashiontally.co/privacy-policy",
+                      )
+                    }
+                  >
                     Data Processing Agreement
                   </Text>
                 </Text>

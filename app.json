@@ -59,15 +59,15 @@
     },
     "extra": {
       "eas": {
-        "projectId": "bfd12e68-9360-40b4-98a8-290304ea282b"
+        // "projectId": "bfd12e68-9360-40b4-98a8-290304ea282b"
       }
     },
-    "owner": "fashiontally",
+    // "owner": "fashiontally",
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/bfd12e68-9360-40b4-98a8-290304ea282b"
+      // "url": "https://u.expo.dev/bfd12e68-9360-40b4-98a8-290304ea282b"
     }
   }
 }
