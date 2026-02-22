@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.esys.fashiontally"
+      "bundleIdentifier": "com.fashion.fashiontally"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +20,7 @@
         "monochromeImage": "./assets/brand/fashionTally_logo.png"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.esys.fashiontally",
+      "package": "com.fashion.fashiontally",
       "permissions": [
         "android.permission.READ_CALENDAR",
         "android.permission.WRITE_CALENDAR"
@@ -59,13 +59,15 @@
     },
     "extra": {
       "eas": {
-        "projectId": "c5e00ccb-6493-4488-810e-3f01600140bb"
-      },
-      "router": {}
+        // "projectId": "bfd12e68-9360-40b4-98a8-290304ea282b"
+      }
     },
+    // "owner": "fashiontally",
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "updates": {}
+    "updates": {
+      // "url": "https://u.expo.dev/bfd12e68-9360-40b4-98a8-290304ea282b"
+    }
   }
 }
