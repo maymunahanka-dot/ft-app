@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Text, View } from "react-native";
 import { checkSubscriptionStatus } from "../../utils/subscription";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -12,17 +12,47 @@ export default function SubscriptionModal() {
 
   const [loading, setLoading] = useState(true);
 
-  const openPayment = async () => {
-    const browserResult = await WebBrowser.openBrowserAsync(
-      String(paymentUrl),
-      {
-        presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
-        showTitle: true,
-      },
-    );
+  const openInDeviceBrowser = async () => {
+    const targetUrl = String(paymentUrl || "");
+    if (!targetUrl) {
+      setLoading(false);
+      return;
+    }
 
-    if (browserResult.type === "dismiss" || browserResult.type === "cancel") {
-      await verify();
+    try {
+      const supported = await Linking.canOpenURL(targetUrl);
+      if (!supported) {
+        throw new Error("External browser is not available");
+      }
+
+      await Linking.openURL(targetUrl);
+      return;
+    } catch (err) {
+      console.error("Failed to open external browser:", err);
+      setLoading(false);
+      Alert.alert(
+        "Open in your browser",
+        `Please open this link in your browser:\n${targetUrl}`,
+      );
+    }
+  };
+
+  const openPayment = async () => {
+    try {
+      const browserResult = await WebBrowser.openBrowserAsync(
+        String(paymentUrl),
+        {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+          showTitle: true,
+        },
+      );
+
+      if (browserResult.type === "dismiss" || browserResult.type === "cancel") {
+        await verify();
+      }
+    } catch (err) {
+      console.error("Failed to open in-app browser:", err);
+      await openInDeviceBrowser();
     }
   };
 

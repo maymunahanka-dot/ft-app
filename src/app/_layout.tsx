@@ -108,8 +108,8 @@ export default function RootLayout() {
   }, [pathname]);
 
   const { loading: isLoading, isSubscribed } = useSubscriptionGuard({
-    email: getCurrentUserEmail(),
-    uuid: getCurrentUserId(),
+    email: user?.email ?? getCurrentUserEmail(),
+    uuid: user?.uid ?? getCurrentUserId(),
     paymentUrl: "https://www.fashiontally.co/auth/login",
   });
 
