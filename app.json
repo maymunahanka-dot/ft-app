@@ -23,6 +23,8 @@
       "package": "com.fashion.fashiontally",
       "permissions": [
         "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.READ_CALENDAR",
         "android.permission.WRITE_CALENDAR"
       ]
     },
@@ -66,6 +68,8 @@
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "updates": {}
+    "updates": {
+      "url": "https://u.expo.dev/c5e00ccb-6493-4488-810e-3f01600140bb"
+    }
   }
 }
