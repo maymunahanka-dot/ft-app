@@ -110,7 +110,7 @@ export default function RootLayout() {
   const { loading: isLoading, isSubscribed } = useSubscriptionGuard({
     email: user?.email ?? getCurrentUserEmail(),
     uuid: user?.uid ?? getCurrentUserId(),
-    paymentUrl: "https://www.fashiontally.co/auth/login",
+    paymentUrl: "https://www.fashiontally.com/auth/login",
   });
 
   // if (isLoading) {
