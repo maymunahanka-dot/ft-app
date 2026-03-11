@@ -82,7 +82,10 @@ const CreatePasswordScreen = () => {
 
   const handleSignUp = async () => {
     try {
-      await signUp(userData, details.password);
+      const success = await signUp(userData, details.password);
+      if (success) {
+        router.replace("/(tabs)/Dashboard");
+      }
     } catch (error) {
       console.error("error", error);
     }

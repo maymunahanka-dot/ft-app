@@ -110,8 +110,10 @@ const SignInScreen = () => {
   const handleContinue = async () => {
     if (!validateForm()) return;
     try {
-      await signIn(loginData.email, loginData.password);
-      router.replace("/(tabs)/Dashboard");
+      const result = await signIn(loginData.email, loginData.password);
+      if (result) {
+        router.replace("/(tabs)/Dashboard");
+      }
     } catch (error) {
       console.error("error in sign in", error);
     }

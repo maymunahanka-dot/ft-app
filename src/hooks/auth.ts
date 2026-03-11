@@ -1,6 +1,7 @@
 import {
   confirmPasswordReset,
   createUserWithEmailAndPassword,
+  deleteUser,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -44,7 +45,7 @@ export function useAuth() {
       }
 
       try {
-        const profile = await fetchUserProfile(user.uid);
+        const profile = await fetchUserProfile(user.uid, { showErrors: false });
         setUserData(profile);
         if (profile) await fetchBrandSettings();
       } catch (error) {
@@ -64,7 +65,9 @@ export function useAuth() {
 
   const fetchUserProfile = async (
     uid: string,
+    options?: { showErrors?: boolean },
   ): Promise<RegisterUserData | null> => {
+    const showErrors = options?.showErrors ?? true;
     try {
       if (uid) {
         const ref = doc(db, "fashiontally_users", uid);
@@ -90,23 +93,27 @@ export function useAuth() {
       }
 
       console.warn("[FETCH_USER_PROFILE] No profile found", { uid, email });
-      ShowToastMessage({
-        title: "User does not exist",
-        preset: "error",
-        haptic: "error",
-      });
+      if (showErrors) {
+        ShowToastMessage({
+          title: "User profile not found",
+          preset: "error",
+          haptic: "error",
+        });
+      }
       return null;
     } catch (error: any) {
       console.error("[FETCH_USER_PROFILE] Failed to fetch user profile", {
         uid,
         error,
       });
-      ShowToastMessage({
-        title: "Error fetching user",
-        message: FormatFirebaseError(error),
-        preset: "error",
-        haptic: "error",
-      });
+      if (showErrors) {
+        ShowToastMessage({
+          title: "Error fetching user",
+          message: FormatFirebaseError(error),
+          preset: "error",
+          haptic: "error",
+        });
+      }
       return null;
     }
   };
@@ -115,12 +122,23 @@ export function useAuth() {
     setLoading(true);
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
-      const profile = await fetchUserProfile(cred.user.uid);
-
-      await fetchBrandSettings();
+      const profile = await fetchUserProfile(cred.user.uid, { showErrors: true });
+      if (!profile) {
+        await auth.signOut();
+        setUser(null);
+        setUserData(null);
+        ShowToastMessage({
+          title: "Account setup incomplete",
+          message: "Please contact support to complete your account setup.",
+          preset: "error",
+          haptic: "error",
+        });
+        return null;
+      }
 
       setUser(cred.user);
       setUserData(profile);
+      await fetchBrandSettings();
 
       return cred;
     } catch (error: any) {
@@ -136,56 +154,80 @@ export function useAuth() {
     }
   };
 
-  const signUp = async (userDataInput: RegisterUserData, password: string) => {
+  const signUp = async (
+    userDataInput: RegisterUserData,
+    password: string,
+  ): Promise<boolean> => {
     setLoading(true);
+    let createdUser: User | null = null;
     try {
-      const data = userDataInput;
       const userEmail = userDataInput.email.trim();
+      const data: RegisterUserData = {
+        ...userDataInput,
+        email: userEmail,
+      };
 
-      if (userDataInput.logo) {
-        const imageUrl = await uploadImageToCloudinary(userDataInput.logo);
-        console.log("image url", imageUrl);
-        if (!imageUrl) return;
-        data.logo = imageUrl;
-      }
+      const userCredential = await createUserWithEmailAndPassword(auth, userEmail, password);
+      createdUser = userCredential.user;
 
-      if (userDataInput.businessName) {
-        await editBrandSettings({
-          id: "",
-          logoUrl: data.logo,
-          businessName: userDataInput.businessName,
-          businessAddress: "",
-          businessEmail: userDataInput.email,
-          businessWebsite: "",
-          businessPhone: userDataInput.phone,
-          footerText: "",
-          termsAndConditions: "",
-          updatedAt: "",
-          userEmail: getCurrentUserEmail(),
-        });
-      }
+      if (createdUser) {
+        if (userDataInput.logo) {
+          const imageUrl = await uploadImageToCloudinary(userDataInput.logo);
+          if (!imageUrl) {
+            throw new Error("Logo upload failed");
+          }
+          data.logo = imageUrl;
+        }
 
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        userEmail,
-        password,
-      );
-      const newUser = userCredential.user;
-
-      if (newUser) {
-        const userDocRef = doc(db, "fashiontally_users", newUser.uid);
+        const userDocRef = doc(db, "fashiontally_users", createdUser.uid);
         await setDoc(userDocRef, data);
+
+        if (userDataInput.businessName) {
+          const brandSaved = await editBrandSettings({
+            id: "",
+            logoUrl: data.logo,
+            businessName: userDataInput.businessName,
+            businessAddress: "",
+            businessEmail: userEmail,
+            businessWebsite: "",
+            businessPhone: userDataInput.phone,
+            footerText: "",
+            termsAndConditions: "",
+            updatedAt: "",
+            userEmail,
+          });
+
+          if (!brandSaved) {
+            console.warn("Brand settings failed to save during sign-up");
+          }
+        }
+
+        return true;
       } else {
         console.log("user registration failed");
-        // throw new Error('User registration failed, user not created.');
+        throw new Error("User registration failed");
       }
     } catch (error: any) {
       console.error("Error signing up:", error);
+      if (createdUser) {
+        try {
+          await deleteUser(createdUser);
+        } catch (deleteErr) {
+          console.error("Failed to rollback partially created user:", deleteErr);
+        }
+        try {
+          await auth.signOut();
+        } catch (signOutErr) {
+          console.error("Failed to sign out after sign-up error:", signOutErr);
+        }
+      }
       ShowToastMessage({
         title: "Error signing up",
+        message: FormatFirebaseError(error),
         preset: "error",
         haptic: "error",
       });
+      return false;
     } finally {
       setLoading(false);
     }
