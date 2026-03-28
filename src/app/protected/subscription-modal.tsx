@@ -1,3 +1,6 @@
+import PrimaryButton from "@/src/components/button/PrimaryButton";
+import { useAuth } from "@/src/hooks/auth";
+import { spacing } from "@/src/utils/random";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
@@ -9,6 +12,8 @@ WebBrowser.maybeCompleteAuthSession();
 export default function SubscriptionModal() {
   const router = useRouter();
   const { email, uuid, paymentUrl } = useLocalSearchParams();
+
+  const { signOut } = useAuth();
 
   const [loading, setLoading] = useState(true);
 
@@ -67,8 +72,14 @@ export default function SubscriptionModal() {
   };
 
   useEffect(() => {
+    // if (__DEV__) return;
     openPayment();
   }, []);
+
+  const handleLogout = async () => {
+    await signOut();
+    router.replace("/(auth)/sign-in");
+  };
 
   return (
     <View
@@ -80,6 +91,19 @@ export default function SubscriptionModal() {
     >
       {loading && <ActivityIndicator size="large" />}
       <Text>Checking subscription...</Text>
+      <View
+        style={{
+          width: "100%",
+          paddingHorizontal: spacing(20),
+          marginTop: spacing(20),
+        }}
+      >
+        <PrimaryButton
+          title="Logout"
+          onPress={handleLogout}
+          // loading={loading}
+        />
+      </View>
     </View>
   );
 }

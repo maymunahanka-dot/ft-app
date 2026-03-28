@@ -2,7 +2,7 @@ import PrimaryButton from "@/src/components/button/PrimaryButton";
 import SelectClientModal from "@/src/components/form/order/SelectClientModal";
 import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
-import { Colors } from "@/src/constants/theme";
+import { Colors, THEME_COLORS } from "@/src/constants/theme";
 import { useClientStore } from "@/src/stores/clientSlice";
 import { useInvoiceStore } from "@/src/stores/invoiceSlice";
 import { useUserStore } from "@/src/stores/userSlice";
@@ -70,8 +70,9 @@ const CreateInvoiceScreen = () => {
     clientEmail: "",
     currency: "NGN",
     items: [{ description: "", quantity: 0, price: 0 }],
-    notes: ["MalaabisbyMaymz Couture LTD", "Zenith Bank - 1015057791"],
+    notes: [],
     termsAndConditions: "NO REFUND AFTER PAYMENT",
+    themeColor: "#16988D",
   });
 
   const [error, setError] = useState({
@@ -535,6 +536,54 @@ const CreateInvoiceScreen = () => {
                     </View>
                   );
                 })}
+              </View>
+
+              <View style={Styles.inputContainer}>
+                <Text style={Styles.label}>Invoice Theme Color</Text>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: spacing(10),
+                    marginTop: spacing(8),
+                  }}
+                >
+                  {THEME_COLORS.map((color) => {
+                    const isSelected = invoiceData.themeColor === color.value;
+                    return (
+                      <Pressable
+                        key={color.value}
+                        onPress={() =>
+                          handleDetailsChange("themeColor", color.value)
+                        }
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          backgroundColor: color.value,
+                          borderWidth: isSelected ? 3 : 1.5,
+                          borderColor: isSelected
+                            ? "rgba(10,10,10,0.8)"
+                            : "rgba(0,0,0,0.15)",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        {isSelected && (
+                          <View
+                            style={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: 6,
+                              backgroundColor: "white",
+                              opacity: 0.9,
+                            }}
+                          />
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
 
               <View style={Styles.inputContainer}>

@@ -26,6 +26,8 @@ export type InvoiceData = {
   notes?: string[];
   termsAndConditions?: string;
   currency?: string; // "NGN"
+
+  themeColor?: string;
 };
 
 /** Invoice document stored in Firestore (fashiontally_invoices) */

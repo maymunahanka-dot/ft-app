@@ -50,6 +50,17 @@ export const Colors = {
   },
 };
 
+export const THEME_COLORS = [
+  { label: "Teal", value: "#16988D" }, // your PRIMARY_COLOR
+  { label: "Green", value: "#8ED06C" }, // your SECONDARY_COLOR
+  { label: "Navy", value: "#1E3A5F" },
+  { label: "Slate", value: "#475569" },
+  { label: "Rose", value: "#E11D48" },
+  { label: "Amber", value: "#D97706" },
+  { label: "Indigo", value: "#4338CA" },
+  { label: "Charcoal", value: "#374151" },
+];
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */
