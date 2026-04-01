@@ -2,6 +2,7 @@ import { Colors } from "@/src/constants/theme";
 import { scale, spacing } from "@/src/utils/random";
 import React, { useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { runOnJS } from "react-native-reanimated";
 import ColorPicker, {
   HueSlider,
   Panel1,
@@ -23,8 +24,13 @@ export const ColorWheelPicker: React.FC<Props> = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [tempColor, setTempColor] = useState(value);
 
-  const onColorChange = ({ hex }: { hex: string }) => {
+  const setColor = (hex: string) => {
     setTempColor(hex);
+  };
+
+  const onColorChange = ({ hex }: { hex: string }) => {
+    "worklet";
+    runOnJS(setColor)(hex);
   };
 
   const handleConfirm = () => {
@@ -35,7 +41,7 @@ export const ColorWheelPicker: React.FC<Props> = ({
   return (
     <>
       <View style={styles.container}>
-        <Text style={styles.label}>{label}</Text>
+        {/* <Text style={styles.label}>{label}</Text> */}
 
         <Pressable
           onPress={() => {
@@ -67,7 +73,7 @@ export const ColorWheelPicker: React.FC<Props> = ({
 
           <ColorPicker
             value={value}
-            onComplete={onColorChange}
+            onChange={onColorChange}
             style={{ gap: spacing(16) }}
           >
             {/* Main color square */}
