@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.fashion.fashiontally"
+      "bundleIdentifier": "com.fashion.fashiontally",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,8 +25,6 @@
       "edgeToEdgeEnabled": true,
       "package": "com.fashion.fashiontally",
       "permissions": [
-        "android.permission.READ_CALENDAR",
-        "android.permission.WRITE_CALENDAR",
         "android.permission.READ_CALENDAR",
         "android.permission.WRITE_CALENDAR"
       ]
