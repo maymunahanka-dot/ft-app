@@ -82,7 +82,7 @@ const RowBoxes = () => {
     <View style={{ gap: spacing(13) }}>
       <View style={styles.row}>
         <GlassCard style={styles.box}>
-          <Text style={[Styles.reg14, { color: "white", lineHeight: 16 }]}>
+          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>
             Net Profit
           </Text>
           <Text style={styles.valueBox}>
@@ -91,7 +91,7 @@ const RowBoxes = () => {
         </GlassCard>
 
         <GlassCard style={styles.box}>
-          <Text style={[Styles.reg14, { color: "white", lineHeight: 16 }]}>
+          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>
             Total Income
           </Text>
           <Text style={styles.valueBox}>
@@ -101,7 +101,7 @@ const RowBoxes = () => {
       </View>
       <View style={styles.row}>
         <GlassCard style={styles.box}>
-          <Text style={[Styles.reg14, { color: "white", lineHeight: 16 }]}>
+          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>
             Total Expenses
           </Text>
           <Text style={styles.valueBox}>
@@ -110,7 +110,7 @@ const RowBoxes = () => {
         </GlassCard>
 
         <GlassCard style={styles.box}>
-          <Text style={[Styles.reg14, { color: "white", lineHeight: 16 }]}>
+          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>
             Monthly Profit
           </Text>
           <Text style={styles.valueBox}>

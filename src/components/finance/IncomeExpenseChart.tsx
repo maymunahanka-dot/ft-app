@@ -28,11 +28,21 @@ interface IncomeExpenseChartProps {
 
 type TimeFilter = "alltime" | `month-${number}`;
 
+const formatYAxisLabel = (value: number): string => {
+  if (value === 0) return "0";
+  if (value >= 1_000_000_000)
+    return `${(value / 1_000_000_000).toFixed(value % 1_000_000_000 === 0 ? 0 : 1)}b`;
+  if (value >= 1_000_000)
+    return `${(value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1)}m`;
+  return `${Math.round(value / 1000)}k`;
+};
+
 const generateMonthOptions = (): { label: string; value: TimeFilter }[] => {
   const months: { label: string; value: TimeFilter }[] = [];
   const currentDate = new Date();
+  const currentMonth = currentDate.getMonth();
 
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i <= currentMonth; i++) {
     const date = new Date(currentDate.getFullYear(), i, 1);
     months.push({
       label: date.toLocaleDateString("en-US", {
@@ -58,7 +68,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
   const [selectedFilter, setSelectedFilter] = useState<TimeFilter>("alltime");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
-  const chartWidth = screenWidth - 32; // padding
+  const chartWidth = screenWidth - 32;
   const chartHeight = 280;
   const paddingLeft = 35;
   const paddingRight = 35;
@@ -79,20 +89,16 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
       [];
 
     const toDate = (v: string | Date) => (v instanceof Date ? v : new Date(v));
-
     const getDateKey = (v: string | Date) =>
       toDate(v).toISOString().split("T")[0];
 
-    // Check if it's a month filter (format: "month-0" to "month-11")
     if (selectedFilter.startsWith("month-")) {
       const monthIndex = parseInt(selectedFilter.split("-")[1]);
       const year = now.getFullYear();
 
-      // Get first and last day of the selected month
       startDate = new Date(year, monthIndex, 1);
-      const endDate = new Date(year, monthIndex + 1, 0); // Last day of month
+      const endDate = new Date(year, monthIndex + 1, 0);
 
-      // Initialize daily data for the entire month
       const dailyData: Record<string, { income: number; expense: number }> = {};
       for (
         let d = new Date(startDate);
@@ -102,7 +108,6 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         dailyData[getDateKey(new Date(d))] = { income: 0, expense: 0 };
       }
 
-      // Aggregate income and expense data
       incomes.forEach((inc) => {
         const incDate = new Date(inc.date);
         if (
@@ -125,7 +130,6 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         }
       });
 
-      // Group by weeks (7-day chunks)
       const sortedDates = Object.keys(dailyData).sort();
       const weekSize = 7;
 
@@ -139,10 +143,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
           (sum, d) => sum + dailyData[d].expense,
           0,
         );
-
-        // Label format: "Week 1", "Week 2", etc.
         const weekNumber = Math.floor(i / weekSize) + 1;
-        const startOfWeek = new Date(weekDates[0]);
 
         aggregatedData.push({
           label: `W${weekNumber}`,
@@ -151,21 +152,15 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         });
       }
     } else if (selectedFilter === "alltime") {
-      // All time → max 10 points, distributed evenly
       const MAX_POINTS = 10;
 
-      // Combine all dates from incomes and expenses
       const allDates = [
         ...incomes.map((inc) => new Date(inc.date)),
         ...expenses.map((exp) => new Date(exp.date)),
       ];
 
-      if (allDates.length === 0) {
-        // No data, return empty
-        return [];
-      }
+      if (allDates.length === 0) return [];
 
-      // Find earliest and latest dates
       const earliestDate = new Date(
         Math.min(...allDates.map((d) => d.getTime())),
       );
@@ -173,13 +168,11 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         Math.max(...allDates.map((d) => d.getTime())),
       );
 
-      // Calculate total days span
       const totalDays = Math.ceil(
         (latestDate.getTime() - earliestDate.getTime()) / (1000 * 60 * 60 * 24),
       );
 
       if (totalDays === 0) {
-        // Single day data
         const dailyData: Record<string, { income: number; expense: number }> =
           {};
         const key = getDateKey(earliestDate);
@@ -204,10 +197,8 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
           expense: dailyData[key].expense,
         });
       } else {
-        // Divide into chunks
         const chunkSizeDays = Math.ceil(totalDays / MAX_POINTS);
 
-        // Initialize daily data
         const dailyData: Record<string, { income: number; expense: number }> =
           {};
         for (
@@ -242,24 +233,14 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
           );
 
           const chunkStartDate = new Date(chunkDates[0]);
-          const chunkEndDate = new Date(chunkDates[chunkDates.length - 1]);
 
-          // Smart labeling based on date range
           let label: string;
           if (totalDays > 365) {
-            // More than a year → show month/year
             label = chunkStartDate.toLocaleDateString("en-US", {
               month: "short",
               year: "2-digit",
             });
-          } else if (totalDays > 60) {
-            // More than 2 months → show month/day
-            label = chunkStartDate.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-            });
           } else {
-            // Less than 2 months → show month/day
             label = chunkStartDate.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -307,16 +288,9 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
 
     for (let i = 0; i <= segments; i++) {
       const value = (yAxisMax / segments) * i;
-
-      const label = value === 0 ? "0" : `${Math.round(value / 1000)}k`;
-
+      const label = formatYAxisLabel(value);
       const yPos = plotHeight + paddingTop - i * (plotHeight / segments);
-
-      yAxisLabels.push({
-        value,
-        label,
-        y: yPos,
-      });
+      yAxisLabels.push({ value, label, y: yPos });
     }
 
     const getY = (value: number) => {
@@ -425,7 +399,6 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
       )}
 
       <View style={styles.chartContainer}>
-        {/* Y-axis labels */}
         <View style={styles.yAxisLabels}>
           {[...yAxisLabels].reverse().map((label, index) => (
             <Text key={index} style={styles.yAxisLabel}>
@@ -434,24 +407,19 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
           ))}
         </View>
 
-        {/* Chart */}
         <View style={{ flex: 1 }}>
           <Svg width={chartWidth} height={chartHeight}>
             <Defs>
-              {/* Income gradient */}
               <LinearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="70%" stopColor="white" />
                 <Stop offset="0%" stopColor="rgba(86, 202, 0, 0.1)" />
               </LinearGradient>
-
-              {/* Expense gradient */}
               <LinearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="70%" stopColor="white" />
                 <Stop offset="0%" stopColor="rgba(22, 177, 255, 0.7)" />
               </LinearGradient>
             </Defs>
 
-            {/* Horizontal grid lines */}
             {yAxisLabels.map((label, index) => (
               <Line
                 key={index}
@@ -464,13 +432,9 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
               />
             ))}
 
-            {/* Income area */}
             <Path d={incomeArea} fill="url(#incomeGradient)" />
-
-            {/* Expense area */}
             <Path d={expenseArea} fill="url(#expenseGradient)" />
 
-            {/* Income line */}
             <Path
               d={incomePath}
               stroke="rgba(0, 166, 62, 0.7)"
@@ -479,8 +443,6 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-
-            {/* Expense line */}
             <Path
               d={expensePath}
               stroke="rgba(231, 0, 11, 0.7)"
@@ -490,7 +452,6 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
               strokeLinejoin="round"
             />
 
-            {/* Income dots */}
             {incomePoints.map((point, index) => (
               <Circle
                 key={`income-${index}`}
@@ -502,8 +463,6 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
                 strokeWidth="3"
               />
             ))}
-
-            {/* Expense dots */}
             {expensePoints.map((point, index) => (
               <Circle
                 key={`expense-${index}`}
@@ -516,15 +475,6 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
               />
             ))}
           </Svg>
-
-          {/* X-axis labels */}
-          {/* <View style={styles.xAxisLabels}>
-            {chartData.map((data, index) => (
-              <Text key={index} style={styles.xAxisLabel}>
-                {data.label}
-              </Text>
-            ))}
-          </View> */}
         </View>
       </View>
 
@@ -569,36 +519,20 @@ const styles = StyleSheet.create({
     fontFamily: "regular",
     color: "#666",
   },
-  dropdownWrapper: {
-    // position: "absolute",
-    // top: 60,
-    // right: 16,
-    // backgroundColor: "#fff",
-    // borderRadius: 8,
-    // borderWidth: 1,
-    // borderColor: "#e0e0e0",
-    // maxHeight: 250,
-    // width: 200,
-    // zIndex: 1000,
-    // elevation: 5,
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.25,
-    // shadowRadius: 3.84,
-  },
+  dropdownWrapper: {},
   dropdown: {
     position: "absolute",
-    top: 60, // Adjust based on your header height
+    top: 60,
     right: 16,
     backgroundColor: "#fff",
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#e0e0e0",
-    maxHeight: 250, // Maximum height before scrolling
-    width: 200, // Adjust width as needed
+    maxHeight: 250,
+    width: 200,
     zIndex: 1000,
-    elevation: 5, // Shadow for Android
-    shadowColor: "#000", // Shadow for iOS
+    elevation: 5,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -622,7 +556,6 @@ const styles = StyleSheet.create({
     marginVertical: spacing(8),
   },
   yAxisLabels: {
-    // width: 40,
     justifyContent: "space-between",
     paddingTop: spacing(20),
     paddingBottom: spacing(55),
@@ -645,7 +578,6 @@ const styles = StyleSheet.create({
   },
   legend: {
     flexDirection: "row",
-    // justifyContent: "center",
     alignItems: "center",
     gap: spacing(24),
     paddingHorizontal: spacing(20),

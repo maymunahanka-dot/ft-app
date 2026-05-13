@@ -133,6 +133,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
               { paddingBottom: bottom },
             ]}
             renderScrollComponent={scrollComponent}
+            showsVerticalScrollIndicator={false}
           />
         </PressablesGroup>
       </View>

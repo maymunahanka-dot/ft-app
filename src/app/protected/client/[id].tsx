@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
   reg18: {
     fontFamily: "regular",
     fontSize: scaleFontSize(18),
-    lineHeight: 16,
+    lineHeight: 22,
     color: Colors.text.black,
     textAlign: "center",
   },

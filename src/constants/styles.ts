@@ -5,7 +5,7 @@ import { Colors } from "./theme";
 export const Styles = StyleSheet.create({
   sm15: {
     fontSize: scaleFontSize(15),
-    lineHeight: 16,
+    lineHeight: 19,
     fontFamily: "semibold",
   },
   bold32: {

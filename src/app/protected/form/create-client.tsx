@@ -263,6 +263,8 @@ const CreateClientScreen = () => {
                   placeholderTextColor={Colors.grayText}
                   returnKeyLabel="next"
                   returnKeyType="next"
+                  multiline
+                  numberOfLines={20}
                   style={[
                     Styles.input,
                     {

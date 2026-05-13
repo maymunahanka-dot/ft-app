@@ -42,12 +42,12 @@ const AppoinmentListItem: React.FC<Props> = ({ item }) => {
     >
       <View style={[styles.col, { gap: spacing(4) }]}>
         <Text
-          style={[Styles.reg12, { color: Colors.text.black, lineHeight: 12 }]}
+          style={[Styles.reg12, { color: Colors.text.black, lineHeight: 16 }]}
         >
           {getTimeFromISO(item.date)}
         </Text>
         <Text
-          style={[Styles.reg12, { color: Colors.text.black, lineHeight: 12 }]}
+          style={[Styles.reg12, { color: Colors.text.black, lineHeight: 16 }]}
         >
           {GetAmPm(item.date)}
         </Text>

@@ -79,7 +79,7 @@ const SelectClientModal = ({ visible, onClose, handleOption }: Props) => {
               <Text
                 style={[
                   Styles.med14,
-                  { color: Colors.text.black, lineHeight: 16 },
+                  { color: Colors.text.black, lineHeight: 20 },
                 ]}
               >
                 {item.name}

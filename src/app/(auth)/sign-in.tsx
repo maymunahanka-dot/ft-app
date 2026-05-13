@@ -269,7 +269,7 @@ const SignInScreen = () => {
                     style={{ ...Styles.bold12, color: Colors.text.black }}
                     onPress={() =>
                       redirectToExternalURL(
-                        "https://www.fashiontally.co/terms-of-service",
+                        "https://www.fashiontally.com/terms-of-service",
                       )
                     }
                   >
@@ -280,7 +280,7 @@ const SignInScreen = () => {
                     style={{ ...Styles.bold12, color: Colors.text.black }}
                     onPress={() =>
                       redirectToExternalURL(
-                        "https://www.fashiontally.co/privacy-policy",
+                        "https://www.fashiontally.com/privacy-policy",
                       )
                     }
                   >

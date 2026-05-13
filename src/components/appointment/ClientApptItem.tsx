@@ -165,7 +165,9 @@ const ClientApptItem = ({ item }: Props) => {
           <Text style={[Styles.med14, { color: Colors.text.black }]}>
             To-do:
           </Text>
-          <Text style={[Styles.reg14, { color: Colors.text.black }]}>
+          <Text
+            style={[Styles.reg14, { color: Colors.text.black, flexShrink: 1 }]}
+          >
             {item.notes ? item.notes : "N/A"}
           </Text>
         </View>

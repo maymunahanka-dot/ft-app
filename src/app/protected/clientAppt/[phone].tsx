@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   reg20: {
     fontFamily: "medium",
     fontSize: scaleFontSize(20),
-    lineHeight: 20,
+    lineHeight: 24,
   },
   schBtn: {
     flexDirection: "row",

@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   value: {
     fontFamily: "bold",
     fontSize: scaleFontSize(16),
-    lineHeight: 16,
+    lineHeight: 20,
     color: "black",
   },
   title: {

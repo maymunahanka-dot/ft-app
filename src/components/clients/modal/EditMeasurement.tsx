@@ -141,7 +141,7 @@ const AddMeasurements: React.FC<Props> = ({ visible, onClose, client }) => {
             <Lightbulb size={scale(15)} color={"#2B7FFF"} />
             <View style={{ gap: spacing(5), flexShrink: 1 }}>
               <Text
-                style={[styles.reg12, { color: "#1C398E", lineHeight: 12 }]}
+                style={[styles.reg12, { color: "#1C398E", lineHeight: 16 }]}
               >
                 Tip
               </Text>

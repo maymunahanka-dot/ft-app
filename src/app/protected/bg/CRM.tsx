@@ -7,7 +7,7 @@ import { Colors } from "@/src/constants/theme";
 import { useCrmStore } from "@/src/stores/crmSlice";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { Gift, Mail, Search, UsersIcon } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -27,20 +27,20 @@ const RowBoxes = () => {
   const members = useCrmStore((state) => state.loyaltyMembers);
   const campaigns = useCrmStore((state) => state.campaigns);
 
-  const fetchCampaigns = useCrmStore((state) => state.getCampaigns);
-  const fetchMembers = useCrmStore((state) => state.getLoyaltyMembers);
+  // const fetchCampaigns = useCrmStore((state) => state.getCampaigns);
+  // const fetchMembers = useCrmStore((state) => state.getLoyaltyMembers);
 
-  const fetchData = useCallback(async () => {
-    try {
-      await Promise.all([fetchCampaigns(), fetchMembers()]);
-    } catch (error) {
-      console.error("error fetching data", error);
-    }
-  }, []);
+  // const fetchData = useCallback(async () => {
+  //   try {
+  //     await Promise.all([fetchCampaigns(), fetchMembers()]);
+  //   } catch (error) {
+  //     console.error("error fetching data", error);
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   fetchData();
+  // }, []);
 
   return (
     <View style={styles.row}>
@@ -100,7 +100,7 @@ const CRMScreen = () => {
         (m: any) =>
           q === "" ||
           (m.name && m.name.toLowerCase().includes(q)) ||
-          (m.email && m.email.toLowerCase().includes(q))
+          (m.email && m.email.toLowerCase().includes(q)),
       );
     }
 
@@ -109,7 +109,7 @@ const CRMScreen = () => {
         (c: any) =>
           q === "" ||
           (c.name && c.name.toLowerCase().includes(q)) ||
-          (c.subject && c.subject.toLowerCase().includes(q))
+          (c.subject && c.subject.toLowerCase().includes(q)),
       );
     }
 

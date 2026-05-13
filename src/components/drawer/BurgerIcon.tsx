@@ -48,6 +48,6 @@ const styles = StyleSheet.create({
     fontFamily: "regular",
     fontSize: scaleFontSize(16),
     color: "black",
-    lineHeight: 16,
+    lineHeight: 20,
   },
 });

@@ -24,7 +24,7 @@ export const MoreSection = [
     title: "Team",
     details: "Manage team members",
     onPress: () => {
-      Linking.openURL("https://www.fashiontally.co/settings?tab=admins");
+      Linking.openURL("https://www.fashiontally.com/settings?tab=admins");
     },
   },
   {
@@ -40,7 +40,7 @@ export const MoreSection = [
     title: "About Us",
     details: "Learn more about Fashion tally",
     onPress: () => {
-      Linking.openURL("https://www.fashiontally.co/about");
+      Linking.openURL("https://www.fashiontally.com/about");
     },
   },
 ];
