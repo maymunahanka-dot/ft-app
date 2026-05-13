@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "semibold",
     fontSize: scaleFontSize(24),
-    lineHeight: 22,
+    lineHeight: 28,
     color: "white",
   },
   startRow: {
