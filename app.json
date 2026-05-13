@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.fashion.fashiontally"
     },
     "android": {
@@ -51,7 +51,7 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "The app needs to access your calendar."
+          "calendarPermission": "FashionTally syncs your client appointments to Calendar so they appear with your other events and can use your system reminders."
         }
       ]
     ],
