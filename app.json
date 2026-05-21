@@ -47,6 +47,12 @@
           }
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FashionTally uses your photo library to let you set a profile picture or upload business branding images."
+        }
+      ],
       "expo-secure-store",
       "expo-web-browser",
       [

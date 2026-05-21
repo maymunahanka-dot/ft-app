@@ -43,6 +43,7 @@ export const useSubscriptionGuard = ({
 
   const redirectToSubscriptionModal = useCallback(
     (resolvedEmail?: string, resolvedUuid?: string) => {
+      if (__DEV__) return;
       router.replace({
         pathname: "/protected/subscription-modal",
         params: {
@@ -65,7 +66,10 @@ export const useSubscriptionGuard = ({
           return;
         }
 
-        const result = await checkSubscriptionStatus(resolvedEmail, resolvedUuid);
+        const result = await checkSubscriptionStatus(
+          resolvedEmail,
+          resolvedUuid,
+        );
         console.log("Subscription status:", result);
 
         if (result.isSubscribed) {

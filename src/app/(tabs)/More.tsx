@@ -3,6 +3,7 @@ import BGScreenBG from "@/src/components/shared/BGScreenBG";
 import { MoreSection } from "@/src/constants/config";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useAuth } from "@/src/hooks/auth";
 import { useUserStore } from "@/src/stores/userSlice";
 import {
   CapitalizeFirstName,
@@ -12,9 +13,22 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { LinearGradient } from "expo-linear-gradient";
-import { ChevronRight, Mail, MapPin, Smartphone } from "lucide-react-native";
+import {
+  ChevronRight,
+  Mail,
+  MapPin,
+  Smartphone,
+  Trash2,
+} from "lucide-react-native";
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const RowBoxes = () => {
@@ -71,6 +85,39 @@ const RowBoxes = () => {
 };
 
 const MoreScreen = () => {
+  const { signOut } = useAuth();
+  const deleteAccount = useUserStore((state) => state.deleteAccount);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Final Confirmation",
+              "This will permanently delete your account and all associated data including your business profile and brand settings.",
+              [
+                { text: "Go Back", style: "cancel" },
+                {
+                  text: "Yes, Delete My Account",
+                  style: "destructive",
+                  onPress: async () => {
+                    await deleteAccount(signOut);
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "white" }}
@@ -125,6 +172,30 @@ const MoreScreen = () => {
                 </Pressable>
               );
             })}
+
+            {/* Delete Account Button */}
+            <Pressable
+              style={styles.deleteSection}
+              onPress={handleDeleteAccount}
+            >
+              <View style={styles.startRow}>
+                <View style={styles.deleteIconWrapper}>
+                  <Trash2 size={scale(20)} color={"white"} />
+                </View>
+
+                <View style={styles.col}>
+                  <Text
+                    style={[Styles.reg14, { color: "rgba(220, 38, 38, 1)" }]}
+                  >
+                    Delete Account
+                  </Text>
+                  <Text style={[Styles.reg12, { color: Colors.text.gray }]}>
+                    Permanently remove your account and data
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight size={scale(16)} color={"rgba(220, 38, 38, 0.4)"} />
+            </Pressable>
           </View>
         </ScrollView>
       </BGScreenBG>
@@ -186,11 +257,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 16,
   },
+  deleteSection: {
+    backgroundColor: "rgba(254, 242, 242, 1)",
+    gap: spacing(16),
+    padding: spacing(16),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderRadius: 16,
+    marginTop: spacing(8),
+  },
   iconWrapper: {
     width: 48,
     aspectRatio: 1,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 14,
+  },
+  deleteIconWrapper: {
+    width: 48,
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 14,
+    backgroundColor: "rgba(220, 38, 38, 1)",
   },
 });

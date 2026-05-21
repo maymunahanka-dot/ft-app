@@ -1,5 +1,7 @@
+import { deleteUser } from "firebase/auth";
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -8,7 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
-import { db } from "../context/firebase";
+import { auth, db } from "../context/firebase";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
 import { BrandSettings, RegisterUserData } from "../types/auth";
 import { sanitizeBrandSettings, ShowToastMessage } from "../utils/random";
@@ -20,6 +22,7 @@ interface UserState {
   updateUserDetails: (user: RegisterUserData) => Promise<boolean>;
   fetchBrandSettings: () => Promise<void>;
   editBrandSettings(updates: Partial<BrandSettings>): Promise<boolean>;
+  deleteAccount: (signOut: () => Promise<void>) => Promise<boolean>;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -144,6 +147,57 @@ export const useUserStore = create<UserState>((set, get) => ({
       console.error("Error updating brand settings:", error);
       ShowToastMessage({
         title: "Update failed",
+        message: error.message,
+        preset: "error",
+        haptic: "error",
+      });
+      return false;
+    } finally {
+      set({ loading: false });
+    }
+  },
+  async deleteAccount(signOut) {
+    set({ loading: true });
+    try {
+      const uid = getCurrentUserId();
+      const email = getCurrentUserEmail();
+
+      const userRef = doc(db, "fashiontally_users", uid);
+      await deleteDoc(userRef);
+
+      if (email) {
+        const settingsRef = doc(db, "fashiontally_brand_settings", email);
+        await deleteDoc(settingsRef);
+      }
+
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        try {
+          await deleteUser(currentUser);
+        } catch (error: any) {
+          if (error.code === "auth/requires-recent-login") {
+            // Can't delete auth user, so just sign them out
+            await signOut();
+            ShowToastMessage({
+              title: "Please log in again",
+              message:
+                "For security, sign back in then try deleting your account.",
+              preset: "error",
+              haptic: "error",
+            });
+            return false;
+          }
+          throw error;
+        }
+      }
+
+      await signOut();
+      set({ user: null, brandSetting: null });
+      return true;
+    } catch (error: any) {
+      console.error("Error deleting account:", error);
+      ShowToastMessage({
+        title: "Delete failed",
         message: error.message,
         preset: "error",
         haptic: "error",
