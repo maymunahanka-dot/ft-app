@@ -24,6 +24,7 @@ type Props = {
 const SelectClientModal = ({ visible, onClose, handleOption }: Props) => {
   const clients = useClientStore((state) => state.clients);
   const isLoading = useClientStore((state) => state.loading);
+  const fetchClients = useClientStore((state) => state.getClientsByTailor);
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
@@ -32,6 +33,10 @@ const SelectClientModal = ({ visible, onClose, handleOption }: Props) => {
     bottomSheetRef.current?.dismiss();
     setTimeout(() => onClose(), 2000);
   }, [onClose]);
+
+  useEffect(() => {
+    if (visible) fetchClients("");
+  }, [visible, fetchClients]);
 
   useEffect(() => {
     if (visible && bottomSheetRef.current) {
@@ -61,8 +66,10 @@ const SelectClientModal = ({ visible, onClose, handleOption }: Props) => {
       )}
     >
       <BottomSheetFlatList
+        key={`${clients.length}-${isLoading ? "loading" : "ready"}`}
         contentContainerStyle={styles.modalContent}
         data={clients}
+        extraData={clients.length}
         keyExtractor={(item: Client, index: number) => `${index}-${item.id}`}
         renderItem={({ item }: { item: Client }) => (
           <Pressable

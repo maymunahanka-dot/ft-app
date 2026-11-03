@@ -1,19 +1,11 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
 import { create } from "zustand";
-import { db } from "../context/firebase";
+import { apiFetch } from "../lib/apiClient";
 import { InventoryItem } from "../types/inventory";
+import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
+import { resolveImageUrl } from "../utils/uploadImage";
+
+const CACHE_KEY = "store_inventory";
 
 interface InventoryState {
   stocks: InventoryItem[];
@@ -21,151 +13,132 @@ interface InventoryState {
   saveInventoryItem(item: InventoryItem): Promise<void>;
   getInventoryItemById(id: string): Promise<InventoryItem | null>;
   getInventoryByTailor(tailorId: string): Promise<void>;
-  editInventoryItem(
-    itemId: string,
-    updates: Partial<InventoryItem>,
-  ): Promise<void>;
+  editInventoryItem(itemId: string, updates: Partial<InventoryItem>): Promise<void>;
   deleteInventoryItem(itemId: string): Promise<void>;
 }
 
 export const useInventoryStore = create<InventoryState>((set, get) => ({
   stocks: [],
   loading: false,
+
+  // ─── CREATE ────────────────────────────────────────────────────────────────
   async saveInventoryItem(item) {
     set({ loading: true });
     try {
-      const itemRef = doc(db, "fashiontally_inventory", item.id);
-      await setDoc(itemRef, {
-        ...item,
-        updatedAt: new Date().toISOString(),
-      });
-
+      const imageUrl = await resolveImageUrl(item.imageUrl, "inventory");
+      const res = await apiFetch<{ success: boolean; data: InventoryItem }>(
+        "/inventory/create",
+        {
+          method: "POST",
+          body: JSON.stringify({ ...item, imageUrl: imageUrl || "" }),
+        },
+      );
+      const saved = res.data;
       set((state) => ({
-        stocks: state.stocks.some((i) => i.id === item.id)
-          ? state.stocks.map((i) => (i.id === item.id ? item : i))
-          : [item, ...state.stocks],
+        stocks: state.stocks.some((s) => s.id === saved.id)
+          ? state.stocks.map((s) => (s.id === saved.id ? saved : s))
+          : [saved, ...state.stocks],
       }));
     } catch (error: any) {
       console.error("Error saving inventory item:", error);
-      // throw new Error("Failed to save inventory item");
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to save item", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── GET BY ID ─────────────────────────────────────────────────────────────
   async getInventoryItemById(id) {
     set({ loading: true });
     try {
-      const itemRef = doc(db, "fashiontally_inventory", id);
-      const itemDoc = await getDoc(itemRef);
+      // Return from in-memory cache first
+      const cached = get().stocks.find((s) => s.id === id);
+      if (cached) return cached;
 
-      if (itemDoc.exists()) {
-        return {
-          id: itemDoc.id,
-          ...itemDoc.data(),
-        } as InventoryItem;
-      }
-      return null;
+      const res = await apiFetch<{ success: boolean; data: InventoryItem }>(
+        `/inventory/get/${encodeURIComponent(id)}`,
+      );
+      return res.data ?? null;
     } catch (error: any) {
       console.error("Error getting inventory item:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to fetch item", preset: "error", haptic: "error" });
       return null;
     } finally {
       set({ loading: false });
     }
   },
 
-  async getInventoryByTailor(tailorId) {
-    set({ loading: true });
+  // ─── LIST ──────────────────────────────────────────────────────────────────
+  async getInventoryByTailor(_tailorId) {
+    // 1. Show cached data immediately if available
+    const cached = await readCache<InventoryItem[]>(CACHE_KEY);
+    if (cached) set({ stocks: cached });
+
+    // 2. Fetch fresh data (show spinner only when cache is empty)
+    if (!cached) set({ loading: true });
     try {
-      const inventoryRef = collection(db, "fashiontally_inventory");
-      const q = query(
-        inventoryRef,
-        where("userEmail", "==", tailorId),
-        orderBy("name", "asc"),
+      const res = await apiFetch<{ success: boolean; data: InventoryItem[] }>(
+        "/inventory/list",
       );
-      const querySnapshot = await getDocs(q);
-
-      const stocks = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as InventoryItem[];
-
-      set({ stocks });
+      // Sort by name ascending to match previous Firestore orderBy("name","asc")
+      const sorted = (res.data ?? []).slice().sort((a, b) =>
+        (a.name ?? "").localeCompare(b.name ?? ""),
+      );
+      set({ stocks: sorted });
+      await writeCache(CACHE_KEY, sorted);
     } catch (error: any) {
       console.error("Error getting inventory:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      if (!cached) {
+        ShowToastMessage({ title: error.message ?? "Failed to fetch inventory", preset: "error", haptic: "error" });
+      }
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── EDIT ──────────────────────────────────────────────────────────────────
   async editInventoryItem(itemId, updates) {
     set({ loading: true });
     try {
-      const itemRef = doc(db, "fashiontally_inventory", itemId);
-
-      const updateData = {
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await updateDoc(itemRef, updateData);
-
+      const imageUrl = updates.imageUrl === undefined
+        ? undefined
+        : await resolveImageUrl(updates.imageUrl, "inventory");
+      const res = await apiFetch<{ success: boolean; data: InventoryItem }>(
+        `/inventory/edit/${encodeURIComponent(itemId)}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            ...updates,
+            ...(imageUrl !== undefined ? { imageUrl } : {}),
+          }),
+        },
+      );
+      const updated = res.data;
       set((state) => ({
-        stocks: state.stocks.map((item) =>
-          item.id === itemId ? { ...item, ...updateData } : item,
-        ),
+        stocks: state.stocks.map((s) => (s.id === updated.id ? updated : s)),
       }));
-
-      ShowToastMessage({
-        title: "Inventory updated successfully",
-        preset: "done",
-        haptic: "success",
-      });
+      ShowToastMessage({ title: "Inventory updated successfully", preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error updating inventory item:", error);
-      ShowToastMessage({
-        title: "Update failed",
-        message: error.message,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Update failed", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── DELETE ────────────────────────────────────────────────────────────────
   async deleteInventoryItem(itemId) {
     set({ loading: true });
     try {
-      const itemRef = doc(db, "fashiontally_inventory", itemId);
-      await deleteDoc(itemRef);
-      console.log(`Inventory item ${itemId} successfully deleted`);
-
+      await apiFetch(`/inventory/delete/${encodeURIComponent(itemId)}`, {
+        method: "DELETE",
+      });
       set((state) => ({
-        stocks: state.stocks.filter((i) => i.id !== itemId),
+        stocks: state.stocks.filter((s) => s.id !== itemId),
       }));
     } catch (error: any) {
       console.error("Error deleting inventory item:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to delete item", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

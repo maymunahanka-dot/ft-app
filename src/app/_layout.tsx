@@ -1,13 +1,16 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useFonts } from "expo-font";
 import { Stack, usePathname, useRouter, useSegments } from "expo-router";
-// import Drawer from "expo-router/drawer";
 import { StatusBar } from "expo-status-bar";
 import * as Updates from "expo-updates";
 import { useEffect } from "react";
+import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
+import { ForceUpdateScreen } from "../components/shared/ForceUpdateScreen";
+import { NoNetworkBanner } from "../components/shared/NoNetworkBanner";
 import { useAuth } from "../hooks/auth";
+import { useForceUpdate } from "../hooks/useForceUpdate";
 import { useSubscriptionGuard } from "../hooks/useSubscriptionGuard";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
 import { useUserStore } from "../stores/userSlice";
@@ -53,6 +56,7 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
   const pathname = usePathname();
+  const { checked, forceUpdate, updateMessage, storeUrl } = useForceUpdate();
 
   useEffect(() => {
     if (loading || !loaded) return;
@@ -133,44 +137,15 @@ export default function RootLayout() {
     <>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <BottomSheetModalProvider>
-          {/* <Drawer
-            screenOptions={drawerOptions}
-            drawerContent={(props) => <DrawerContent {...props} />}
-            backBehavior="history"
-            initialRouteName={undefined}
-          >
-            <Drawer.Screen
-              name="(auth)"
-              options={{
-                headerShown: false,
-                drawerItemStyle: { display: "none" },
-              }}
-            />
-            <Drawer.Screen
-              name="protected"
-              options={{
-                headerShown: false,
-                drawerItemStyle: { display: "none" },
-              }}
-            />
-            <Drawer.Screen
-              name="(tabs)"
-              options={{
-                headerShown: false,
-                title: "Home",
-                drawerLabel: "Home",
-              }}
-            />
-            <Drawer.Screen
-              name="index"
-              options={{
-                headerShown: false,
-                drawerItemStyle: { display: "none" },
-              }}
-            />
-          </Drawer> */}
-          <Stack screenOptions={{ headerShown: false }} />
-          <StatusBar style="auto" />
+          <View style={{ flex: 1 }}>
+            <Stack screenOptions={{ headerShown: false }} />
+          </View>
+          <NoNetworkBanner />
+          <StatusBar style="auto" translucent backgroundColor="transparent" />
+          {/* Force update — rendered on top of everything, cannot be dismissed */}
+          {checked && forceUpdate && (
+            <ForceUpdateScreen message={updateMessage} storeUrl={storeUrl} />
+          )}
         </BottomSheetModalProvider>
       </GestureHandlerRootView>
     </>

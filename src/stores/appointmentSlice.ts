@@ -1,30 +1,21 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
 import { create } from "zustand";
-import { db } from "../context/firebase";
-import { getCurrentUserEmail } from "../lib/auth-utils";
+import { apiFetch, isAuthError } from "../lib/apiClient";
 import { Appointment } from "../types/appointment";
 import {
   createCalendarEvent,
   deleteCalendarEvent,
   updateCalendarEvent,
 } from "../utils/calender";
+import { readCache, writeCache } from "../utils/storeCache";
+import { toDateKey } from "../utils/blockedDays";
 import { ShowToastMessage } from "../utils/random";
+
+const CACHE_KEY = "store_appointments";
 
 interface AppointmentState {
   appointments: Appointment[];
   loading: boolean;
-  getAppointmentsByTailor: (email: string) => Promise<void | undefined>;
+  getAppointmentsByTailor(email: string): Promise<void>;
   saveAppointment(appointment: Appointment): Promise<void>;
   getAppointmentById(id: string): Promise<Appointment | null>;
   getAppointmentsByDate(email: string, date: string): Promise<Appointment[]>;
@@ -35,233 +26,162 @@ interface AppointmentState {
 export const useAppointmentStore = create<AppointmentState>((set, get) => ({
   appointments: [],
   loading: false,
-  async getAppointmentsByTailor(email) {
-    set({ loading: true });
+
+  // ─── LIST ──────────────────────────────────────────────────────────────────
+  async getAppointmentsByTailor(_email) {
+    const cached = await readCache<Appointment[]>(CACHE_KEY);
+    if (cached) set({ appointments: cached });
+
+    if (!cached) set({ loading: true });
     try {
-      const ordersRef = collection(db, "fashiontally_appointments");
-      const q = query(ordersRef, where("userEmail", "==", email));
-      const querySnapshot = await getDocs(q);
-
-      console.log(
-        "appointments",
-        querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })),
-        getCurrentUserEmail(),
+      const res = await apiFetch<{ success: boolean; data: Appointment[] }>(
+        "/appointment/list",
       );
-
-      const appointments = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Appointment[];
-
-      set({ appointments });
+      const fresh = res.data ?? [];
+      set({ appointments: fresh });
+      await writeCache(CACHE_KEY, fresh);
     } catch (error: any) {
+      if (isAuthError(error)) return;
       console.error("Error getting appointments:", error);
-      ShowToastMessage({
-        title: error.message || "Error fetching appointments",
-        preset: "error",
-        haptic: "error",
-      });
+      if (!cached) {
+        ShowToastMessage({ title: error.message ?? "Failed to fetch appointments", preset: "error", haptic: "error" });
+      }
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── CREATE ────────────────────────────────────────────────────────────────
   async saveAppointment(appointment) {
     set({ loading: true });
     let calendarEventId = appointment.calendarEventId;
     try {
+      // Create device calendar event first (non-blocking if it fails)
       if (!calendarEventId) {
         calendarEventId = await createCalendarEvent(appointment);
-        console.log("Calendar event created:", calendarEventId);
       }
 
-      const now = new Date().toISOString();
-      const appointmentRef = doc(
-        db,
-        "fashiontally_appointments",
-        appointment.id,
-      );
-
-      await setDoc(appointmentRef, {
-        ...appointment,
-        userEmail: getCurrentUserEmail(),
-        tailorId: getCurrentUserEmail(),
-        calendarEventId,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      set((state) => ({
-        appointments: [
-          {
+      const res = await apiFetch<{ success: boolean; data: Appointment }>(
+        "/appointment/create",
+        {
+          method: "POST",
+          body: JSON.stringify({
             ...appointment,
             calendarEventId,
-            createdAt: now,
-            updatedAt: now,
-          },
-          ...state.appointments,
-        ],
-      }));
-
-      ShowToastMessage({
-        title: "Appointment created",
-        preset: "done",
-        haptic: "success",
-      });
-
+            dateKey: toDateKey(appointment.date),
+          }),
+        },
+      );
+      const saved = res.data;
       set((state) => ({
-        appointments: state.appointments.some((i) => i.id === appointment.id)
-          ? state.appointments.map((i) =>
-              i.id === appointment.id ? { ...appointment, calendarEventId } : i,
-            )
-          : [appointment, ...state.appointments],
+        appointments: state.appointments.some((a) => a.id === saved.id)
+          ? state.appointments.map((a) => (a.id === saved.id ? saved : a))
+          : [saved, ...state.appointments],
       }));
+      ShowToastMessage({ title: "Appointment created", preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error saving appointment:", error);
-      ShowToastMessage({
-        title: error.message || "Error saving appointment",
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Error saving appointment", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── GET BY ID ─────────────────────────────────────────────────────────────
   async getAppointmentById(id) {
     set({ loading: true });
     try {
-      const appointmentRef = doc(db, "fashiontally_appointments", id);
-      const appointmentDoc = await getDoc(appointmentRef);
+      const cached = get().appointments.find((a) => a.id === id);
+      if (cached) return cached;
 
-      if (appointmentDoc.exists()) {
-        return {
-          id: appointmentDoc.id,
-          ...appointmentDoc.data(),
-        } as Appointment;
-      }
-      return null;
+      const res = await apiFetch<{ success: boolean; data: Appointment }>(
+        `/appointment/get/${encodeURIComponent(id)}`,
+      );
+      return res.data ?? null;
     } catch (error: any) {
       console.error("Error getting appointment:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to fetch appointment", preset: "error", haptic: "error" });
       return null;
     } finally {
       set({ loading: false });
     }
   },
-  async getAppointmentsByDate(email, date) {
-    set({ loading: true });
-    try {
-      const appointmentsRef = collection(db, "fashiontally_appointments");
-      const q = query(
-        appointmentsRef,
-        where("userEmail", "==", email),
-        where("date", "==", date),
-        orderBy("time", "asc"),
-      );
-      const querySnapshot = await getDocs(q);
 
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Appointment[];
-    } catch (error: any) {
-      console.error("Error getting appointments by date:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
-      return [];
-    } finally {
-      set({ loading: false });
-    }
+  // ─── GET BY DATE — filter in-memory (avoids extra round-trip) ─────────────
+  async getAppointmentsByDate(_email, date) {
+    // Filter from already-loaded appointments; sorted by time ascending
+    const results = get()
+      .appointments.filter((a) => {
+        const d = new Date(a.date);
+        const target = new Date(date);
+        return (
+          d.getFullYear() === target.getFullYear() &&
+          d.getMonth() === target.getMonth() &&
+          d.getDate() === target.getDate()
+        );
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return results;
   },
 
+  // ─── EDIT ──────────────────────────────────────────────────────────────────
   async editAppoinment(itemId, updates) {
     set({ loading: true });
-    const currentAppointment = get().appointments.find((a) => a.id === itemId);
+    const current = get().appointments.find((a) => a.id === itemId);
     try {
-      if (currentAppointment?.calendarEventId) {
-        const updatedAppointment = { ...currentAppointment, ...updates };
-        await updateCalendarEvent(
-          currentAppointment.calendarEventId,
-          updatedAppointment,
-        );
-        console.log(
-          "Calendar event updated:",
-          currentAppointment.calendarEventId,
-        );
+      // Keep device calendar in sync
+      if (current?.calendarEventId) {
+        await updateCalendarEvent(current.calendarEventId, {
+          ...current,
+          ...updates,
+        } as Appointment);
       }
 
-      // const itemRef = doc(db, "fashiontally_appointments", itemId);
-
-      const updateData = {
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await updateDoc(doc(db, "fashiontally_appointments", itemId), updateData);
-
-      // await updateDoc(itemRef, updateData);
-
+      const res = await apiFetch<{ success: boolean; data: Appointment }>(
+        `/appointment/edit/${encodeURIComponent(itemId)}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            ...updates,
+            dateKey: toDateKey(String(updates.date || current?.date || "")),
+          }),
+        },
+      );
+      const updated = res.data;
       set((state) => ({
-        appointments: state.appointments.map((item) =>
-          item.id === itemId ? { ...item, ...updateData } : item,
+        appointments: state.appointments.map((a) =>
+          a.id === updated.id ? updated : a,
         ),
       }));
-
-      ShowToastMessage({
-        title: "Appointment updated successfully",
-        preset: "done",
-        haptic: "success",
-      });
+      ShowToastMessage({ title: "Appointment updated successfully", preset: "done", haptic: "success" });
     } catch (error: any) {
-      console.error("Error updating Appointment item:", error);
-      ShowToastMessage({
-        title: "Update failed",
-        message: error.message,
-        preset: "error",
-        haptic: "error",
-      });
+      console.error("Error updating appointment:", error);
+      ShowToastMessage({ title: error.message ?? "Update failed", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
 
-  async deleteAppointment(appointmentId: string) {
+  // ─── DELETE ────────────────────────────────────────────────────────────────
+  async deleteAppointment(appointmentId) {
     set({ loading: true });
     const appointment = get().appointments.find((a) => a.id === appointmentId);
     try {
+      // Remove from device calendar first
       if (appointment?.calendarEventId) {
         await deleteCalendarEvent(appointment.calendarEventId);
-        console.log("Calendar event deleted:", appointment.calendarEventId);
       }
 
-      await deleteDoc(doc(db, "fashiontally_appointments", appointmentId));
+      await apiFetch(`/appointment/delete/${encodeURIComponent(appointmentId)}`, {
+        method: "DELETE",
+      });
       set((state) => ({
         appointments: state.appointments.filter((a) => a.id !== appointmentId),
       }));
-
-      ShowToastMessage({
-        title: "Appointment deleted successfully",
-        preset: "done",
-        haptic: "success",
-      });
-
-      console.log(`Appointment ${appointmentId} successfully deleted`);
+      ShowToastMessage({ title: "Appointment deleted successfully", preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error deleting appointment:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to delete appointment", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

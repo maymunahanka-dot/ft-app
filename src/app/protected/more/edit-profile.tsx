@@ -2,24 +2,33 @@ import PrimaryButton from "@/src/components/button/PrimaryButton";
 import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import { useAuth } from "@/src/hooks/auth";
-import { getCurrentUserId } from "@/src/lib/auth-utils";
+import { useTheme } from "@/src/context/ThemeContext";
+import {
+  apiFetch,
+  AUTH_USER_KEY,
+  getStoredToken,
+} from "@/src/lib/apiClient";
 import { useUserStore } from "@/src/stores/userSlice";
 import {
-  convertToDate,
   GetInitials,
   scale,
   scaleFontSize,
   ShowToastMessage,
   spacing,
 } from "@/src/utils/random";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import { StatusBar } from "expo-status-bar";
+import { Camera, ChevronLeft } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -28,277 +37,427 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// ─── Cloudinary upload helper ────────────────────────────────────────────────
+async function uploadToCloudinary(uri: string): Promise<string> {
+  const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const preset = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+  const formData = new FormData();
+  // @ts-ignore — React Native FormData accepts this object shape
+  formData.append("file", { uri, type: "image/jpeg", name: "profile.jpg" });
+  formData.append("upload_preset", preset!);
+
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    { method: "POST", body: formData },
+  );
+  const data = await res.json();
+  if (!res.ok || !data.secure_url) {
+    throw new Error(data?.error?.message ?? "Cloudinary upload failed");
+  }
+  return data.secure_url as string;
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
 const EditProfileScreen = () => {
   const user = useUserStore((state) => state.user);
-  const updateUserDetails = useUserStore((state) => state.updateUserDetails);
+  const updateUser = useUserStore((state) => state.updateUser);
 
-  const { refreshUser } = useAuth();
+  const { isDark } = useTheme();
 
-  const [userData, setUserData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    lga: "",
-    state: "",
-    //   address: ""
-  });
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : "rgba(54, 65, 83, 1)";
+  const subTextColor = isDark ? "rgba(160,160,160,1)" : "rgba(54, 65, 83, 1)";
+  const labelColor = isDark ? "rgba(160,160,160,1)" : Colors.label;
+  const inputBg = isDark ? "rgba(255,255,255,0.06)" : "white";
+  const inputBorder = isDark ? "rgba(255,255,255,0.1)" : Colors.inputBorder;
+  const inputTextColor = isDark ? Colors.text.white : Colors.black;
+  const placeholderColor = isDark ? "rgba(100,100,100,1)" : Colors.grayText;
+  const disabledBg = isDark
+    ? "rgba(255,255,255,0.04)"
+    : "rgba(0,0,0,0.04)";
+  const cameraBtnBg = isDark
+    ? "rgba(22,152,141,0.9)"
+    : "rgba(22,152,141,1)";
 
-  const [error, setError] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    lga: "",
-    state: "",
-    // address: ""
-  });
+  // ── Form state ──────────────────────────────────────────────────────────
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [lga, setLga] = useState("");
+  const [state, setState] = useState("");
+  const [bio, setBio] = useState("");
+  const [photoURL, setPhotoURL] = useState<string>("");
 
-  const [loading, setLoading] = useState(false);
+  // ── Loading flags ────────────────────────────────────────────────────────
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const handleDataChange = (field: keyof typeof userData, value: string) => {
-    setUserData({ ...userData, [field]: value });
-    if (error[field as keyof typeof error]) {
-      setError((prev) => ({ ...prev, [field]: "" }));
-    }
-  };
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleUserUpdate = async () => {
-    setLoading(true);
-    if (!user) return;
-    try {
-      console.log("user details", userData);
-      const success = await updateUserDetails({
-        uid: user?.uid ?? getCurrentUserId(),
-        phone: userData.phone,
-        lga: userData.lga,
-        state: userData.state,
-        name: `${userData.firstName} ${userData.lastName}`,
-        email: user.email,
-        businessName: user.businessName ?? "",
-        role: user.role,
-        country: user.country,
-        createdAt:
-          user?.createdAt ??
-          (user?.metadata?.creation_timestamp
-            ? convertToDate(user.metadata.creation_timestamp).toDateString()
-            : new Date().toDateString()),
-      });
-
-      if (success) {
-        await refreshUser();
-        ShowToastMessage({
-          title: "User details updated",
-          preset: "done",
-          haptic: "success",
-        });
-        router.replace("/(tabs)/More");
-      }
-    } catch (error) {
-      console.error("error in handleUserUpdate", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // ── Seed form from backend on mount ─────────────────────────────────────
   useEffect(() => {
-    if (!user) return;
-    setUserData({
-      ...user,
-      firstName: user.name?.split(" ")[0] ?? "",
-      lastName: user.name?.split(" ")[1] ?? "",
-      phone:
-        user?.phone && user.phone.trim()
-          ? user.phone
-          : (user?.phoneNumber ?? ""),
-    });
-    console.log("changed");
-  }, [user]);
+    const loadProfile = async () => {
+      try {
+        const res = await apiFetch<{ success: boolean; data: any }>(
+          "/user/get",
+        );
+        const d = res.data;
+        setFirstName(d.name?.split(" ")[0] ?? "");
+        setLastName(d.name?.split(" ").slice(1).join(" ") ?? "");
+        setPhone(d.phone ?? d.phoneNumber ?? "");
+        setLga(d.lga ?? "");
+        setState(d.state ?? "");
+        setBio(d.bio ?? "");
+        setPhotoURL(d.photoURL ?? "");
+      } catch {
+        // Fall back to the locally stored user if backend is unreachable
+        if (user) {
+          setFirstName(user.name?.split(" ")[0] ?? "");
+          setLastName(user.name?.split(" ").slice(1).join(" ") ?? "");
+          setPhone(user.phone ?? user.phoneNumber ?? "");
+          setLga(user.lga ?? "");
+          setState(user.state ?? "");
+          setBio((user as any).bio ?? "");
+          setPhotoURL((user as any).photoURL ?? "");
+        }
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+    loadProfile();
+  }, []);
 
-  const handleBack = () => {
-    router.replace("/(tabs)/More");
+  // ── Validation ───────────────────────────────────────────────────────────
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!firstName.trim()) e.firstName = "First name is required";
+    if (!phone.trim()) e.phone = "Phone number is required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
+
+  // ── Image picker → Cloudinary ────────────────────────────────────────────
+  const handlePickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled) return;
+
+    const uri = result.assets[0].uri;
+    try {
+      setImageUploading(true);
+      const url = await uploadToCloudinary(uri);
+      setPhotoURL(url);
+      ShowToastMessage({
+        title: "Photo uploaded",
+        preset: "done",
+        haptic: "success",
+      });
+    } catch (err: any) {
+      ShowToastMessage({
+        title: "Photo upload failed",
+        message: err.message,
+        preset: "error",
+        haptic: "error",
+      });
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  // ── Submit ───────────────────────────────────────────────────────────────
+  const handleSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+
+      const payload = {
+        name: fullName,
+        displayName: fullName,
+        phone: phone.trim(),
+        phoneNumber: phone.trim(),
+        lga: lga.trim(),
+        state: state.trim(),
+        bio: bio.trim(),
+        photoURL,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const res = await apiFetch<{ success: boolean; data: any }>(
+        "/user/edit",
+        {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        },
+      );
+
+      // Persist updated user in AsyncStorage so next app start is correct
+      const updatedUser = { ...user, ...res.data };
+      await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(updatedUser));
+
+      // Update Zustand store so the rest of the app reflects the change
+      updateUser(updatedUser);
+
+      ShowToastMessage({
+        title: "Profile updated",
+        preset: "done",
+        haptic: "success",
+      });
+      router.replace("/(tabs)/More");
+    } catch (err: any) {
+      ShowToastMessage({
+        title: "Update failed",
+        message: err.message,
+        preset: "error",
+        haptic: "error",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleBack = () => router.replace("/(tabs)/More");
+
+  const displayName = `${firstName} ${lastName}`.trim();
+
+  // ── Loading skeleton ─────────────────────────────────────────────────────
+  if (initialLoading) {
+    return (
+      <SafeAreaView
+        edges={["left", "right", "bottom"]}
+        style={{ flex: 1, backgroundColor: bg, justifyContent: "center", alignItems: "center" }}
+      >
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={[styles.reg14, { color: subTextColor, marginTop: spacing(12) }]}>
+          Loading profile...
+        </Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView
-      style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
+      edges={["left", "right", "bottom"]}
+      style={{ flex: 1, paddingTop: spacing(20), backgroundColor: bg }}
     >
+      <StatusBar style={isDark ? "light" : "dark"} />
+
+      {/* ── Header ── */}
       <View style={styles.header}>
         <HapticTab
-          style={{
-            width: 32,
-            aspectRatio: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
+          style={{ width: 32, aspectRatio: 1, justifyContent: "center", alignItems: "center" }}
           onPress={handleBack}
         >
           <ChevronLeft
             size={scale(20)}
-            color={"rgba(54, 65, 83, 1)"}
+            color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"}
             strokeWidth={1.5}
           />
         </HapticTab>
-
         <View style={styles.col}>
-          <Text style={styles.reg24}>Profile</Text>
-          <Text style={[Styles.reg14, { color: "rgba(54, 65, 83, 1)" }]}>
+          <Text style={[styles.reg24, { color: textColor }]}>Profile</Text>
+          <Text style={[Styles.reg14, { color: subTextColor }]}>
             Update your personal information
           </Text>
         </View>
       </View>
 
       <KeyboardAvoidingView
-        style={{
-          flex: 1,
-          backgroundColor: "white",
-        }}
+        style={{ flex: 1, backgroundColor: bg }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={
-          Platform.OS === "ios" ? spacing(50) : spacing(0)
-        }
+        keyboardVerticalOffset={Platform.OS === "ios" ? spacing(50) : 0}
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
           bounces={false}
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingVertical: spacing(30),
-          }}
+          contentContainerStyle={{ flexGrow: 1, paddingVertical: spacing(30) }}
           keyboardDismissMode="interactive"
         >
           <View style={styles.content}>
-            <LinearGradient
-              colors={["rgba(22, 152, 141, 1)", "rgba(13, 107, 98, 1)"]}
-              style={styles.iconWrapper}
-            >
-              <Text style={styles.reg30}>{GetInitials(user?.name)}</Text>
-            </LinearGradient>
+            {/* ── Avatar ── */}
+            <View style={styles.avatarWrapper}>
+              {photoURL ? (
+                <Image source={{ uri: photoURL }} style={styles.avatarImage} />
+              ) : (
+                <LinearGradient
+                  colors={["rgba(22, 152, 141, 1)", "rgba(13, 107, 98, 1)"]}
+                  style={styles.avatarGradient}
+                >
+                  <Text style={styles.reg30}>{GetInitials(displayName)}</Text>
+                </LinearGradient>
+              )}
 
+              {/* Camera button overlay */}
+              <Pressable
+                style={[styles.cameraBtn, { backgroundColor: cameraBtnBg }]}
+                onPress={handlePickImage}
+                disabled={imageUploading}
+              >
+                {imageUploading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Camera size={scale(14)} color="white" />
+                )}
+              </Pressable>
+            </View>
+
+            <Text style={[styles.avatarHint, { color: placeholderColor }]}>
+              Tap the camera icon to change your photo
+            </Text>
+
+            {/* ── Sub-admin badge ── */}
+            {user?.isAdmin && user?.invitedBy ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Team Member</Text>
+              </View>
+            ) : null}
+
+            {/* ── Inputs ── */}
             <View style={styles.inputs}>
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>First Name</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>First Name</Text>
                 <TextInput
-                  value={userData.firstName}
-                  onChangeText={(text) => handleDataChange("firstName", text)}
+                  value={firstName}
+                  onChangeText={(t) => {
+                    setFirstName(t);
+                    setErrors((p) => ({ ...p, firstName: "" }));
+                  }}
                   placeholder="First Name"
-                  placeholderTextColor={Colors.grayText}
-                  textContentType="name"
-                  returnKeyLabel="next"
+                  placeholderTextColor={placeholderColor}
+                  textContentType="givenName"
                   returnKeyType="next"
-                  keyboardType="default"
                   autoCorrect={false}
-                  style={[Styles.input, { paddingVertical: 0 }]}
+                  style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.firstName ? (
+                {errors.firstName ? (
                   <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.firstName}
+                    {errors.firstName}
                   </Text>
                 ) : null}
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Last Name</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Last Name</Text>
                 <TextInput
-                  value={userData.lastName}
-                  onChangeText={(text) => handleDataChange("lastName", text)}
+                  value={lastName}
+                  onChangeText={setLastName}
                   placeholder="Last Name"
-                  placeholderTextColor={Colors.grayText}
-                  textContentType="name"
-                  returnKeyLabel="next"
+                  placeholderTextColor={placeholderColor}
+                  textContentType="familyName"
                   returnKeyType="next"
-                  keyboardType="default"
                   autoCorrect={false}
-                  style={[Styles.input, { paddingVertical: 0 }]}
+                  style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.lastName ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.lastName}
-                  </Text>
-                ) : null}
               </View>
 
+              {/* Email — read-only */}
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Email Address</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Email Address</Text>
                 <View
-                  style={[Styles.input2, { opacity: 0.4, paddingVertical: 0 }]}
+                  style={[
+                    Styles.input2,
+                    { opacity: isDark ? 0.3 : 0.4, paddingVertical: 0, backgroundColor: disabledBg, borderColor: inputBorder },
+                  ]}
                 >
-                  <Text style={[Styles.reg12, { color: Colors.black }]}>
-                    {userData.email}
+                  <Text style={[Styles.reg12, { color: inputTextColor }]}>
+                    {user?.email ?? ""}
                   </Text>
                 </View>
+                <Text style={[styles.helperText, { color: placeholderColor }]}>
+                  Email cannot be changed
+                </Text>
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Phone Number</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Phone Number</Text>
                 <TextInput
-                  value={userData.phone}
-                  onChangeText={(text) => handleDataChange("phone", text)}
-                  placeholder="Phone Number"
-                  placeholderTextColor={Colors.grayText}
+                  value={phone}
+                  onChangeText={(t) => {
+                    setPhone(t);
+                    setErrors((p) => ({ ...p, phone: "" }));
+                  }}
+                  placeholder="+234 800 000 0000"
+                  placeholderTextColor={placeholderColor}
                   textContentType="telephoneNumber"
-                  returnKeyLabel="next"
                   returnKeyType="next"
                   keyboardType="phone-pad"
                   autoCorrect={false}
                   maxLength={14}
-                  style={[Styles.input, { paddingVertical: 0 }]}
+                  style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.phone ? (
+                {errors.phone ? (
                   <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.phone}
+                    {errors.phone}
                   </Text>
                 ) : null}
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>LGA/City</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>LGA / City</Text>
                 <TextInput
-                  value={userData.lga}
-                  onChangeText={(text) => handleDataChange("lga", text)}
+                  value={lga}
+                  onChangeText={setLga}
                   placeholder="Local Government Area"
-                  placeholderTextColor={Colors.grayText}
+                  placeholderTextColor={placeholderColor}
                   textContentType="addressCity"
-                  returnKeyLabel="next"
                   returnKeyType="next"
-                  keyboardType="default"
                   autoCorrect={false}
-                  style={[Styles.input, { paddingVertical: 0 }]}
+                  style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.lga ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.lga}
-                  </Text>
-                ) : null}
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>State</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>State</Text>
                 <TextInput
-                  value={userData.state}
-                  onChangeText={(text) => handleDataChange("state", text)}
+                  value={state}
+                  onChangeText={setState}
                   placeholder="State"
-                  placeholderTextColor={Colors.grayText}
+                  placeholderTextColor={placeholderColor}
                   textContentType="addressState"
-                  returnKeyLabel="done"
-                  returnKeyType="done"
-                  keyboardType="default"
+                  returnKeyType="next"
                   autoCorrect={false}
-                  style={[Styles.input, { paddingVertical: 0 }]}
+                  style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.state ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.state}
-                  </Text>
-                ) : null}
+              </View>
+
+              <View style={Styles.inputContainer}>
+                <Text style={[Styles.label, { color: labelColor }]}>Bio</Text>
+                <TextInput
+                  value={bio}
+                  onChangeText={setBio}
+                  placeholder="Tell us about yourself..."
+                  placeholderTextColor={placeholderColor}
+                  returnKeyType="done"
+                  multiline
+                  numberOfLines={4}
+                  autoCorrect={false}
+                  style={[
+                    Styles.input,
+                    {
+                      paddingVertical: spacing(10),
+                      backgroundColor: inputBg,
+                      borderColor: inputBorder,
+                      paddingHorizontal: spacing(16),
+                      color: inputTextColor,
+                      minHeight: 100,
+                      textAlignVertical: "top",
+                    },
+                  ]}
+                />
               </View>
             </View>
 
             <View style={styles.button}>
               <PrimaryButton
                 title="Save Changes"
-                onPress={handleUserUpdate}
-                loading={loading}
+                onPress={handleSave}
+                loading={saving || imageUploading}
               />
             </View>
           </View>
@@ -316,6 +475,8 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "flex-start",
     gap: spacing(8),
+    paddingHorizontal: spacing(16),
+    paddingVertical: spacing(6),
   },
   col: {
     gap: spacing(4),
@@ -323,7 +484,6 @@ const styles = StyleSheet.create({
   reg24: {
     fontFamily: "regular",
     fontSize: scaleFontSize(24),
-    color: "rgba(54, 65, 83, 1)",
     lineHeight: 32,
   },
   reg30: {
@@ -332,23 +492,67 @@ const styles = StyleSheet.create({
     color: "white",
     lineHeight: 36,
   },
+  reg14: {
+    fontFamily: "regular",
+    fontSize: scaleFontSize(14),
+  },
   content: {
     flex: 1,
-    // paddingVertical: spacing(20),
     paddingHorizontal: 16,
-    gap: spacing(26),
+    gap: spacing(20),
   },
-  iconWrapper: {
+  avatarWrapper: {
+    alignSelf: "center",
+    position: "relative",
+  },
+  avatarGradient: {
     width: 90,
     aspectRatio: 1,
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "center",
     borderRadius: 100,
+  },
+  avatarImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 100,
+  },
+  cameraBtn: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarHint: {
+    alignSelf: "center",
+    fontFamily: "regular",
+    fontSize: scaleFontSize(12),
+    marginTop: spacing(-12),
+  },
+  badge: {
+    alignSelf: "center",
+    backgroundColor: Colors.plight,
+    borderRadius: 20,
+    paddingHorizontal: spacing(12),
+    paddingVertical: spacing(4),
+  },
+  badgeText: {
+    fontFamily: "medium",
+    fontSize: scaleFontSize(12),
+    color: Colors.primary,
   },
   inputs: {
     flex: 1,
     gap: spacing(16),
+  },
+  helperText: {
+    fontFamily: "regular",
+    fontSize: scaleFontSize(11),
+    marginTop: spacing(4),
   },
   button: {},
 });

@@ -2,159 +2,186 @@ import BurgerIcon from "@/src/components/drawer/BurgerIcon";
 import InvoiceItem from "@/src/components/invoice/Item";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import { getCurrentUserEmail } from "@/src/lib/auth-utils";
+import { useTheme } from "@/src/context/ThemeContext";
 import { useInvoiceStore } from "@/src/stores/invoiceSlice";
+import { useUserStore } from "@/src/stores/userSlice";
 import { Invoice } from "@/src/types/Invoice";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import SortByButton, { useSavedSort } from "@/src/components/shared/SortByButton";
+import { sortItems } from "@/src/utils/sortBy";
 import { Plus, Search } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const InvoicesScreen = () => {
-  const [searchValue, setSearchValue] = useState("");
+  const { bottom, top } = useSafeAreaInsets();
+  const { isDark } = useTheme();
 
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : Colors.text.black;
+  const searchBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(249, 250, 251, 1)";
+  const searchBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(229, 231, 235, 1)";
+  const searchIconColor = isDark ? "rgba(120,120,120,1)" : "rgba(153, 161, 175, 1)";
+  const placeholderColor = isDark ? "rgba(120,120,120,1)" : Colors.grey;
+
+  const [searchValue, setSearchValue] = useState("");
+  const [sortBy, setSortBy] = useSavedSort("ft.sort.invoices");
+
+  const user = useUserStore((state) => state.user);
   const invoices = useInvoiceStore((state) => state.invoices);
   const loading = useInvoiceStore((state) => state.loading);
   const fetchInvoices = useInvoiceStore((state) => state.getInvoicesByTailor);
 
   useEffect(() => {
-    fetchInvoices(getCurrentUserEmail());
-  }, []);
+    if (user) fetchInvoices("");
+  }, [user]);
 
   const filteredListData = useMemo(() => {
-    if (!searchValue || !searchValue.trim()) return invoices;
-
-    const q = searchValue.toLowerCase();
-    return invoices.filter((c: Invoice) => {
-      const billTo = String(c?.clientName ?? "").toLowerCase();
-      return billTo.includes(q);
+    const base = searchValue.trim()
+      ? invoices.filter((c: Invoice) =>
+          String(c?.clientName ?? "").toLowerCase().includes(searchValue.toLowerCase()),
+        )
+      : invoices;
+    return sortItems(base, sortBy, {
+      name: (item) => item?.clientName || "",
+      createdAt: (item) => item?.createdAt,
+      number: (item) => Number((item as Invoice & { amount?: number }).amount) || 0,
     });
-  }, [searchValue, invoices]);
+  }, [searchValue, invoices, sortBy]);
 
   return (
-    <>
-      <StatusBar style="dark" />
-      <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <View style={[styles.container, { backgroundColor: bg, paddingTop: top }]}>
+      <StatusBar style={isDark ? "light" : "dark"} />
+
+      <View style={[styles.headerArea, { backgroundColor: bg }]}>
         <BurgerIcon
           title="Invoices"
+          iconColor={isDark ? "white" : undefined}
           textStyle={{
             fontFamily: "medium",
-            fontSize: scaleFontSize(25),
+            fontSize: scaleFontSize(24),
             lineHeight: 30,
+            color: textColor,
           }}
-          viewStyle={{ paddingHorizontal: 20, marginTop: spacing(20) }}
+          viewStyle={{}}
         />
-        <View style={styles.content}>
-          <View
-            style={[
-              styles.searchContainer,
-              styles.startRow,
-              { gap: spacing(12) },
-            ]}
-          >
-            <Search
-              size={scale(20)}
-              color={"rgba(153, 161, 175, 1)"}
-              strokeWidth={2}
-            />
+
+        <View style={styles.searchRow}>
+          <View style={[styles.searchContainer, { backgroundColor: searchBg, borderColor: searchBorder, flex: 1 }]}>
+            <Search size={scale(16)} color={searchIconColor} strokeWidth={2} />
             <TextInput
               value={searchValue}
               onChangeText={setSearchValue}
-              placeholder={"Search by bill to details..."}
-              placeholderTextColor={Colors.grey}
-              style={styles.input}
+              placeholder="Search by client name..."
+              placeholderTextColor={placeholderColor}
+              style={[styles.input, { color: textColor }]}
             />
           </View>
-
-          {loading ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <ActivityIndicator size={"small"} color={"black"} />
-            </View>
-          ) : (
-            <FlatList
-              data={filteredListData}
-              keyExtractor={(item) => item.id}
-              style={{ flex: 1 }}
-              contentContainerStyle={{
-                flexGrow: 1,
-                gap: spacing(16),
-                paddingTop: spacing(20),
-                paddingBottom: spacing(40),
-              }}
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => <InvoiceItem invoice={item} />}
-              ListEmptyComponent={() => (
-                <View style={styles.emptyContainer}>
-                  <Text
-                    style={[Styles.med12, { color: Colors.text.gray }]}
-                  >{`No invoice found.`}</Text>
-                </View>
-              )}
-            />
-          )}
+          <SortByButton
+            value={sortBy}
+            onChange={setSortBy}
+            borderColor={searchBorder}
+            options={[
+              { value: "newest", label: "Newest" },
+              { value: "oldest", label: "Oldest" },
+              { value: "name-asc", label: "Client (A–Z)" },
+              { value: "name-desc", label: "Client (Z–A)" },
+              { value: "amount", label: "Amount" },
+            ]}
+          />
         </View>
+      </View>
 
-        <Pressable
-          style={styles.floatingBtn}
-          onPress={() => router.push("/protected/form/create-invoice")}
-        >
-          <Plus size={scale(20)} color={"white"} />
-        </Pressable>
-      </SafeAreaView>
-    </>
+      <FlatList
+        data={filteredListData}
+        keyExtractor={(item) => item.id}
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          gap: spacing(16),
+          paddingHorizontal: spacing(16),
+          paddingTop: spacing(16),
+          paddingBottom: bottom + 80,
+        }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={() => fetchInvoices("")}
+            tintColor={Colors.primary}
+          />
+        }
+        renderItem={({ item }) => <InvoiceItem invoice={item} />}
+        ListEmptyComponent={() => (
+          <View style={styles.centered}>
+            <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
+              {loading ? "" : "No invoice found."}
+            </Text>
+          </View>
+        )}
+      />
+
+      <Pressable
+        style={[styles.floatingBtn, { bottom: bottom + 20 }]}
+        onPress={() => router.push("/protected/form/create-invoice")}
+      >
+        <Plus size={scale(20)} color="white" />
+      </Pressable>
+    </View>
   );
 };
 
 export default InvoicesScreen;
 
 const styles = StyleSheet.create({
-  content: {
+  container: {
     flex: 1,
-    paddingTop: spacing(30),
-    backgroundColor: "white",
-    paddingHorizontal: 16,
   },
-  startRow: {
+  headerArea: {
+    paddingHorizontal: spacing(16),
+    paddingTop: spacing(12),
+    paddingBottom: spacing(4),
+    gap: spacing(12),
+  },
+  searchRow: {
     flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
-    gap: spacing(4),
+    gap: spacing(8),
   },
   searchContainer: {
-    backgroundColor: "rgba(249, 250, 251, 1)",
+    alignSelf: "stretch",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing(10),
     borderWidth: 1,
-    borderColor: "rgba(229, 231, 235, 1)",
-    borderRadius: 14,
-    paddingVertical: spacing(10),
-    paddingHorizontal: spacing(16),
+    borderRadius: 12,
+    paddingVertical: spacing(0),
+    paddingHorizontal: spacing(14),
   },
   input: {
     flex: 1,
+    fontFamily: "regular",
+    fontSize: scaleFontSize(14),
   },
-  emptyContainer: {
+  centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: spacing(60),
   },
   floatingBtn: {
-    width: 50,
+    width: 48,
     aspectRatio: 1,
     borderRadius: 100,
     backgroundColor: Colors.primary,
@@ -162,7 +189,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "absolute",
     right: 16,
-    bottom: 30,
-    elevation: 3,
+    elevation: 4,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });

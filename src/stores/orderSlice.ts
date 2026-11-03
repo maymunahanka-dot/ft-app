@@ -1,18 +1,10 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
 import { create } from "zustand";
-import { db } from "../context/firebase";
+import { apiFetch } from "../lib/apiClient";
 import { Order } from "../types/Order";
+import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
+
+const CACHE_KEY = "store_orders";
 
 interface OrderState {
   orders: Order[];
@@ -27,147 +19,122 @@ interface OrderState {
 export const useOrderStore = create<OrderState>((set, get) => ({
   orders: [],
   loading: false,
-  async getOrdersByTailor(tailorId) {
-    set({ loading: true });
+
+  // ─── LIST ──────────────────────────────────────────────────────────────────
+  async getOrdersByTailor(_tailorId) {
+    // 1. Show cached data immediately if available
+    const cached = await readCache<Order[]>(CACHE_KEY);
+    if (cached) set({ orders: cached });
+
+    // 2. Fetch fresh data (show spinner only when cache is empty)
+    if (!cached) set({ loading: true });
     try {
-      const ordersRef = collection(db, "fashiontally_orders");
-      const q = query(ordersRef, where("tailorId", "==", tailorId));
-      const querySnapshot = await getDocs(q);
-
-      // console.log(
-      //   "orders",
-      //   querySnapshot.docs.map((doc) => ({
-      //     id: doc.id,
-      //     ...doc.data(),
-      //   })),
-      // );
-
-      const orders = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Order[];
-
-      console.log("orders", orders.length);
-
-      set({ orders });
+      const res = await apiFetch<{ success: boolean; data: Order[] }>(
+        "/order/list",
+      );
+      const fresh = (res.data ?? []).map((o: any) => ({
+        ...o,
+        id: o.id || o._id?.toString() || "",
+      }));
+      set({ orders: fresh });
+      await writeCache(CACHE_KEY, fresh);
     } catch (error: any) {
       console.error("Error getting orders:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      if (!cached) {
+        ShowToastMessage({ title: error.message ?? "Failed to fetch orders", preset: "error", haptic: "error" });
+      }
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── CREATE / UPSERT ───────────────────────────────────────────────────────
   async saveOrder(order) {
     set({ loading: true });
     try {
-      const orderRef = doc(db, "fashiontally_orders", order.id);
-      await setDoc(orderRef, {
-        ...order,
-        updatedAt: new Date().toISOString(),
-      });
+      // If the order already exists in the store, treat it as an edit
+      const exists = get().orders.some((o) => o.id === order.id);
 
-      set((state) => ({
-        orders: state.orders.some((i) => i.id === order.id)
-          ? state.orders.map((i) => (i.id === order.id ? order : i))
-          : [order, ...state.orders],
-      }));
+      if (exists) {
+        const res = await apiFetch<{ success: boolean; data: Order }>(
+          `/order/edit/${encodeURIComponent(order.id)}`,
+          { method: "PUT", body: JSON.stringify(order) },
+        );
+        const updated = res.data;
+        set((state) => ({
+          orders: state.orders.map((o) => (o.id === updated.id ? updated : o)),
+        }));
+      } else {
+        const res = await apiFetch<{ success: boolean; data: Order }>(
+          "/order/create",
+          { method: "POST", body: JSON.stringify(order) },
+        );
+        const saved = res.data;
+        set((state) => ({ orders: [saved, ...state.orders] }));
+      }
     } catch (error: any) {
       console.error("Error saving order:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to save order", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── GET BY ID ─────────────────────────────────────────────────────────────
   async getOrderById(id) {
     set({ loading: true });
     try {
-      const orderRef = doc(db, "fashiontally_orders", id);
-      const orderDoc = await getDoc(orderRef);
+      // Return from in-memory cache first
+      const cached = get().orders.find((o) => o.id === id);
+      if (cached) return cached;
 
-      if (orderDoc.exists()) {
-        return {
-          id: orderDoc.id,
-          ...orderDoc.data(),
-        } as Order;
-      }
-      return null;
+      const res = await apiFetch<{ success: boolean; data: Order }>(
+        `/order/get/${encodeURIComponent(id)}`,
+      );
+      return res.data ?? null;
     } catch (error: any) {
       console.error("Error getting order:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to fetch order", preset: "error", haptic: "error" });
       return null;
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── UPDATE STATUS ─────────────────────────────────────────────────────────
   async updateOrderStatus(orderId, status) {
     set({ loading: true });
-
     try {
-      // const orderRef = doc(db, "fashiontally_orders", orderId);
-
       const updatedAt = new Date().toISOString();
-
-      // await setDoc(
-      //   orderRef,
-      //   {
-      //     status,
-      //     updatedAt,
-      //   },
-      //   { merge: true },
-      // );
-
-      await updateDoc(doc(db, "fashiontally_orders", orderId), {
-        status,
-        updatedAt,
-      });
-
+      const res = await apiFetch<{ success: boolean; data: Order }>(
+        `/order/edit/${encodeURIComponent(orderId)}`,
+        { method: "PUT", body: JSON.stringify({ status, updatedAt }) },
+      );
+      const updated = res.data;
       set((state) => ({
-        orders: state.orders.map((order) =>
-          order.id === orderId ? { ...order, status, updatedAt } : order,
-        ),
+        orders: state.orders.map((o) => (o.id === updated.id ? updated : o)),
       }));
     } catch (error: any) {
       console.error("Error updating order status:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to update status", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── DELETE ────────────────────────────────────────────────────────────────
   async deleteOrder(orderId) {
     set({ loading: true });
     try {
-      await deleteDoc(doc(db, "fashiontally_orders", orderId));
-      console.log(`Order ${orderId} successfully deleted`);
-
+      await apiFetch(`/order/delete/${encodeURIComponent(orderId)}`, {
+        method: "DELETE",
+      });
       set((state) => ({
-        orders: state.orders.filter((i) => i.id !== orderId),
+        orders: state.orders.filter((o) => o.id !== orderId),
       }));
     } catch (error: any) {
       console.error("Error deleting order:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to delete order", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

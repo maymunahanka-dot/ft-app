@@ -1,18 +1,21 @@
-import PrimaryButton from "@/src/components/button/PrimaryButton";
+﻿import PrimaryButton from "@/src/components/button/PrimaryButton";
 import SelectClientModal from "@/src/components/form/order/SelectClientModal";
 import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { useUserImage } from "@/src/hooks/useUserImage";
 import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { useClientStore } from "@/src/stores/clientSlice";
+import { useDisplayCurrency } from "@/src/hooks/useDisplayCurrency";
 import { useDesignStore } from "@/src/stores/designSlice";
 import { Client } from "@/src/types/client";
 import { validateDesignForm } from "@/src/utils/formValidation";
 import { formatPrice, scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { ChevronDown, ChevronLeft, Upload } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -24,7 +27,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type DesignDetails = {
   imageUrl: string;
@@ -39,12 +42,32 @@ const EditDesignScreen = () => {
   const { id } = useLocalSearchParams();
   const designs = useDesignStore((state) => state.designs);
   const foundDesign = designs.find((prev) => prev.id === id.toString())!;
-  //   console.log("found design", JSON.stringify(foundDesign, null, 2));
   const editDesign = useDesignStore((state) => state.editDesign);
+  const { symbol, toNaira, blockUntilRate, currency, usdToNgn } = useDisplayCurrency();
+  const priceTouched = useRef(false);
+  const converted = useRef(false);
   const deleteDesign = useDesignStore((state) => state.deleteDesign);
   const loading = useDesignStore((state) => state.loading);
 
   const clients = useClientStore((state) => state.clients);
+
+  const { isDark } = useTheme();
+  const { top } = useSafeAreaInsets();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : "rgba(54, 65, 83, 1)";
+  const labelColor = isDark ? "rgba(160,160,160,1)" : "#4A5565";
+  const subLabelColor = isDark ? "rgba(120,120,120,1)" : "#99A1AF";
+  const inputBg = isDark ? "rgba(255,255,255,0.06)" : "white";
+  const inputBorder = isDark ? "rgba(255,255,255,0.1)" : Colors.inputBorder;
+  const inputTextColor = isDark ? Colors.text.white : Colors.black;
+  const placeholderColor = isDark ? "rgba(100,100,100,1)" : Colors.grayText;
+  const dropdownTextColor = isDark ? "rgba(200,200,200,1)" : "rgba(10, 10, 10, 0.5)";
+  const chevronColor = isDark ? "rgba(160,160,160,1)" : Colors.grey;
+  const imagePickerBorder = isDark ? "rgba(255,255,255,0.1)" : "#D1D5DC";
+  const iconCircleBg = isDark ? "rgba(255,255,255,0.08)" : "#F3F4F6";
+  const iconColor = isDark ? "rgba(160,160,160,1)" : "#99A1AF";
+
   const [selectedClient, setSelectedClient] = useState<Client>(
     clients.find((prev) => prev.id === foundDesign?.clientId)!,
   );
@@ -63,11 +86,8 @@ const EditDesignScreen = () => {
         ...prev,
         imageUrl: `data:image/jpeg;base64,${image}`,
       }));
-      //   console.log("image", image);
     }
   }, [image]);
-
-  useEffect(() => {}, []);
 
   const handlePickImage = async () => {
     try {
@@ -88,17 +108,21 @@ const EditDesignScreen = () => {
 
   const [error, setError] = useState({
     imageUrl: "",
-    // clientId: "",
     name: "",
     price: "",
     description: "",
     notes: "",
   });
 
-  const handleDetailsChange = (
-    field: keyof typeof designDetails,
-    value: string,
-  ) => {
+  useEffect(() => {
+    if (converted.current || priceTouched.current || currency !== "USD" || !usdToNgn) return;
+    converted.current = true;
+    const naira = Number(foundDesign?.price) || 0;
+    setDesignDetails((prev) => ({ ...prev, price: (naira / usdToNgn).toFixed(2) }));
+  }, [currency, usdToNgn, foundDesign?.price]);
+
+  const handleDetailsChange = (field: keyof typeof designDetails, value: string) => {
+    if (field === "price") priceTouched.current = true;
     setDesignDetails((prev) => ({ ...prev, [field]: value }));
     if (error[field as keyof typeof error]) {
       setError((prev) => ({ ...prev, [field]: "" }));
@@ -108,12 +132,9 @@ const EditDesignScreen = () => {
   const handleEditDesign = async () => {
     const { isValid, errors } = validateDesignForm(designDetails);
     setError(errors);
-    console.log("details", isValid, error, selectedClient.id);
-    if (!isValid || !selectedClient.id) return;
-
+    if (!isValid || !selectedClient?.id || blockUntilRate()) return;
     try {
-      const priceNum =
-        parseFloat(designDetails.price.replace(/[^0-9.]/g, "")) || 0;
+      const priceNum = toNaira(parseFloat(designDetails.price.replace(/[^0-9.]/g, "")) || 0) ?? 0;
       await editDesign(foundDesign.id, {
         userEmail: getCurrentUserEmail(),
         name: designDetails.name.trim(),
@@ -129,251 +150,162 @@ const EditDesignScreen = () => {
     }
   };
 
-  const handleDeleteDesign = async () => {
-    try {
-      await deleteDesign(foundDesign.id);
-      router.back();
-    } catch (err) {
-      console.error("Error deleting design", err);
-    }
-  };
+  const handleBack = () => router.replace("/(tabs)/Designs");
 
-  const handleBack = () => {
-    router.replace("/(tabs)/Designs");
-  };
+  const inputStyle = [
+    Styles.input,
+    { paddingVertical: 0, paddingHorizontal: spacing(16), backgroundColor: inputBg, borderColor: inputBorder, color: inputTextColor },
+  ];
 
   return (
     <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
-      >
-        <View style={styles.header}>
-          <HapticTab
-            style={{
-              width: 32,
-              aspectRatio: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-            onPress={handleBack}
-          >
-            <ChevronLeft
-              size={scale(20)}
-              color={"rgba(54, 65, 83, 1)"}
-              strokeWidth={1.5}
-            />
-          </HapticTab>
+      <View style={{ flex: 1, paddingTop: top, backgroundColor: bg }}>
+        <StatusBar style={isDark ? "light" : "dark"} />
 
-          <Text style={styles.reg24}>Edit Design</Text>
+        <View style={styles.header}>
+          <HapticTab style={styles.backBtn} onPress={handleBack}>
+            <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
+          </HapticTab>
+          <Text style={[styles.reg24, { color: textColor }]}>Edit Design</Text>
         </View>
 
         <KeyboardAvoidingView
-          style={{
-            flex: 1,
-            backgroundColor: "white",
-          }}
+          style={{ flex: 1, backgroundColor: bg }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={
-            Platform.OS === "ios" ? spacing(50) : spacing(0)
-          }
+          keyboardVerticalOffset={Platform.OS === "ios" ? spacing(50) : spacing(0)}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             bounces={false}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingVertical: spacing(30),
-            }}
+            contentContainerStyle={{ flexGrow: 1, paddingVertical: spacing(30) }}
             keyboardDismissMode="interactive"
           >
             <View style={styles.content}>
+              {/* client selector */}
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>
+                <Text style={[Styles.label, { color: labelColor }]}>
                   Clients<Text style={styles.red}> *</Text>
                 </Text>
                 <Pressable
-                  style={[Styles.input, { ...styles.row, paddingVertical: 0 }]}
+                  style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleClientModal}
                 >
-                  {selectedClient ? (
-                    <Text
-                      style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
-                    >
-                      {selectedClient.name}
-                    </Text>
-                  ) : (
-                    <Text
-                      style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
-                    >
-                      Select a Client
-                    </Text>
-                  )}
-
-                  <ChevronDown size={scale(20)} color={Colors.grey} />
+                  <Text style={[Styles.reg16, { color: dropdownTextColor }]}>
+                    {selectedClient ? selectedClient.name : "Select a Client"}
+                  </Text>
+                  <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
               </View>
+
+              {/* image picker */}
               <View style={[Styles.inputContainer, { gap: spacing(12) }]}>
-                <Text style={[styles.reg14]}>
+                <Text style={[styles.reg14, { color: labelColor }]}>
                   Style Image<Text style={styles.red}> *</Text>
                 </Text>
-
-                <HapticTab style={styles.imagePicker} onPress={handlePickImage}>
+                <HapticTab
+                  style={[styles.imagePicker, { borderColor: imagePickerBorder }]}
+                  onPress={handlePickImage}
+                >
                   {designDetails.imageUrl ? (
                     <Image
                       source={{
                         uri: designDetails.imageUrl.startsWith("https")
                           ? designDetails.imageUrl
-                          : `${designDetails.imageUrl}`,
+                          : designDetails.imageUrl,
                       }}
-                      style={{
-                        width: "100%",
-                        height: styles.imagePicker.height,
-                        borderRadius: styles.imagePicker.borderRadius,
-                      }}
+                      style={{ width: "100%", height: styles.imagePicker.height, borderRadius: styles.imagePicker.borderRadius }}
                     />
                   ) : (
                     <>
-                      <View style={styles.iconWrapper}>
-                        <Upload size={scale(25)} color={"#99A1AF"} />
+                      <View style={[styles.iconWrapper, { backgroundColor: iconCircleBg }]}>
+                        <Upload size={scale(25)} color={iconColor} />
                       </View>
-
-                      <View
-                        style={[
-                          styles.col,
-                          { justifyContent: "center", alignItems: "center" },
-                        ]}
-                      >
-                        <Text style={styles.reg14}>
-                          Click to upload design image
-                        </Text>
-                        <Text style={styles.reg12}>PNG, JPG up to 10MB</Text>
+                      <View style={[styles.col, { justifyContent: "center", alignItems: "center" }]}>
+                        <Text style={[styles.reg14, { color: labelColor }]}>Click to upload design image</Text>
+                        <Text style={[styles.reg12, { color: subLabelColor }]}>PNG, JPG up to 10MB</Text>
                       </View>
                     </>
                   )}
                 </HapticTab>
                 {error.imageUrl ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.imageUrl}
-                  </Text>
+                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.imageUrl}</Text>
                 ) : null}
               </View>
 
+              {/* name */}
               <View style={Styles.inputContainer}>
-                <Text style={[styles.reg14]}>
+                <Text style={[styles.reg14, { color: labelColor }]}>
                   Design Name<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={designDetails.name}
                   onChangeText={(text) => handleDetailsChange("name", text)}
                   placeholder="e.g., Ankara Maxi Dress"
-                  placeholderTextColor={Colors.grayText}
-                  returnKeyLabel="next"
+                  placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
-                  style={[
-                    Styles.input,
-                    {
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  style={inputStyle}
                 />
                 {error.name ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.name}
-                  </Text>
+                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.name}</Text>
                 ) : null}
               </View>
 
+              {/* price */}
               <View style={Styles.inputContainer}>
-                <Text style={[styles.reg14]}>
-                  Price (₦)<Text style={styles.red}> *</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>
+                  Price ({symbol})<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={formatPrice(designDetails.price)}
                   onChangeText={(text) => handleDetailsChange("price", text)}
                   placeholder="e.g., 85000"
-                  placeholderTextColor={Colors.grayText}
-                  returnKeyLabel="next"
+                  placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="numeric"
                   autoCorrect={false}
-                  style={[
-                    Styles.input,
-                    {
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  style={inputStyle}
                 />
                 {error.price ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.price}
-                  </Text>
+                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.price}</Text>
                 ) : null}
               </View>
 
+              {/* description */}
               <View style={Styles.inputContainer}>
-                <Text style={[styles.reg14]}>Description</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>Description</Text>
                 <TextInput
                   value={designDetails.description}
-                  onChangeText={(text) =>
-                    handleDetailsChange("description", text)
-                  }
+                  onChangeText={(text) => handleDetailsChange("description", text)}
                   placeholder="Brief description of the design..."
-                  placeholderTextColor={Colors.grayText}
-                  returnKeyLabel="next"
+                  placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
-                  style={[
-                    Styles.input,
-                    {
-                      height: 80,
-                      textAlignVertical: "top",
-                      paddingTop: spacing(15),
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  style={[Styles.input, { height: 80, textAlignVertical: "top", paddingTop: spacing(15), paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
               </View>
 
+              {/* notes */}
               <View style={Styles.inputContainer}>
-                <Text style={[styles.reg14]}>Notes</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>Notes</Text>
                 <TextInput
                   value={designDetails.notes}
                   onChangeText={(text) => handleDetailsChange("notes", text)}
                   placeholder="Additional notes, client preferences, special requirements..."
-                  placeholderTextColor={Colors.grayText}
+                  placeholderTextColor={placeholderColor}
                   keyboardType="default"
-                  style={[
-                    Styles.input,
-                    {
-                      height: 100,
-                      textAlignVertical: "top",
-                      paddingTop: spacing(15),
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  style={[Styles.input, { height: 100, textAlignVertical: "top", paddingTop: spacing(15), paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
               </View>
 
               <View style={[styles.button, { marginTop: spacing(30) }]}>
-                <PrimaryButton
-                  title="Edit Design"
-                  onPress={handleEditDesign}
-                  loading={loading}
-                />
+                <PrimaryButton title="Edit Design" onPress={handleEditDesign} loading={loading} />
               </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
+
       {clientModal && (
         <SelectClientModal
           visible={clientModal}
@@ -394,33 +326,31 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "flex-start",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: spacing(8),
+    paddingHorizontal: spacing(16),
+    paddingTop: spacing(12),
+    paddingBottom: spacing(8),
   },
-  col: {
-    gap: spacing(4),
+  backBtn: {
+    width: 32,
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
+  col: { gap: spacing(4) },
   reg12: {
     fontFamily: "regular",
     fontSize: scaleFontSize(12),
-    color: "#99A1AF",
   },
   reg14: {
     fontFamily: "regular",
     fontSize: scaleFontSize(14),
-    color: "#4A5565",
   },
   reg24: {
     fontFamily: "regular",
     fontSize: scaleFontSize(24),
-    color: "rgba(54, 65, 83, 1)",
     lineHeight: 32,
-  },
-  reg30: {
-    fontFamily: "regular",
-    fontSize: scaleFontSize(30),
-    color: "white",
-    lineHeight: 36,
   },
   content: {
     flex: 1,
@@ -432,20 +362,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  red: {
-    color: "rgba(251, 44, 54, 1)",
-  },
+  red: { color: "rgba(251, 44, 54, 1)" },
   imagePicker: {
     height: 150,
     gap: spacing(12),
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#D1D5DC",
     borderRadius: 16,
   },
   iconWrapper: {
-    backgroundColor: "#F3F4F6",
     width: 63,
     justifyContent: "center",
     alignItems: "center",

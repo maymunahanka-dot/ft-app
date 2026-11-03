@@ -4,10 +4,13 @@ import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
 import { categoryList, statusList, unitList } from "@/src/constants/config";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { generateInventoryId } from "@/src/lib/inventory";
+import SupplierFields from "@/src/components/inventory/SupplierFields";
+import { useDisplayCurrency } from "@/src/hooks/useDisplayCurrency";
 import { useInventoryStore } from "@/src/stores/inventorySlice";
-import { InventoryItem } from "@/src/types/inventory";
+import { cleanSuppliers, InventoryItem, InventorySupplier } from "@/src/types/inventory";
 import {
   CapitalizeFirstName,
   scale,
@@ -15,6 +18,8 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import ImageUploadField from "@/src/components/shared/ImageUploadField";
 import { ChevronDown, ChevronLeft } from "lucide-react-native";
 import React, { useState } from "react";
 import {
@@ -27,10 +32,25 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const CreateStockItemScreen = () => {
+  const { symbol, toNaira, blockUntilRate } = useDisplayCurrency();
   const saveItem = useInventoryStore((state) => state.saveInventoryItem);
   const loading = useInventoryStore((state) => state.loading);
+
+  const { isDark } = useTheme();
+  const { top } = useSafeAreaInsets();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : "rgba(54, 65, 83, 1)";
+  const labelColor = isDark ? "rgba(160,160,160,1)" : Colors.label;
+  const inputBg = isDark ? "rgba(255,255,255,0.06)" : "white";
+  const inputBorder = isDark ? "rgba(255,255,255,0.1)" : Colors.inputBorder;
+  const inputTextColor = isDark ? Colors.text.white : Colors.black;
+  const placeholderColor = isDark ? "rgba(100,100,100,1)" : Colors.grayText;
+  const dropdownTextColor = isDark ? "rgba(200,200,200,1)" : "rgba(10, 10, 10, 0.5)";
+  const chevronColor = isDark ? "rgba(160,160,160,1)" : Colors.grey;
 
   const [categoryModal, setCategoryModal] = useState(false);
   const toggleCategoryModal = () => setCategoryModal((prev) => !prev);
@@ -57,11 +77,14 @@ const CreateStockItemScreen = () => {
     status: "in-stock",
     purchaseDate: "",
     notes: "",
+    imageUrl: "",
     tailorId: "",
     userEmail: "",
     createdAt: "",
     updatedAt: "",
   });
+
+  const [suppliers, setSuppliers] = useState<InventorySupplier[]>([{ name: "", contact: "" }]);
 
   const [error, setError] = useState({
     name: "",
@@ -95,8 +118,8 @@ const CreateStockItemScreen = () => {
       isValid = false;
     }
 
-    if (!stockData.supplier.trim()) {
-      newError.supplier = "Supplier is required";
+    if (!suppliers.some((entry) => entry.name.trim())) {
+      newError.supplier = "At least one supplier name is required";
       isValid = false;
     }
 
@@ -118,13 +141,20 @@ const CreateStockItemScreen = () => {
     const isValid = validateForm();
     console.log("creating", isValid);
 
-    if (!isValid) return;
+    if (!isValid || blockUntilRate()) return;
 
     try {
+      const unitPrice = toNaira(stockData.sellingPricePerUnit ?? 0) ?? 0;
+      const savedSuppliers = cleanSuppliers(suppliers);
+      const firstSupplier = savedSuppliers.find((entry) => entry.name)?.name || "";
       const payload: InventoryItem = {
         ...stockData,
-        totalValue: stockData.quantity * (stockData.sellingPricePerUnit ?? 1),
-        supplierName: stockData.supplier,
+        sellingPricePerUnit: unitPrice,
+        price: unitPrice,
+        totalValue: stockData.quantity * unitPrice,
+        suppliers: savedSuppliers,
+        supplierName: firstSupplier,
+        supplier: firstSupplier,
         tailorId: getCurrentUserEmail(),
         userEmail: getCurrentUserEmail(),
         createdAt: new Date().toISOString(),
@@ -144,298 +174,167 @@ const CreateStockItemScreen = () => {
 
   return (
     <>
-      <View
-        style={{ flex: 1, paddingTop: spacing(50), backgroundColor: "white" }}
-      >
+      <View style={{ flex: 1, paddingTop: top, backgroundColor: bg }}>
+        <StatusBar style={isDark ? "light" : "dark"} />
         <View style={styles.header}>
           <HapticTab
-            style={{
-              width: 32,
-              aspectRatio: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+            style={{ width: 32, aspectRatio: 1, justifyContent: "center", alignItems: "center" }}
             onPress={handleBack}
           >
-            <ChevronLeft
-              size={scale(20)}
-              color={"rgba(54, 65, 83, 1)"}
-              strokeWidth={1.5}
-            />
+            <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-
-          <Text style={styles.reg24}>Add Inventory Item</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>Add Inventory Item</Text>
         </View>
 
         <KeyboardAvoidingView
-          style={{
-            flex: 1,
-            backgroundColor: "white",
-          }}
+          style={{ flex: 1, backgroundColor: bg }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={
-            Platform.OS === "ios" ? spacing(50) : spacing(0)
-          }
+          keyboardVerticalOffset={Platform.OS === "ios" ? spacing(50) : spacing(0)}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             bounces={false}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingVertical: spacing(30),
-            }}
+            contentContainerStyle={{ flexGrow: 1, paddingVertical: spacing(30) }}
             keyboardDismissMode="interactive"
           >
             <View style={styles.content}>
+              <ImageUploadField
+                uri={stockData.imageUrl}
+                onChange={(uri) => handleDataChange("imageUrl", uri)}
+                label="Item Image (Optional)"
+              />
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>
+                <Text style={[Styles.label, { color: labelColor }]}>
                   Name<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={stockData.name}
                   onChangeText={(text) => handleDataChange("name", text)}
                   placeholder="e.g., Ankara Print Fabric"
-                  placeholderTextColor={Colors.grayText}
-                  returnKeyLabel="next"
+                  placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
                   autoCorrect={false}
-                  style={[
-                    Styles.input,
-                    {
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.name ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.name}
-                  </Text>
-                ) : null}
+                {error.name ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.name}</Text> : null}
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Category</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Category</Text>
                 <Pressable
-                  style={[Styles.input, { ...styles.row, paddingVertical: 0 }]}
+                  style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleCategoryModal}
                 >
-                  <Text
-                    style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
-                  >
-                    {CapitalizeFirstName(stockData.category)}
-                  </Text>
-
-                  <ChevronDown size={scale(20)} color={Colors.grey} />
+                  <Text style={[Styles.reg16, { color: dropdownTextColor }]}>{CapitalizeFirstName(stockData.category)}</Text>
+                  <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
               </View>
 
-              <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>
-                  Supplier<Text style={styles.red}> *</Text>
-                </Text>
-                <TextInput
-                  value={stockData.supplier}
-                  onChangeText={(text) => handleDataChange("supplier", text)}
-                  placeholder="e.g., Lagos Textiles Ltd"
-                  placeholderTextColor={Colors.grayText}
-                  returnKeyLabel="next"
-                  returnKeyType="next"
-                  keyboardType="default"
-                  autoCorrect={false}
-                  style={[
-                    Styles.input,
-                    {
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
-                />
-                {error.supplier ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.supplier}
-                  </Text>
-                ) : null}
-              </View>
+              <SupplierFields
+                suppliers={suppliers}
+                onChange={(next) => {
+                  setSuppliers(next);
+                  if (error.supplier) setError((prev) => ({ ...prev, supplier: "" }));
+                }}
+                error={error.supplier}
+              />
 
               <View style={Styles.inputContainer}>
                 <View style={[styles.row, { gap: spacing(20) }]}>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={Styles.label}>
+                    <Text style={[Styles.label, { color: labelColor }]}>
                       Quantity<Text style={styles.red}> *</Text>
                     </Text>
                     <TextInput
-                      value={
-                        stockData.quantity === 0
-                          ? ""
-                          : stockData.quantity.toString()
-                      }
-                      onChangeText={(text) =>
-                        handleDataChange("quantity", Number(text))
-                      }
+                      value={stockData.quantity === 0 ? "" : stockData.quantity.toString()}
+                      onChangeText={(text) => handleDataChange("quantity", Number(text))}
                       placeholder="Quantity"
-                      placeholderTextColor={Colors.grayText}
-                      returnKeyLabel="next"
+                      placeholderTextColor={placeholderColor}
                       returnKeyType="next"
                       keyboardType="number-pad"
                       autoCorrect={false}
-                      style={[
-                        Styles.input,
-                        {
-                          paddingVertical: 0,
-                          backgroundColor: "white",
-                          paddingHorizontal: spacing(16),
-                        },
-                      ]}
+                      style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                     />
                   </View>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={Styles.label}>Unit</Text>
+                    <Text style={[Styles.label, { color: labelColor }]}>Unit</Text>
                     <Pressable
-                      style={[
-                        Styles.input,
-                        { ...styles.row, paddingVertical: 0 },
-                      ]}
+                      style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                       onPress={toggleUnitModal}
                     >
-                      <Text
-                        style={[
-                          Styles.reg16,
-                          { color: "rgba(10, 10, 10, 0.5)" },
-                        ]}
-                      >
-                        {CapitalizeFirstName(stockData.unit)}
-                      </Text>
-
-                      <ChevronDown size={scale(20)} color={Colors.grey} />
+                      <Text style={[Styles.reg16, { color: dropdownTextColor }]}>{CapitalizeFirstName(stockData.unit)}</Text>
+                      <ChevronDown size={scale(20)} color={chevronColor} />
                     </Pressable>
                   </View>
                 </View>
-                {error.quantity ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.quantity}
-                  </Text>
-                ) : null}
+                {error.quantity ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.quantity}</Text> : null}
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Status</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Status</Text>
                 <Pressable
-                  style={[Styles.input, { ...styles.row, paddingVertical: 0 }]}
+                  style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleStatusModal}
                 >
-                  <Text
-                    style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
-                  >
-                    {CapitalizeFirstName(
-                      statusList.find((s) => s.value === stockData.status)
-                        ?.label ?? stockData.status,
-                    )}
+                  <Text style={[Styles.reg16, { color: dropdownTextColor }]}>
+                    {CapitalizeFirstName(statusList.find((s) => s.value === stockData.status)?.label ?? stockData.status)}
                   </Text>
-
-                  <ChevronDown size={scale(20)} color={Colors.grey} />
+                  <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
               </View>
 
               <View style={Styles.inputContainer}>
                 <View style={[styles.row, { gap: spacing(20) }]}>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={Styles.label}>
-                      Price per Unit (₦)<Text style={styles.red}> *</Text>
+                    <Text style={[Styles.label, { color: labelColor }]}>
+                      Price per Unit ({symbol})<Text style={styles.red}> *</Text>
                     </Text>
                     <TextInput
-                      value={((stockData?.sellingPricePerUnit ?? 1) === 0
-                        ? ""
-                        : (stockData?.sellingPricePerUnit ?? 1)
-                      ).toString()}
-                      onChangeText={(text) =>
-                        handleDataChange("sellingPricePerUnit", Number(text))
-                      }
+                      value={((stockData?.sellingPricePerUnit ?? 1) === 0 ? "" : (stockData?.sellingPricePerUnit ?? 1)).toString()}
+                      onChangeText={(text) => handleDataChange("sellingPricePerUnit", Number(text))}
                       placeholder="Price per unit"
-                      placeholderTextColor={Colors.grayText}
-                      returnKeyLabel="next"
+                      placeholderTextColor={placeholderColor}
                       returnKeyType="next"
                       keyboardType="number-pad"
                       autoCorrect={false}
-                      style={[
-                        Styles.input,
-                        {
-                          paddingVertical: 0,
-                          backgroundColor: "white",
-                          paddingHorizontal: spacing(16),
-                        },
-                      ]}
+                      style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                     />
                   </View>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={Styles.label}>Re-order Point</Text>
+                    <Text style={[Styles.label, { color: labelColor }]}>Re-order Point</Text>
                     <TextInput
-                      value={((stockData?.reorderPoint ?? 1) === 0
-                        ? ""
-                        : (stockData?.reorderPoint ?? 1)
-                      ).toString()}
-                      onChangeText={(text) =>
-                        handleDataChange("reorderPoint", Number(text))
-                      }
+                      value={((stockData?.reorderPoint ?? 1) === 0 ? "" : (stockData?.reorderPoint ?? 1)).toString()}
+                      onChangeText={(text) => handleDataChange("reorderPoint", Number(text))}
                       placeholder="30"
-                      placeholderTextColor={Colors.grayText}
-                      returnKeyLabel="next"
+                      placeholderTextColor={placeholderColor}
                       returnKeyType="next"
                       keyboardType="number-pad"
                       autoCorrect={false}
-                      style={[
-                        Styles.input,
-                        {
-                          paddingVertical: 0,
-                          backgroundColor: "white",
-                          paddingHorizontal: spacing(16),
-                        },
-                      ]}
+                      style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                     />
                   </View>
                 </View>
-                {error.sellingPricePerUnit ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.sellingPricePerUnit}
-                  </Text>
-                ) : null}
+                {error.sellingPricePerUnit ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.sellingPricePerUnit}</Text> : null}
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Description</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Description</Text>
                 <TextInput
                   value={stockData.description}
                   onChangeText={(text) => handleDataChange("description", text)}
                   placeholder="Add notes about this item..."
-                  placeholderTextColor={Colors.grayText}
-                  returnKeyLabel="next"
+                  placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   autoCorrect={false}
                   multiline
                   numberOfLines={20}
-                  style={[
-                    Styles.input,
-                    {
-                      height: 100,
-                      textAlignVertical: "top",
-                      paddingTop: spacing(15),
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  style={[Styles.input, { height: 100, textAlignVertical: "top", paddingTop: spacing(15), paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
               </View>
 
               <View style={styles.button}>
-                <PrimaryButton
-                  title="Add Item"
-                  onPress={handleCreateStock}
-                  loading={loading}
-                />
+                <PrimaryButton title="Add Item" onPress={handleCreateStock} loading={loading} />
               </View>
             </View>
           </ScrollView>

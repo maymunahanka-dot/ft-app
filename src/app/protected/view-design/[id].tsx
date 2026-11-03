@@ -1,12 +1,11 @@
-import { HapticTab } from "@/src/components/haptic-tab";
+﻿import { HapticTab } from "@/src/components/haptic-tab";
+import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { useDesignStore } from "@/src/stores/designSlice";
-import {
-  FormatCurrency,
-  scale,
-  scaleFontSize,
-  spacing,
-} from "@/src/utils/random";
+import MoneyAmount from "@/src/components/shared/MoneyAmount";
+import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { ChevronLeft, Pencil, Trash2 } from "lucide-react-native";
 import React from "react";
 import {
@@ -19,193 +18,169 @@ import {
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const ViewDesignItemScreen = () => {
   const { id } = useLocalSearchParams();
+  const { isDark } = useTheme();
+  const { top } = useSafeAreaInsets();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : "rgba(10, 10, 10, 1)";
+  const subTextColor = isDark ? "rgba(160,160,160,1)" : "rgba(106, 114, 130, 1)";
+  const labelColor = isDark ? "rgba(180,180,180,1)" : "rgba(74, 85, 101, 1)";
+  const noteBoxBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(254, 252, 232, 1)";
+  const noteBoxText = isDark ? "rgba(200,200,200,1)" : "rgba(74, 85, 101, 1)";
+  const badgeBg = isDark ? "rgba(255,140,0,0.15)" : "rgba(255, 237, 212, 1)";
+  const badgeText = isDark ? "rgba(255,160,60,1)" : "rgba(202, 53, 0, 1)";
+  const chevronColor = isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)";
+  const headerTitleColor = isDark ? Colors.text.white : "rgba(54, 65, 83, 1)";
+  const recImgBorder = isDark ? "rgba(22,152,141,0.5)" : "rgba(22, 152, 141, 1)";
+  const deleteBtnBg = isDark ? "rgba(231,0,11,0.15)" : "rgba(254, 242, 242, 1)";
 
   const loading = useDesignStore((state) => state.loading);
   const designs = useDesignStore((state) => state.designs);
-
   const deleteDesign = useDesignStore((state) => state.deleteDesign);
   const foundDesign = designs.find((prev) => prev.id === id.toString());
-
-  // console.log("design found", JSON.stringify(foundDesign, null, 2));
 
   const handleDeleteDesign = async () => {
     if (!foundDesign) return;
     try {
-      await deleteDesign(foundDesign?.id);
+      await deleteDesign(foundDesign.id);
       router.back();
     } catch (err) {
       console.error("Error deleting design", err);
     }
   };
 
-  const handleBack = () => {
-    router.replace("/(tabs)/Designs");
-  };
+  const handleBack = () => router.replace("/(tabs)/Designs");
 
   return (
-    <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
-      >
-        <View style={styles.header}>
-          <HapticTab
-            style={{
-              position: "absolute",
-              left: 16,
-              width: 32,
-              aspectRatio: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 100,
-            }}
-            hitSlop={20}
-            onPress={handleBack}
-          >
-            <ChevronLeft
-              size={scale(20)}
-              color={"rgba(54, 65, 83, 1)"}
-              strokeWidth={1.5}
-            />
-          </HapticTab>
+    <View style={[styles.container, { backgroundColor: bg, paddingTop: top }]}>
+      <StatusBar style={isDark ? "light" : "dark"} />
 
-          <Text
-            style={[
-              styles.reg16,
-              {
-                width: "100%",
-                alignSelf: "center",
-                textAlign: "center",
-              },
-            ]}
-          >
-            Design Details
-          </Text>
-        </View>
-
-        <ScrollView
-          style={{ flex: 1 }}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingTop: spacing(30),
-            paddingBottom: spacing(50),
-          }}
-          keyboardDismissMode="interactive"
+      {/* header */}
+      <View style={styles.header}>
+        <HapticTab
+          style={styles.backBtn}
+          hitSlop={20}
+          onPress={handleBack}
         >
-          <View style={styles.content}>
-            {foundDesign?.imageUrl?.trim() ? (
-              <View style={{ gap: spacing(12) }}>
-                <Image
-                  source={{ uri: foundDesign?.imageUrl }}
-                  style={styles.designImg}
-                />
-                <Image
-                  source={{ uri: foundDesign?.imageUrl }}
-                  style={styles.recImg}
-                />
-              </View>
-            ) : (
-              <View style={{ paddingVertical: spacing(30) }}>
-                <Text style={[styles.reg24, { textAlign: "center" }]}>
-                  No Image
-                </Text>
-              </View>
-            )}
+          <ChevronLeft size={scale(20)} color={chevronColor} strokeWidth={1.5} />
+        </HapticTab>
+        <Text style={[styles.reg16, { color: headerTitleColor, flex: 1, textAlign: "center" }]}>
+          Design Details
+        </Text>
+        {/* spacer to keep title centered */}
+        <View style={styles.backBtn} />
+      </View>
 
-            <View style={[styles.col, { gap: spacing(8) }]}>
-              <Text style={[styles.reg24, { color: "rgba(10, 10, 10, 1)" }]}>
-                {foundDesign?.name}
-              </Text>
-              <View style={styles.badge}>
-                <Text style={[styles.reg12, { color: "rgba(202, 53, 0, 1)" }]}>
-                  Available
-                </Text>
-              </View>
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingTop: spacing(20),
+          paddingBottom: spacing(40),
+        }}
+        keyboardDismissMode="interactive"
+      >
+        <View style={styles.content}>
+          {/* image */}
+          {foundDesign?.imageUrl?.trim() ? (
+            <View style={{ gap: spacing(12) }}>
+              <Image source={{ uri: foundDesign.imageUrl }} style={styles.designImg} />
+              <Image
+                source={{ uri: foundDesign.imageUrl }}
+                style={[styles.recImg, { borderColor: recImgBorder }]}
+              />
             </View>
-
-            <View style={styles.col}>
-              <Text style={[styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
-                Starting Price
-              </Text>
-              <Text style={[styles.reg14, { color: "rgba(10, 10, 10, 1)" }]}>
-                {FormatCurrency(foundDesign?.price ?? 0)}
+          ) : (
+            <View style={{ paddingVertical: spacing(30) }}>
+              <Text style={[styles.reg24, { textAlign: "center", color: subTextColor }]}>
+                No Image
               </Text>
             </View>
+          )}
 
-            <View style={[styles.col, { gap: spacing(12) }]}>
-              <Text style={[styles.reg14, { color: "rgba(10, 10, 10, 1)" }]}>
-                Notes
-              </Text>
-              <View style={styles.notebox}>
-                <Text style={[styles.reg14, { color: "rgba(74, 85, 101, 1)" }]}>
-                  {foundDesign?.notes?.trim() ? foundDesign.notes : "No notes"}
-                </Text>
-              </View>
-            </View>
-
-            {/* buttons */}
-            <View
-              style={[
-                styles.row,
-                {
-                  flex: 1,
-                  gap: spacing(80),
-                  alignItems: "flex-end",
-                },
-              ]}
-            >
-              <HapticTab
-                style={styles.primaryBtn}
-                onPress={() => {
-                  router.push({
-                    pathname: "/protected/design/[id]",
-                    params: {
-                      id: foundDesign?.id ?? "",
-                    },
-                  });
-                }}
-              >
-                <Pencil size={scale(18)} color={"white"} />
-                <Text style={styles.btnText}>Edit Design</Text>
-              </HapticTab>
-
-              <Pressable
-                style={styles.deleteBtn}
-                onPress={handleDeleteDesign}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator
-                    size={"small"}
-                    color={"rgba(231, 0, 11, 1)"}
-                  />
-                ) : (
-                  <Trash2 size={scale(15)} color={"rgba(231, 0, 11, 1)"} />
-                )}
-              </Pressable>
+          {/* name + badge */}
+          <View style={[styles.col, { gap: spacing(8) }]}>
+            <Text style={[styles.reg24, { color: textColor }]}>{foundDesign?.name}</Text>
+            <View style={[styles.badge, { backgroundColor: badgeBg }]}>
+              <Text style={[styles.reg12, { color: badgeText }]}>Available</Text>
             </View>
           </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
+
+          {/* price */}
+          <View style={styles.col}>
+            <Text style={[styles.reg12, { color: subTextColor }]}>Starting Price</Text>
+            <MoneyAmount amount={Number(foundDesign?.price) || 0} color={textColor} primarySize={scaleFontSize(16)} />
+          </View>
+
+          {/* notes */}
+          <View style={[styles.col, { gap: spacing(12) }]}>
+            <Text style={[styles.reg14, { color: labelColor }]}>Notes</Text>
+            <View style={[styles.notebox, { backgroundColor: noteBoxBg }]}>
+              <Text style={[styles.reg14, { color: noteBoxText }]}>
+                {foundDesign?.notes?.trim() ? foundDesign.notes : "No notes"}
+              </Text>
+            </View>
+          </View>
+
+          {/* action buttons */}
+          <View style={[styles.row, { flex: 1, gap: spacing(80), alignItems: "flex-end" }]}>
+            <HapticTab
+              style={styles.primaryBtn}
+              onPress={() =>
+                router.push({
+                  pathname: "/protected/design/[id]",
+                  params: { id: foundDesign?.id ?? "" },
+                })
+              }
+            >
+              <Pencil size={scale(18)} color="white" />
+              <Text style={styles.btnText}>Edit Design</Text>
+            </HapticTab>
+
+            <Pressable
+              style={[styles.deleteBtn, { backgroundColor: deleteBtnBg }]}
+              onPress={handleDeleteDesign}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="rgba(231, 0, 11, 1)" />
+              ) : (
+                <Trash2 size={scale(15)} color="rgba(231, 0, 11, 1)" />
+              )}
+            </Pressable>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
 export default ViewDesignItemScreen;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   header: {
     flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
-    gap: spacing(8),
+    alignItems: "center",
+    paddingHorizontal: spacing(16),
+    paddingTop: spacing(12),
+    paddingBottom: spacing(8),
+  },
+  backBtn: {
+    width: 32,
+    aspectRatio: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   col: {
     gap: spacing(4),
@@ -213,29 +188,19 @@ const styles = StyleSheet.create({
   reg12: {
     fontFamily: "regular",
     fontSize: scaleFontSize(12),
-    color: "#99A1AF",
   },
   reg14: {
     fontFamily: "regular",
     fontSize: scaleFontSize(14),
-    color: "#4A5565",
   },
   reg16: {
     fontFamily: "regular",
     fontSize: scaleFontSize(16),
-    color: "rgba(54, 65, 83, 1)",
   },
   reg24: {
     fontFamily: "regular",
     fontSize: scaleFontSize(24),
-    color: "rgba(54, 65, 83, 1)",
     lineHeight: 32,
-  },
-  reg30: {
-    fontFamily: "regular",
-    fontSize: scaleFontSize(30),
-    color: "white",
-    lineHeight: 36,
   },
   content: {
     flex: 1,
@@ -257,21 +222,17 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(22, 152, 141, 1)",
   },
   badge: {
-    backgroundColor: "rgba(255, 237, 212, 1)",
     paddingHorizontal: spacing(12),
     paddingVertical: spacing(6),
     borderRadius: 16,
     alignSelf: "flex-start",
   },
   notebox: {
-    backgroundColor: "rgba(254, 252, 232, 1)",
     padding: spacing(12),
     borderRadius: 14,
   },
-
   primaryBtn: {
     flex: 1,
     height: 56,
@@ -283,7 +244,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   deleteBtn: {
-    backgroundColor: "rgba(254, 242, 242, 1)",
     width: 66,
     height: 56,
     justifyContent: "center",

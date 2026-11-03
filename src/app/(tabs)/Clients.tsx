@@ -2,156 +2,190 @@ import ClientItem from "@/src/components/clients/Item";
 import BurgerIcon from "@/src/components/drawer/BurgerIcon";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { useClientStore } from "@/src/stores/clientSlice";
+import { useUserStore } from "@/src/stores/userSlice";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import SortByButton, { useSavedSort } from "@/src/components/shared/SortByButton";
+import { sortItems } from "@/src/utils/sortBy";
 import { Plus, Search } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ClientsScreen = () => {
   const [searchValue, setSearchValue] = useState("");
+  const [sortBy, setSortBy] = useSavedSort("ft.sort.clients");
+  const { isDark } = useTheme();
+  const { top, bottom } = useSafeAreaInsets();
 
+  const user = useUserStore((state) => state.user);
   const loading = useClientStore((state) => state.loading);
   const clients = useClientStore((state) => state.clients);
+  const fetchClients = useClientStore((state) => state.getClientsByTailor);
+
+  useEffect(() => {
+    if (user) fetchClients("");
+  }, [user]);
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : Colors.text.black;
+  const searchBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(249, 250, 251, 1)";
+  const searchBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(229, 231, 235, 1)";
+  const placeholderColor = isDark ? "rgba(120,120,120,1)" : Colors.grey;
 
   const filteredListData = useMemo(() => {
-    if (!searchValue || !searchValue.trim()) return clients;
+    const base = searchValue.trim()
+      ? clients.filter((c: any) => {
+          const q = searchValue.toLowerCase();
+          return (
+            String(c?.name ?? "").toLowerCase().includes(q) ||
+            String(c?.phone ?? "").toLowerCase().includes(q) ||
+            String(c?.email ?? "").toLowerCase().includes(q)
+          );
+        })
+      : clients;
 
-    const q = searchValue.toLowerCase();
-    return clients.filter((c: any) => {
-      const name = String(c?.name ?? "").toLowerCase();
-      const phone = String(c?.phone ?? "").toLowerCase();
-      const email = String(c?.email ?? "").toLowerCase();
-      return name.includes(q) || phone.includes(q) || email.includes(q);
+    return sortItems(base, sortBy, {
+      name: (item) => item?.name || "",
+      createdAt: (item) => item?.createdAt,
+      date: (item) => item?.lastOrder,
     });
-  }, [searchValue, clients]);
+  }, [searchValue, clients, sortBy]);
 
   return (
-    <>
-      <StatusBar style="dark" />
-      <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <View style={[styles.container, { backgroundColor: bg, paddingTop: top }]}>
+      <StatusBar style={isDark ? "light" : "dark"} />
+
+      {/* sticky header */}
+      <View style={[styles.header, { backgroundColor: bg }]}>
         <BurgerIcon
           title="Clients"
-          textStyle={{
-            fontFamily: "medium",
-            fontSize: scaleFontSize(25),
-            lineHeight: 30,
-          }}
-          viewStyle={{ paddingHorizontal: 20, marginVertical: spacing(20) }}
+          iconColor={isDark ? "white" : undefined}
+          textStyle={{ fontFamily: "medium", fontSize: scaleFontSize(24), color: textColor }}
+          viewStyle={{}}
         />
-        <View style={styles.content}>
-          <View
-            style={[
-              styles.searchContainer,
-              styles.startRow,
-              { gap: spacing(12) },
-            ]}
-          >
-            <Search
-              size={scale(20)}
-              color={"rgba(153, 161, 175, 1)"}
-              strokeWidth={2}
-            />
+
+        <View style={styles.searchRow}>
+          <View style={[styles.searchBar, { backgroundColor: searchBg, borderColor: searchBorder, flex: 1 }]}>
+            <Search size={scale(16)} color={placeholderColor} strokeWidth={2} />
             <TextInput
               value={searchValue}
               onChangeText={setSearchValue}
-              placeholder={"Search clients by name, phone, or email"}
-              placeholderTextColor={Colors.grey}
-              style={styles.input}
+              placeholder="Search by name, phone or email"
+              placeholderTextColor={placeholderColor}
+              style={[styles.searchInput, { color: textColor }]}
             />
           </View>
-
-          {loading ? (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <ActivityIndicator size={"small"} color={"black"} />
-            </View>
-          ) : (
-            <FlatList
-              data={filteredListData}
-              keyExtractor={(item, index) => item.id + index.toString()}
-              style={{ flex: 1 }}
-              contentContainerStyle={{
-                flexGrow: 1,
-                gap: spacing(16),
-                paddingTop: spacing(20),
-                paddingBottom: spacing(40),
-              }}
-              showsVerticalScrollIndicator={false}
-              // scrollEnabled={false}
-              renderItem={({ item }) => <ClientItem item={item} />}
-              ListEmptyComponent={() => (
-                <View style={styles.emptyContainer}>
-                  <Text
-                    style={[Styles.med12, { color: Colors.text.gray }]}
-                  >{`No client found.`}</Text>
-                </View>
-              )}
-            />
-          )}
+          <SortByButton
+            value={sortBy}
+            onChange={setSortBy}
+            borderColor={searchBorder}
+            options={[
+              { value: "newest", label: "Newest" },
+              { value: "oldest", label: "Oldest" },
+              { value: "name-asc", label: "Name (A–Z)" },
+              { value: "name-desc", label: "Name (Z–A)" },
+              { value: "last-order", label: "Last order" },
+            ]}
+          />
         </View>
+      </View>
 
-        <Pressable
-          style={styles.floatingBtn}
-          onPress={() => router.push("/protected/form/create-client")}
-        >
-          <Plus size={scale(20)} color={"white"} />
-        </Pressable>
-      </SafeAreaView>
-    </>
+      {/* list scrolls behind header */}
+      <FlatList
+        data={filteredListData}
+        keyExtractor={(item, index) => item.id + index.toString()}
+        contentContainerStyle={{
+          gap: spacing(12),
+          paddingHorizontal: spacing(16),
+          paddingTop: spacing(10),
+          paddingBottom: bottom + 80,
+        }}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => <ClientItem item={item} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={() => fetchClients("")}
+            tintColor={Colors.primary}
+          />
+        }
+        ListEmptyComponent={() => (
+          <View style={styles.centered}>
+            {loading ? (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            ) : (
+              <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
+                No client found.
+              </Text>
+            )}
+          </View>
+        )}
+      />
+
+      <Pressable
+        style={[styles.floatingBtn, { bottom: bottom + 20 }]}
+        onPress={() => router.push("/protected/form/create-client")}
+      >
+        <Plus size={scale(20)} color="white" />
+      </Pressable>
+    </View>
   );
 };
 
 export default ClientsScreen;
 
 const styles = StyleSheet.create({
-  content: {
+  container: {
     flex: 1,
-    paddingTop: spacing(20),
-    backgroundColor: "white",
-    paddingHorizontal: 16,
   },
-  startRow: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    gap: spacing(4),
-  },
-  searchContainer: {
-    backgroundColor: "rgba(249, 250, 251, 1)",
-    borderWidth: 1,
-    borderColor: "rgba(229, 231, 235, 1)",
-    borderRadius: 14,
-    paddingVertical: spacing(12),
+  header: {
     paddingHorizontal: spacing(16),
+    paddingTop: spacing(12),
+    paddingBottom: spacing(-3),
+    gap: spacing(12),
   },
-  input: {
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing(8),
+  },
+  searchBar: {
+    alignSelf: "stretch",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing(10),
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: spacing(0),
+    paddingHorizontal: spacing(14),
+    zIndex: 20,
+  },
+  searchInput: {
     flex: 1,
-    // backgroundColor: "red",
+    fontFamily: "regular",
+    fontSize: scaleFontSize(14),
   },
-  emptyContainer: {
+  centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: spacing(60),
   },
   floatingBtn: {
-    width: 50,
+    width: 48,
     aspectRatio: 1,
     borderRadius: 100,
     backgroundColor: Colors.primary,
@@ -159,7 +193,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "absolute",
     right: 16,
-    bottom: 30,
-    elevation: 3,
+    elevation: 4,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });

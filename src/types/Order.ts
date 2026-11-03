@@ -21,8 +21,10 @@ export type GarmentType =
 
 export type Order = {
   id: string;
+  name?: string;               // design/style name (set by ft_corrent panel)
   clientName: string;
   clientPhone: string;
+  clientEmail?: string;
   clientId?: string; // Optional, if linked to existing client
   garmentType: GarmentType;
   garmentDescription: string;

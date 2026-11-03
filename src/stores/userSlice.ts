@@ -1,7 +1,5 @@
-import { deleteUser } from "firebase/auth";
 import {
   collection,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -10,8 +8,10 @@ import {
   where,
 } from "firebase/firestore";
 import { create } from "zustand";
-import { auth, db } from "../context/firebase";
+import { db } from "../context/firebase";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
+import { apiFetch, API_BASE_URL } from "../lib/apiClient";
+import { setEffectiveEmail } from "../lib/effectiveEmail";
 import { BrandSettings, RegisterUserData } from "../types/auth";
 import { sanitizeBrandSettings, ShowToastMessage } from "../utils/random";
 interface UserState {
@@ -22,7 +22,6 @@ interface UserState {
   updateUserDetails: (user: RegisterUserData) => Promise<boolean>;
   fetchBrandSettings: () => Promise<void>;
   editBrandSettings(updates: Partial<BrandSettings>): Promise<boolean>;
-  deleteAccount: (signOut: () => Promise<void>) => Promise<boolean>;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -31,6 +30,12 @@ export const useUserStore = create<UserState>((set, get) => ({
   brandSetting: null,
   updateUser(user) {
     set({ user });
+    // Keep effectiveEmail in sync — sub-admins use the owner's email
+    if (user?.isAdmin && user?.invitedBy) {
+      setEffectiveEmail(user.invitedBy);
+    } else {
+      setEffectiveEmail(user?.email ?? "");
+    }
   },
   async updateUserDetails(user) {
     set({ loading: true });
@@ -40,6 +45,13 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       const uid = getCurrentUserId();
       const email = user.email;
+
+      // Sub-admins don't have a Firebase profile doc — skip Firestore update
+      const currentUser = get().user;
+      if (currentUser?.isAdmin && currentUser?.invitedBy) {
+        set({ user });
+        return true;
+      }
 
       let userRef = doc(db, "fashiontally_users", uid);
 
@@ -88,10 +100,23 @@ export const useUserStore = create<UserState>((set, get) => ({
       const userEmail = getCurrentUserEmail();
       if (!userEmail) return;
 
+      // Primary: backend MongoDB (source of truth for brand settings)
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/brand-setting/get-by-email/${encodeURIComponent(userEmail)}`,
+        );
+        const data = await res.json();
+        if (data.success && data.data) {
+          set({ brandSetting: sanitizeBrandSettings({ ...data.data, userEmail }) });
+          return;
+        }
+      } catch {
+        // fall through to Firebase
+      }
+
+      // Fallback: Firebase Firestore
       const settingsRef = doc(db, "fashiontally_brand_settings", userEmail);
-
       const snap = await getDoc(settingsRef);
-
       if (snap.exists()) {
         set({ brandSetting: snap.data() as BrandSettings });
       } else {
@@ -99,112 +124,22 @@ export const useUserStore = create<UserState>((set, get) => ({
       }
     } catch (error: any) {
       console.error("Error fetching brand settings:", error);
-      ShowToastMessage({
-        title: "Failed to load brand settings",
-        message: error.message,
-        preset: "error",
-      });
     } finally {
       set({ loading: false });
     }
   },
 
   async editBrandSettings(updates: BrandSettings) {
-    set({ loading: true });
+    const docId = (updates.userEmail ?? "").trim();
+    if (!docId) return false;
 
-    try {
-      const docId = (updates.userEmail ?? "").trim();
-      if (!docId) {
-        // ShowToastMessage({
-        //   title: "Update failed",
-        //   message: "Missing user email (document id).",
-        //   preset: "error",
-        //   haptic: "error",
-        // });
-        return false;
-      }
+    const updateData: BrandSettings = sanitizeBrandSettings({
+      ...updates,
+      updatedAt: new Date().toISOString(),
+      userEmail: docId,
+    });
 
-      const settingsRef = doc(db, "fashiontally_brand_settings", docId);
-
-      const updateData: BrandSettings = sanitizeBrandSettings({
-        ...updates,
-        updatedAt: new Date().toISOString(),
-        userEmail: docId,
-      });
-
-      await setDoc(settingsRef, updateData, { merge: true });
-
-      set({ brandSetting: updateData });
-
-      ShowToastMessage({
-        title: "Settings saved",
-        preset: "done",
-        haptic: "success",
-      });
-
-      return true;
-    } catch (error: any) {
-      console.error("Error updating brand settings:", error);
-      ShowToastMessage({
-        title: "Update failed",
-        message: error.message,
-        preset: "error",
-        haptic: "error",
-      });
-      return false;
-    } finally {
-      set({ loading: false });
-    }
-  },
-  async deleteAccount(signOut) {
-    set({ loading: true });
-    try {
-      const uid = getCurrentUserId();
-      const email = getCurrentUserEmail();
-
-      const userRef = doc(db, "fashiontally_users", uid);
-      await deleteDoc(userRef);
-
-      if (email) {
-        const settingsRef = doc(db, "fashiontally_brand_settings", email);
-        await deleteDoc(settingsRef);
-      }
-
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        try {
-          await deleteUser(currentUser);
-        } catch (error: any) {
-          if (error.code === "auth/requires-recent-login") {
-            // Can't delete auth user, so just sign them out
-            await signOut();
-            ShowToastMessage({
-              title: "Please log in again",
-              message:
-                "For security, sign back in then try deleting your account.",
-              preset: "error",
-              haptic: "error",
-            });
-            return false;
-          }
-          throw error;
-        }
-      }
-
-      await signOut();
-      set({ user: null, brandSetting: null });
-      return true;
-    } catch (error: any) {
-      console.error("Error deleting account:", error);
-      ShowToastMessage({
-        title: "Delete failed",
-        message: error.message,
-        preset: "error",
-        haptic: "error",
-      });
-      return false;
-    } finally {
-      set({ loading: false });
-    }
+    set({ brandSetting: updateData });
+    return true;
   },
 }));

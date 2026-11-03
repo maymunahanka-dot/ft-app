@@ -23,7 +23,11 @@ export type Client = {
   name: string;
   email: string;
   phone: string;
-  lastVisit: string;
+  address?: string;
+  status?: string;
+  lastOrder?: string;    // matches backend field name
+  lastVisit?: string;    // legacy alias kept for compatibility
+  totalSpent?: number;
   measurements?: ClientMeasurements;
   blouseLength?: string;
   chest?: string;

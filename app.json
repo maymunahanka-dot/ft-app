@@ -2,7 +2,7 @@
   "expo": {
     "name": "FashionTally",
     "slug": "fashiontally-app",
-    "version": "1.0.6",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/brand/fashionTally_logo.png",
     "scheme": "fashiontally",
@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.fashion.fashiontally",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -24,6 +25,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.fashion.fashiontally",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.READ_CALENDAR",
         "android.permission.WRITE_CALENDAR"
@@ -47,18 +49,37 @@
           }
         }
       ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "FashionTally uses your photo library to let you set a profile picture or upload business branding images."
-        }
-      ],
       "expo-secure-store",
       "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/brand/fashionTally_logo.png",
+          "color": "#16988D",
+          "sounds": [],
+          "androidMode": "default",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
       [
         "expo-calendar",
         {
           "calendarPermission": "FashionTally syncs your client appointments to Calendar so they appear with your other events and can use your system reminders."
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-sharing",
+      "expo-status-bar",
+      "@react-native-community/datetimepicker",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "dynamic"
+          }
         }
       ]
     ],

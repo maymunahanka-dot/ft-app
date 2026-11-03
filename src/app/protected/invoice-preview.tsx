@@ -30,14 +30,19 @@ const InvoicePreview = () => {
   const { invoiceId } = useLocalSearchParams<{ invoiceId: string }>();
 
   const invoices = useInvoiceStore((state) => state.invoices);
-  const invoice = invoices.find((prev) => prev.id === invoiceId.toString())!;
+  const invoice = invoices.find((prev) => prev.id === invoiceId?.toString()) ?? null;
 
   const handleBack = () => {
     router.replace("/(tabs)/Invoices");
   };
 
+  if (!invoice) {
+    handleBack();
+    return null;
+  }
+
   return (
-    <SafeAreaView style={{ flex: 1, paddingTop: spacing(20) }}>
+    <SafeAreaView edges={["left","right","bottom"]} style={{ flex: 1, paddingTop: spacing(20) }}>
       <Pressable style={styles.backBtn} onPress={handleBack}>
         <MoveLeft size={scale(18)} color={"black"} />
       </Pressable>

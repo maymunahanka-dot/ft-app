@@ -25,6 +25,7 @@ interface Props {
   paddingVertical?: number;
   rightIcon: () => React.JSX.Element;
   drawer?: boolean;
+  contentBg?: string;
 }
 
 const BGScreenBG: React.FC<Props> = ({
@@ -38,6 +39,7 @@ const BGScreenBG: React.FC<Props> = ({
   paddingVertical = 50,
   rightIcon,
   drawer = false,
+  contentBg = "white",
 }) => {
   const RightComp = rightIcon;
   const HeaderComp = headerChildren;
@@ -99,14 +101,14 @@ const BGScreenBG: React.FC<Props> = ({
       <KeyboardAvoidingView
         style={{
           flex: 1,
-          backgroundColor: "white",
+          backgroundColor: contentBg,
         }}
         behavior={Platform.OS === "ios" ? "padding" : "padding"}
         keyboardVerticalOffset={
           Platform.OS === "ios" ? spacing(50) : spacing(0)
         }
       >
-        <View style={styles.content}>{children}</View>
+        <View style={[styles.content, { backgroundColor: contentBg }]}>{children}</View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -139,7 +141,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: "semibold",
     fontSize: scaleFontSize(24),
-    lineHeight: 28,
+    lineHeight: 22,
     color: "white",
   },
   startRow: {

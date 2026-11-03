@@ -1,4 +1,4 @@
-import * as Calendar from "expo-calendar";
+import * as Calendar from "expo-calendar/legacy";
 import { Platform } from "react-native";
 import { Appointment } from "../types/appointment";
 import { ShowToastMessage } from "./random";
@@ -42,6 +42,7 @@ async function getDefaultCalendarId(): Promise<string | null> {
 export async function createCalendarEvent(
   appointment: Appointment,
 ): Promise<string | undefined> {
+  if (Platform.OS === "ios") return undefined;
   try {
     const calendarId = await getDefaultCalendarId();
     if (!calendarId) return undefined;
@@ -94,6 +95,7 @@ export async function updateCalendarEvent(
   eventId: string,
   appointment: Appointment,
 ): Promise<void> {
+  if (Platform.OS === "ios") return;
   try {
     if (!eventId) {
       ShowToastMessage({
@@ -146,6 +148,7 @@ export async function updateCalendarEvent(
 }
 
 export async function deleteCalendarEvent(eventId: string): Promise<void> {
+  if (Platform.OS === "ios") return;
   try {
     if (!eventId) {
       ShowToastMessage({
@@ -175,6 +178,7 @@ export async function deleteCalendarEvent(eventId: string): Promise<void> {
 
 // Helper function to check if calendar permissions are granted
 export async function hasCalendarPermission(): Promise<boolean> {
+  if (Platform.OS === "ios") return false;
   try {
     const { status } = await Calendar.getCalendarPermissionsAsync();
     return status === "granted";
@@ -186,6 +190,7 @@ export async function hasCalendarPermission(): Promise<boolean> {
 
 // Helper function to get all available calendars
 export async function getAvailableCalendars(): Promise<Calendar.Calendar[]> {
+  if (Platform.OS === "ios") return [];
   try {
     const { status } = await Calendar.requestCalendarPermissionsAsync();
 

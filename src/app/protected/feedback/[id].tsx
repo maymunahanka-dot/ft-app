@@ -4,6 +4,7 @@ import { HapticTab } from "@/src/components/haptic-tab";
 import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { useCrmStore } from "@/src/stores/crmSlice";
 import { Client } from "@/src/types/client";
@@ -17,6 +18,8 @@ import {
 } from "@/src/utils/random";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import ImageUploadField from "@/src/components/shared/ImageUploadField";
 import { ChevronDown, ChevronLeft } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
@@ -30,6 +33,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const STATUSLIST = [
   {
@@ -88,6 +92,21 @@ const EditFeebackScreen = () => {
 
   const loading = useCrmStore((state) => state.loading);
   const editFeedback = useCrmStore((state) => state.editFeedback);
+
+  const { isDark } = useTheme();
+  const { top } = useSafeAreaInsets();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : "rgba(54, 65, 83, 1)";
+  const labelColor = isDark ? "rgba(160,160,160,1)" : "#4A5565";
+  const inputBg = isDark ? "rgba(255,255,255,0.06)" : "white";
+  const inputBorder = isDark ? "rgba(255,255,255,0.1)" : Colors.inputBorder;
+  const inputTextColor = isDark ? Colors.text.white : Colors.black;
+  const placeholderColor = isDark ? "rgba(100,100,100,1)" : Colors.grayText;
+  const dropdownTextColor = isDark ? "rgba(200,200,200,1)" : "rgba(10, 10, 10, 0.5)";
+  const dropdownActiveColor = isDark ? Colors.text.white : "rgba(10, 10, 10, 1)";
+  const chevronColor = isDark ? "rgba(160,160,160,1)" : Colors.grey;
+  const starInactiveColor = isDark ? "rgba(180,180,180,1)" : "black";
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
@@ -179,222 +198,148 @@ const EditFeebackScreen = () => {
 
   return (
     <>
-      <View
-        style={{ flex: 1, paddingTop: spacing(50), backgroundColor: "white" }}
-      >
+      <View style={{ flex: 1, paddingTop: top, backgroundColor: bg }}>
+        <StatusBar style={isDark ? "light" : "dark"} />
         <View style={styles.header}>
           <HapticTab
-            style={{
-              width: 32,
-              aspectRatio: 1,
-              justifyContent: "center",
-              alignItems: "center",
-            }}
+            style={{ width: 32, aspectRatio: 1, justifyContent: "center", alignItems: "center" }}
             onPress={handleBack}
           >
-            <ChevronLeft
-              size={scale(20)}
-              color={"rgba(54, 65, 83, 1)"}
-              strokeWidth={1.5}
-            />
+            <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-
-          <Text style={styles.reg24}>Edit Client Feedback</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>Edit Client Feedback</Text>
         </View>
 
         <KeyboardAvoidingView
-          style={{
-            flex: 1,
-            backgroundColor: "white",
-          }}
+          style={{ flex: 1, backgroundColor: bg }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={
-            Platform.OS === "ios" ? spacing(50) : spacing(0)
-          }
+          keyboardVerticalOffset={Platform.OS === "ios" ? spacing(50) : spacing(0)}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             bounces={false}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingVertical: spacing(30),
-            }}
+            contentContainerStyle={{ flexGrow: 1, paddingVertical: spacing(30) }}
             keyboardDismissMode="interactive"
           >
             <View style={styles.content}>
+              <ImageUploadField
+                uri={data.imageUrl}
+                onChange={(uri) => handleDataChange("imageUrl", uri)}
+                label="Photo (Optional)"
+              />
+              {/* client picker */}
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Clients</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Clients</Text>
                 <Pressable
-                  style={[Styles.input, { ...styles.row, paddingVertical: 0 }]}
+                  style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleClientModal}
                 >
-                  {selectedClient ? (
-                    <Text
-                      style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
-                    >
-                      {selectedClient.name}
-                    </Text>
-                  ) : (
-                    <Text
-                      style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
-                    >
-                      Select a Client from your list
-                    </Text>
-                  )}
-
-                  <ChevronDown size={scale(20)} color={Colors.grey} />
+                  <Text style={[Styles.reg16, { color: selectedClient ? dropdownActiveColor : dropdownTextColor }]}>
+                    {selectedClient ? selectedClient.name : "Select a Client from your list"}
+                  </Text>
+                  <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
               </View>
+
+              {/* client name */}
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>
+                <Text style={[Styles.label, { color: labelColor }]}>
                   Client Name<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.clientName}
                   onChangeText={(text) => handleDataChange("clientName", text)}
-                  placeholder="Enter member's full name"
-                  placeholderTextColor={Colors.grayText}
-                  returnKeyLabel="next"
+                  placeholder="Enter client's full name"
+                  placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
                   autoCorrect={false}
-                  style={[
-                    Styles.input,
-                    {
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.clientName ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.clientName}
-                  </Text>
-                ) : null}
+                {error.clientName ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.clientName}</Text> : null}
               </View>
 
+              {/* client email */}
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>
+                <Text style={[Styles.label, { color: labelColor }]}>
                   Client Email<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.clientEmail}
                   onChangeText={(text) => handleDataChange("clientEmail", text)}
-                  placeholder="Enter member's email address"
-                  placeholderTextColor={Colors.grayText}
-                  returnKeyLabel="next"
+                  placeholder="Enter client's email address"
+                  placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="email-address"
                   autoCorrect={false}
-                  style={[
-                    Styles.input,
-                    {
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.clientEmail ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.clientEmail}
-                  </Text>
-                ) : null}
+                {error.clientEmail ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.clientEmail}</Text> : null}
               </View>
 
-              <View style={[Styles.inputContainer]}>
-                <Text style={Styles.label}>
+              {/* rating */}
+              <View style={Styles.inputContainer}>
+                <Text style={[Styles.label, { color: labelColor }]}>
                   Rating<Text style={styles.red}> *</Text>
                 </Text>
                 <InteractiveStarRating
                   rating={data.rating}
                   onRate={(rating) => handleDataChange("rating", rating)}
                   size={scale(30)}
+                  inactiveColor={starInactiveColor}
                 />
               </View>
 
+              {/* comment */}
               <View style={Styles.inputContainer}>
-                <Text style={[styles.reg14]}>
+                <Text style={[styles.reg14, { color: labelColor }]}>
                   Feedback Comment<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.comment}
                   onChangeText={(text) => handleDataChange("comment", text)}
                   placeholder="Share your experience with our service"
-                  placeholderTextColor={Colors.grayText}
+                  placeholderTextColor={placeholderColor}
                   keyboardType="default"
-                  style={[
-                    Styles.input,
-                    {
-                      height: 80,
-                      textAlignVertical: "top",
-                      paddingTop: spacing(15),
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  multiline
+                  style={[Styles.input, { height: 80, textAlignVertical: "top", paddingTop: spacing(15), paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.comment ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.comment}
-                  </Text>
-                ) : null}
+                {error.comment ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.comment}</Text> : null}
               </View>
 
+              {/* product */}
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>
+                <Text style={[Styles.label, { color: labelColor }]}>
                   Product/Service<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.productName}
                   onChangeText={(text) => handleDataChange("productName", text)}
                   placeholder="E.g. Custom wedding gown"
-                  placeholderTextColor={Colors.grayText}
-                  returnKeyLabel="done"
+                  placeholderTextColor={placeholderColor}
                   returnKeyType="done"
                   autoCorrect={true}
-                  style={[
-                    Styles.input,
-                    {
-                      paddingVertical: 0,
-                      backgroundColor: "white",
-                      paddingHorizontal: spacing(16),
-                    },
-                  ]}
+                  style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.clientEmail ? (
-                  <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
-                    {error.clientEmail}
-                  </Text>
-                ) : null}
+                {error.productName ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.productName}</Text> : null}
               </View>
 
-              <View style={[Styles.inputContainer]}>
-                <Text style={Styles.label}>Status</Text>
+              {/* status */}
+              <View style={Styles.inputContainer}>
+                <Text style={[Styles.label, { color: labelColor }]}>Status</Text>
                 <Pressable
-                  style={[Styles.input, { ...styles.row, paddingVertical: 0 }]}
+                  style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleStatusModal}
                 >
-                  <Text
-                    style={[Styles.reg16, { color: "rgba(10, 10, 10, 1)" }]}
-                  >
+                  <Text style={[Styles.reg16, { color: dropdownActiveColor }]}>
                     {CapitalizeFirstName(data.status)}
                   </Text>
-
-                  <ChevronDown size={scale(20)} color={Colors.grey} />
+                  <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
               </View>
 
-              {/* button */}
               <View style={styles.button}>
-                <PrimaryButton
-                  title="Edit Feedback"
-                  onPress={handleEditFeedback}
-                  loading={loading}
-                  props={{ disabled: loading }}
-                />
+                <PrimaryButton title="Edit Feedback" onPress={handleEditFeedback} loading={loading} props={{ disabled: loading }} />
               </View>
             </View>
           </ScrollView>

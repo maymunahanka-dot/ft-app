@@ -33,6 +33,10 @@ yarn-error.*
 # local env files
 .env*.local
 
+# Firebase — contains sensitive project credentials, never commit
+# google-services.json   ← uncommitted to allow EAS builds via git
+GoogleService-Info.plist
+
 # typescript
 *.tsbuildinfo
 
@@ -41,3 +45,10 @@ app-example
 # generated native folders
 /ios
 /android
+.env
+.env
+.env
+.env
+/brag-output-2026-11-02-143822
+/brag-output
+.env

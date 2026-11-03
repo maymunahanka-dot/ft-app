@@ -1,57 +1,47 @@
-import { auth } from "../context/firebase";
+import { getEffectiveEmail } from "./effectiveEmail";
 
 /**
- * Get the current authenticated user's ID
- * @returns The user's UID or throws an error if not authenticated
- */
-export const getCurrentUserId = (): string => {
-  const user = auth.currentUser;
-  if (!user) {
-    // throw new Error(
-    //   "User not authenticated. Please log in to access this data."
-    // );
-    return "";
-  }
-  return user.uid;
-};
-
-/**
- * Get the current authenticated user's email
- * @returns The user's email or a default if not available
+ * Returns the effective email for data queries.
+ * For sub-admins: returns the main admin's email (invitedBy).
+ * For everyone else: returns their own email.
+ *
+ * Falls back to the Zustand store when effectiveEmail hasn't been set yet.
  */
 export const getCurrentUserEmail = (): string => {
-  const user = auth.currentUser;
-  if (!user) {
-    // throw new Error(
-    //   "User not authenticated. Please log in to access this data."
-    // );
-    return "";
-  }
-  return user.email || "user@fashiontally.com";
+  const effective = getEffectiveEmail();
+  if (effective) return effective;
+
+  // Lazy import to avoid circular dependency at module load time
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { useUserStore } = require("../stores/userSlice");
+  const user = useUserStore.getState().user;
+  return user?.email ?? "";
 };
 
 /**
- * Get the current authenticated user's data
- * @returns Object with uid and email
+ * Get the current authenticated user's ID from the Zustand store.
+ */
+export const getCurrentUserId = (): string => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { useUserStore } = require("../stores/userSlice");
+  const user = useUserStore.getState().user;
+  return user?.uid ?? "";
+};
+
+/**
+ * Get the current authenticated user's data from the Zustand store.
  */
 export const getCurrentUser = (): { uid: string; email: string } => {
-  const user = auth.currentUser;
-  if (!user) {
-    // throw new Error(
-    //   "User not authenticated. Please log in to access this data."
-    // );
-    return { uid: "", email: "" };
-  }
-  return {
-    uid: user.uid,
-    email: user.email || "user@fashiontally.com",
-  };
+  const email = getCurrentUserEmail();
+  const uid = getCurrentUserId();
+  return { uid, email };
 };
 
 /**
- * Check if a user is currently authenticated
- * @returns boolean indicating if user is authenticated
+ * Check if a user is currently authenticated.
  */
 export const isUserAuthenticated = (): boolean => {
-  return auth.currentUser !== null;
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { useUserStore } = require("../stores/userSlice");
+  return useUserStore.getState().user !== null;
 };

@@ -1,27 +1,17 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  orderBy,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
 import { create } from "zustand";
-import { db } from "../context/firebase";
-import { generateInvoiceId, generateInvoiceNumber } from "../lib/invoice";
+import { apiFetch } from "../lib/apiClient";
+import { generateInvoiceNumber } from "../lib/invoice";
 import { Invoice, InvoiceData } from "../types/Invoice";
+import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
+
+const CACHE_KEY = "store_invoices";
 
 interface InvoiceState {
   invoices: Invoice[];
   loading: boolean;
   createInvoice(
-    payload: Omit<InvoiceData, "invoiceNumber"> & {
-      userEmail: string;
-    },
+    payload: Omit<InvoiceData, "invoiceNumber"> & { userEmail: string },
   ): Promise<void>;
   getInvoicesByTailor(email: string): Promise<void>;
   editInvoice(itemId: string, updates: Partial<Invoice>): Promise<void>;
@@ -32,118 +22,94 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
   invoices: [],
   loading: false,
 
+  // ─── CREATE ────────────────────────────────────────────────────────────────
   async createInvoice(payload) {
     set({ loading: true });
     try {
-      const id = generateInvoiceId();
+      // Generate invoice number client-side (display only; backend generates the id)
       const invoiceNumber = generateInvoiceNumber();
-      const now = new Date().toISOString();
-      const invoiceDoc: Invoice = {
-        ...payload,
-        invoiceNumber,
-        id,
-        createdAt: now,
-        userEmail: payload.userEmail,
-      };
-      const invoiceRef = doc(db, "fashiontally_invoices", id);
-      await setDoc(invoiceRef, invoiceDoc);
-      set((state) => ({ invoices: [invoiceDoc, ...state.invoices] }));
+      const res = await apiFetch<{ success: boolean; data: Invoice }>(
+        "/invoice/create",
+        {
+          method: "POST",
+          body: JSON.stringify({ ...payload, invoiceNumber }),
+        },
+      );
+      const saved = res.data;
+      set((state) => ({ invoices: [saved, ...state.invoices] }));
     } catch (error: any) {
       console.error("Error creating invoice:", error);
-      // throw new Error("Failed to create invoice");
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to create invoice", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
 
-  async getInvoicesByTailor(email) {
-    set({ loading: true });
+  // ─── LIST ──────────────────────────────────────────────────────────────────
+  async getInvoicesByTailor(_email) {
+    const cached = await readCache<Invoice[]>(CACHE_KEY);
+    if (cached) set({ invoices: cached });
+
+    if (!cached) set({ loading: true });
     try {
-      const invoicesRef = collection(db, "fashiontally_invoices");
-      const q = query(
-        invoicesRef,
-        where("userEmail", "==", email),
-        orderBy("createdAt", "desc"),
+      const res = await apiFetch<{ success: boolean; data: Invoice[] }>(
+        "/invoice/list",
       );
-      const querySnapshot = await getDocs(q);
-
-      const invoices = querySnapshot.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      })) as Invoice[];
-
-      set({ invoices });
+      const fresh = (res.data ?? []).map((inv: any) => ({
+        ...inv,
+        id: inv.id || inv._id?.toString() || "",
+      }));
+      set({ invoices: fresh });
+      await writeCache(CACHE_KEY, fresh);
     } catch (error: any) {
       console.error("Error getting invoices:", error);
-      // throw new Error("Failed to get invoices");
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      if (!cached) {
+        ShowToastMessage({ title: error.message ?? "Failed to fetch invoices", preset: "error", haptic: "error" });
+      }
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── EDIT ──────────────────────────────────────────────────────────────────
   async editInvoice(itemId, updates) {
     set({ loading: true });
     try {
-      const itemRef = doc(db, "fashiontally_invoices", itemId);
-
-      const updateData = {
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await updateDoc(itemRef, updateData);
-
+      const res = await apiFetch<{ success: boolean; data: Invoice }>(
+        `/invoice/edit/${encodeURIComponent(itemId)}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(updates),
+        },
+      );
+      const updated = res.data;
       set((state) => ({
-        invoices: state.invoices.map((item) =>
-          item.id === itemId ? { ...item, ...updateData } : item,
+        invoices: state.invoices.map((i) =>
+          i.id === updated.id ? updated : i,
         ),
       }));
-
-      ShowToastMessage({
-        title: "Invoice updated successfully",
-        preset: "done",
-        haptic: "success",
-      });
+      ShowToastMessage({ title: "Invoice updated successfully", preset: "done", haptic: "success" });
     } catch (error: any) {
-      console.error("Error updating Invoice item:", error);
-      ShowToastMessage({
-        title: "Update failed",
-        message: error.message,
-        preset: "error",
-        haptic: "error",
-      });
+      console.error("Error updating invoice:", error);
+      ShowToastMessage({ title: error.message ?? "Update failed", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── DELETE ────────────────────────────────────────────────────────────────
   async deleteInvoice(invoiceId) {
     set({ loading: true });
     try {
-      const orderRef = doc(db, "fashiontally_invoices", invoiceId);
-      await deleteDoc(orderRef);
-      console.log(`Invoice ${invoiceId} successfully deleted`);
-
+      await apiFetch(`/invoice/delete/${encodeURIComponent(invoiceId)}`, {
+        method: "DELETE",
+      });
       set((state) => ({
         invoices: state.invoices.filter((i) => i.id !== invoiceId),
       }));
     } catch (error: any) {
       console.error("Error deleting invoice:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to delete invoice", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

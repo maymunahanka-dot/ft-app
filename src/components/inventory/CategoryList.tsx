@@ -1,4 +1,6 @@
 import { Styles } from "@/src/constants/styles";
+import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { spacing } from "@/src/utils/random";
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
@@ -44,6 +46,9 @@ type Props = {
 };
 
 const CategoryList = ({ selectedCategory, onSelect }: Props) => {
+  const { isDark } = useTheme();
+  const unselectedText = isDark ? "rgba(200,200,200,1)" : "black";
+
   const handleOnPress = (category: string) => {
     onSelect(category);
   };
@@ -73,7 +78,7 @@ const CategoryList = ({ selectedCategory, onSelect }: Props) => {
             <Text
               style={[
                 Styles.reg14,
-                { color: isSelected ? "white" : "black", textAlign: "center" },
+                { color: isSelected ? "white" : unselectedText, textAlign: "center" },
               ]}
             >
               {category.label}

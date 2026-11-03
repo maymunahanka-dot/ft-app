@@ -52,6 +52,8 @@ const SelectFilterModal = ({
       backdropComponent={({ style }) => (
         <TouchableOpacity
           onPress={handleClosePress}
+          accessible={false}
+          focusable={false}
           style={[
             style,
             {

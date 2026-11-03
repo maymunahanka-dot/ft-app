@@ -1,18 +1,10 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  setDoc,
-  where,
-} from "firebase/firestore";
 import { create } from "zustand";
-import { db } from "../context/firebase";
-import { getCurrentUserEmail } from "../lib/auth-utils";
+import { apiFetch } from "../lib/apiClient";
 import { Client, ClientMeasurements } from "../types/client";
+import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
+
+const CACHE_KEY = "store_clients";
 
 interface ClientState {
   clients: Client[];
@@ -31,186 +23,150 @@ interface ClientState {
 export const useClientStore = create<ClientState>((set, get) => ({
   clients: [],
   loading: false,
+
+  // ─── CREATE ────────────────────────────────────────────────────────────────
   async saveClient(client) {
     set({ loading: true });
     try {
-      const clientRef = doc(db, "fashiontally_clients", client.phone);
-      await setDoc(clientRef, {
-        ...client,
-        userEmail: getCurrentUserEmail(),
-        lastUpdated: new Date().toISOString(),
-      });
+      const res = await apiFetch<{ success: boolean; data: Client }>(
+        "/client/create",
+        {
+          method: "POST",
+          body: JSON.stringify(client),
+        },
+      );
+      const saved = res.data;
       set((state) => ({
-        clients: state.clients.some((i) => i.id === client.id)
-          ? state.clients.map((i) => (i.id === client.id ? client : i))
-          : [client, ...state.clients],
+        clients: state.clients.some((c) => c.id === saved.id)
+          ? state.clients.map((c) => (c.id === saved.id ? saved : c))
+          : [saved, ...state.clients],
       }));
     } catch (error: any) {
       console.error("Error saving client:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to save client", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
 
-  async editClient(updatedClient, previousPhone) {
+  // ─── EDIT ──────────────────────────────────────────────────────────────────
+  async editClient(updatedClient, _previousPhone) {
     set({ loading: true });
     try {
-      const clientData = {
-        ...updatedClient,
-        lastUpdated: new Date().toISOString(),
-      };
-
-      // Phone changed
-      if (previousPhone !== updatedClient.phone) {
-        const oldClientRef = doc(db, "fashiontally_clients", previousPhone);
-        await deleteDoc(oldClientRef);
-
-        const newClientRef = doc(
-          db,
-          "fashiontally_clients",
-          updatedClient.phone,
-        );
-        await setDoc(newClientRef, {
-          ...clientData,
-          id: updatedClient.phone,
-        });
-
-        set((state) => ({
-          clients: [
-            ...state.clients.filter((c) => c.id !== previousPhone),
-            { ...updatedClient, id: updatedClient.phone },
-          ],
-        }));
-      } else {
-        // Same phone: update in place
-        const clientRef = doc(db, "fashiontally_clients", updatedClient.phone);
-        await setDoc(clientRef, clientData);
-
-        set((state) => ({
-          clients: state.clients.map((c) =>
-            c.id === updatedClient.phone
-              ? { ...updatedClient, id: updatedClient.phone }
-              : c,
-          ),
-        }));
-      }
-      await get().getClientsByTailor(getCurrentUserEmail());
+      const res = await apiFetch<{ success: boolean; data: Client }>(
+        `/client/edit/${encodeURIComponent(updatedClient.id)}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(updatedClient),
+        },
+      );
+      const updated = res.data;
+      set((state) => ({
+        clients: state.clients.map((c) =>
+          c.id === updated.id ? updated : c,
+        ),
+      }));
     } catch (error: any) {
       console.error("Error editing client:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to update client", preset: "error", haptic: "error" });
       throw new Error("Failed to edit client");
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── EDIT MEASUREMENTS ─────────────────────────────────────────────────────
   async editMeasurements(client, updates) {
     set({ loading: true });
     try {
       const existing = client.measurements ?? ({} as ClientMeasurements);
-      const merged = {
-        ...existing,
-        ...updates,
-      };
-      const updatedClient: Client = {
-        ...client,
-        measurements: merged,
-      };
+      const merged = { ...existing, ...updates };
+      const updatedClient: Client = { ...client, measurements: merged };
       await get().editClient(updatedClient, client.phone);
     } catch (error: any) {
       console.error("Error editing measurements:", error);
-      // throw new Error("Failed to edit measurements");
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to update measurements", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── GET BY ID ─────────────────────────────────────────────────────────────
   async getClientById(id) {
     set({ loading: true });
     try {
-      const clientRef = doc(db, "fashiontally_clients", id);
-      const clientDoc = await getDoc(clientRef);
+      // Check in-memory store first to avoid a round-trip
+      const cached = get().clients.find((c) => c.id === id);
+      if (cached) return cached;
 
-      if (clientDoc.exists()) {
-        return {
-          id: clientDoc.id,
-          ...clientDoc.data(),
-        } as Client;
-      }
-      return null;
+      const res = await apiFetch<{ success: boolean; data: Client }>(
+        `/client/get/${encodeURIComponent(id)}`,
+      );
+      return res.data ?? null;
     } catch (error: any) {
       console.error("Error getting client:", error);
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to fetch client", preset: "error", haptic: "error" });
       return null;
     } finally {
       set({ loading: false });
     }
   },
 
-  async getClientsByTailor(tailorId) {
-    set({ loading: true });
+  // ─── LIST ──────────────────────────────────────────────────────────────────
+  async getClientsByTailor(_tailorId) {
+    // 1. Show cached data immediately if available
+    const cached = await readCache<Client[]>(CACHE_KEY);
+    if (cached) {
+      console.log("[clientSlice] Loaded from cache:", cached.length, "clients");
+      console.log("[clientSlice] Cache sample (first item):", JSON.stringify(cached[0], null, 2));
+      // Normalize cached data too in case it was stored before this fix
+      const normalizedCache = cached.map((c: any) => ({
+        ...c,
+        id: c.id || c._id?.toString() || "",
+      }));
+      set({ clients: normalizedCache });
+    }
+
+    // 2. Fetch fresh data (show spinner only when cache is empty)
+    if (!cached) set({ loading: true });
     try {
-      const clientsRef = collection(db, "fashiontally_clients");
-      const q = query(clientsRef, where("userEmail", "==", tailorId));
-      const querySnapshot = await getDocs(q);
-
-      const clients = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Client[];
-
-      console.log("clients", clients);
-
-      set({ clients });
+      const res = await apiFetch<{ success: boolean; data: Client[] }>(
+        "/client/list",
+      );
+      console.log("[clientSlice] API response count:", (res.data ?? []).length);
+      console.log("[clientSlice] API raw sample (first item):", JSON.stringify((res.data ?? [])[0], null, 2));
+      // Normalize: ensure every client uses the custom `id` field, not MongoDB `_id`
+      const fresh = (res.data ?? []).map((c: any) => ({
+        ...c,
+        id: c.id || c._id?.toString() || "",
+      }));
+      console.log("[clientSlice] Normalized sample (first item):", JSON.stringify(fresh[0], null, 2));
+      set({ clients: fresh });
+      await writeCache(CACHE_KEY, fresh);
     } catch (error: any) {
-      console.error("Error getting clients:", error);
-      // throw new Error("Failed to get clients");
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      console.error("[clientSlice] ❌ Error fetching clients:", error.message);
+      // Only show error toast if we have nothing to display
+      if (!cached) {
+        ShowToastMessage({ title: error.message ?? "Failed to fetch clients", preset: "error", haptic: "error" });
+      }
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── DELETE ────────────────────────────────────────────────────────────────
   async deleteClient(clientId) {
     set({ loading: true });
     try {
-      const clientRef = doc(db, "fashiontally_clients", clientId);
-      await deleteDoc(clientRef);
-      console.log(`Client ${clientId} successfully deleted`);
-
+      await apiFetch(`/client/delete/${encodeURIComponent(clientId)}`, {
+        method: "DELETE",
+      });
       set((state) => ({
-        clients: state.clients.filter((i) => i.id !== clientId),
+        clients: state.clients.filter((c) => c.id !== clientId),
       }));
     } catch (error: any) {
       console.error("Error deleting client:", error);
-      // throw new Error("Failed to delete client");
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to delete client", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

@@ -1,13 +1,4 @@
-import {
-  collection,
-  doc,
-  DocumentSnapshot,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
-import { db } from "../context/firebase";
+import { apiFetch } from "../lib/apiClient";
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -19,7 +10,9 @@ export type SubscriptionResult = {
   isSubscribed: boolean;
   planType?: string;
   subscriptionType?: SubscriptionType;
+  subscriptionStartDate?: string;
   subscriptionEndDate?: string;
+  currentDate?: string;
   paymentAmount?: number;
   paymentDate?: string;
 };
@@ -28,6 +21,7 @@ type UserDocData = {
   subscriptionType?: SubscriptionType;
   planType?: string;
   isTrialActive?: boolean;
+  subscriptionStartDate?: string;
   subscriptionEndDate?: string;
   payment_amount?: number;
   payment_date?: string;
@@ -38,65 +32,29 @@ type UserDocData = {
 /*                              CORE CHECK LOGIC                               */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Checks subscription status by reading the user record from the backend
+ * (MongoDB). Falls back to granting access if the backend is unreachable so
+ * a network blip never locks users out.
+ */
 export async function checkSubscriptionStatus(
-  email?: string,
-  uuid?: string,
+  _email?: string,
+  _uuid?: string,
 ): Promise<SubscriptionResult> {
   try {
-    if (!email && !uuid) {
-      return { isSubscribed: false, subscriptionType: "free" };
-    }
-
-    if (!db) {
-      // Mobile safety: fail open if DB not ready
-      return getFallbackAccess();
-    }
-
-    // 1️⃣ Global kill switch
-    const settingsSnap = await getDoc(
-      doc(db, "system_settings", "subscription"),
+    // apiFetch attaches the stored Bearer token automatically
+    const res = await apiFetch<{ success: boolean; data: UserDocData }>(
+      "/user/get",
     );
 
-    if (
-      settingsSnap.exists() &&
-      settingsSnap.data()?.subscriptionsEnabled === false
-    ) {
+    if (!res.success || !res.data) {
       return getFallbackAccess();
     }
 
-    // 2️⃣ Admin delegation
-    let effectiveEmail = email;
-
-    if (email) {
-      const adminSnap = await getDocs(
-        query(
-          collection(db, "fashiontally_admins"),
-          where("email", "==", email),
-        ),
-      );
-
-      if (!adminSnap.empty) {
-        const adminData = adminSnap.docs[0].data();
-        if (adminData?.invitedBy) {
-          effectiveEmail = adminData.invitedBy;
-        }
-      }
-    }
-
-    // 3️⃣ Resolve user document
-    const userSnap = await findUserDoc(effectiveEmail, uuid);
-    if (!userSnap) {
-      return { isSubscribed: false, subscriptionType: "free" };
-    }
-
-    console.log("user data", userSnap.data());
-
-    const userData = userSnap.data() as UserDocData;
-
-    return evaluateSubscription(userData);
+    return evaluateSubscription(res.data);
   } catch {
-    // Never crash mobile UI
-    return { isSubscribed: false, subscriptionType: "free" };
+    // Network error or 401 — fail open so connectivity issues don't block users
+    return getFallbackAccess();
   }
 }
 
@@ -109,6 +67,7 @@ function evaluateSubscription(data: UserDocData): SubscriptionResult {
     subscriptionType,
     planType,
     isTrialActive,
+    subscriptionStartDate,
     subscriptionEndDate,
     payment_amount,
     payment_date,
@@ -122,88 +81,43 @@ function evaluateSubscription(data: UserDocData): SubscriptionResult {
         isSubscribed: true,
         subscriptionType: "trial",
         planType: planType ?? "Starter",
+        subscriptionStartDate,
         subscriptionEndDate,
       };
     }
-
     return { isSubscribed: false, subscriptionType: "free", planType: "Free" };
   }
 
-  // 💳 Legacy paid (30 days)
-  if (payment_amount && payment_amount > 0 && payment_date) {
-    const active = getDaysSince(payment_date) <= 30;
+  // 🆕 New paid fields — check FIRST before legacy payment window
+  // isSubscribed + subscriptionEndDate is the authoritative source of truth
+  if (isSubscribed && subscriptionEndDate && isFutureDate(subscriptionEndDate)) {
+    return {
+      isSubscribed: true,
+      subscriptionType: subscriptionType ?? "paid",
+      planType: planType ?? "Starter",
+      subscriptionStartDate,
+      subscriptionEndDate,
+      currentDate: new Date().toISOString(),
+    };
+  }
 
+  // 💳 Legacy paid (30-day window) — only used when there is no subscriptionEndDate
+  if (payment_amount && payment_amount > 0 && payment_date && !subscriptionEndDate) {
+    const active = getDaysSince(payment_date) <= 30;
     return {
       isSubscribed: active,
       subscriptionType: "paid",
-      planType: determinePlanType(payment_amount),
+      planType: planType ?? determinePlanType(payment_amount),
+      subscriptionStartDate: payment_date,
+      subscriptionEndDate: getDatePlusDays(payment_date, 30),
+      currentDate: new Date().toISOString(),
       paymentAmount: payment_amount,
       paymentDate: payment_date,
     };
   }
 
-  // 🆕 New paid fields
-  if (
-    isSubscribed &&
-    subscriptionEndDate &&
-    isFutureDate(subscriptionEndDate)
-  ) {
-    return {
-      isSubscribed: true,
-      subscriptionType: subscriptionType ?? "paid",
-      planType: planType ?? "Starter",
-      subscriptionEndDate,
-    };
-  }
-
   return { isSubscribed: false, subscriptionType: "free", planType: "Free" };
 }
-
-/* -------------------------------------------------------------------------- */
-/*                             FIRESTORE HELPERS                               */
-/* -------------------------------------------------------------------------- */
-
-async function findUserDoc(
-  email?: string,
-  uuid?: string,
-): Promise<DocumentSnapshot | null> {
-  if (!db) return null;
-
-  if (email) {
-    const emailRef = doc(db, "fashiontally_users", email);
-    const snap = await getDoc(emailRef);
-    if (snap.exists()) return snap;
-  }
-
-  if (uuid) {
-    const uuidRef = doc(db, "fashiontally_users", uuid);
-    const snap = await getDoc(uuidRef);
-    if (snap.exists()) return snap;
-  }
-
-  return null;
-}
-
-// async function resolveUserDocRef(
-//   email?: string,
-//   uuid?: string,
-// ): Promise<{ ref: DocumentReference; keyType: "email" | "uuid" } | null> {
-//   if (!db) return null;
-
-//   if (email) {
-//     const ref = doc(db, "fashiontally_users", email);
-//     const snap = await getDoc(ref);
-//     if (snap.exists()) return { ref, keyType: "email" };
-//   }
-
-//   if (uuid) {
-//     const ref = doc(db, "fashiontally_users", uuid);
-//     const snap = await getDoc(ref);
-//     if (snap.exists()) return { ref, keyType: "uuid" };
-//   }
-
-//   return null;
-// }
 
 /* -------------------------------------------------------------------------- */
 /*                               UTIL FUNCTIONS                                */
@@ -217,9 +131,7 @@ const isFutureDate = (dateStr: string): boolean => {
 const getDaysSince = (dateStr: string): number => {
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return Infinity;
-
-  const diff = Date.now() - date.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
+  return Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
 };
 
 const getFallbackAccess = (): SubscriptionResult => ({
@@ -230,62 +142,13 @@ const getFallbackAccess = (): SubscriptionResult => ({
 
 const determinePlanType = (amount: number): string => {
   if (amount >= 25000) return "PROFESSIONAL";
-  if (amount >= 15000) return "GROWTH";
-  if (amount >= 10000) return "STARTER";
+  if (amount >= 10000) return "GROWTH";
+  if (amount >= 5000) return "STARTER";
   return "Free";
 };
 
-// /* -------------------------------------------------------------------------- */
-// /*                          TEST / DEV SUBSCRIPTION                             */
-// /* -------------------------------------------------------------------------- */
-
-// export async function addTestSubscription(
-//   email?: string,
-//   uuid?: string,
-//   options?: {
-//     planType?: string;
-//     subscriptionType?: SubscriptionType;
-//     daysValid?: number;
-//   },
-// ): Promise<boolean> {
-//   const resolved = await resolveUserDocRef(email, uuid);
-//   if (!resolved) return false;
-
-//   const endDate = new Date();
-//   endDate.setDate(endDate.getDate() + (options?.daysValid ?? 30));
-
-//   await updateDoc(resolved.ref, {
-//     isSubscribed: true,
-//     subscriptionType: options?.subscriptionType ?? "paid",
-//     planType: options?.planType ?? "Growth",
-//     subscriptionEndDate: endDate.toISOString(),
-//     isTrialActive: options?.subscriptionType === "trial",
-//     payment_amount: options?.subscriptionType === "paid" ? 10000 : null,
-//     payment_date:
-//       options?.subscriptionType === "paid" ? new Date().toISOString() : null,
-//     updatedAt: new Date().toISOString(),
-//   });
-
-//   return true;
-// }
-
-// export async function removeTestSubscription(
-//   email?: string,
-//   uuid?: string,
-// ): Promise<boolean> {
-//   const resolved = await resolveUserDocRef(email, uuid);
-//   if (!resolved) return false;
-
-//   await updateDoc(resolved.ref, {
-//     isSubscribed: false,
-//     subscriptionType: "free",
-//     planType: "Free",
-//     subscriptionEndDate: null,
-//     isTrialActive: false,
-//     payment_amount: null,
-//     payment_date: null,
-//     updatedAt: new Date().toISOString(),
-//   });
-
-//   return true;
-// }
+const getDatePlusDays = (dateStr: string, days: number): string => {
+  const date = new Date(dateStr);
+  date.setDate(date.getDate() + days);
+  return date.toISOString();
+};

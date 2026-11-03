@@ -1,4 +1,5 @@
 import { generateInvoiceId } from "@/src/lib/invoice";
+import { formatDollars, formatNaira, peekUsdToNgn } from "@/src/utils/exchangeRate";
 import { useUserStore } from "@/src/stores/userSlice";
 import { InvoiceData } from "@/src/types/Invoice";
 
@@ -90,168 +91,392 @@ export function formatFirestoreTimestampToISO(ts?: {
 }
 
 export const generateInvoiceHTML = (data: InvoiceData) => {
-  // const userLogo = useUserStore.getState().user?.logo;
   const brandSetting = useUserStore.getState().brandSetting;
 
-  const theme = data.themeColor ?? "#16988D";
+  const subtotal = data.items.reduce((sum, i) => sum + (Number(i.quantity) || 0) * (Number(i.price) || 0), 0);
+  const total = subtotal;
+  const balanceDue = total;
 
-  console.log("brand settings invoice", brandSetting);
+  const formatMoney = (n: number) => {
+    const naira = Number(n) || 0;
+    const nairaText = formatNaira(naira);
+    const rate = peekUsdToNgn();
+    if (!rate) return nairaText;
+    const dollars = formatDollars(naira, rate);
+    const useDollars = brandSetting?.inventoryCurrency === "USD";
+    const primary = useDollars ? dollars : nairaText;
+    const secondary = useDollars ? nairaText : dollars;
+    return `<div><div style="font-weight:700">${primary}</div><div style="font-size:11px;opacity:.7">${secondary}</div></div>`;
+  };
 
-  const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+  const invoiceNumber =
+    data?.invoiceNumber ?? generateInvoiceId();
 
-  const TAX_RATE = 7.5; // 7.5%
-  const taxAmount = (subtotal * TAX_RATE) / 100;
-  const total = subtotal + taxAmount;
-
-  const formatMoney = (n: number) =>
-    `${data.currency ?? "NGN"}${n.toLocaleString("en-NG", {
-      minimumFractionDigits: 2,
-    })}`;
+  const logoUrl = brandSetting?.logoUrl ?? data.logoUrl ?? "";
+  const companyName = brandSetting?.businessName ?? data.businessName ?? "";
+  const companyAddress = brandSetting?.businessAddress ?? data.businessAddress ?? "";
+  const bankName = brandSetting?.bankName ?? "";
+  const accountNumber = brandSetting?.accountNumber ?? "";
+  const accountName = brandSetting?.accountName ?? "";
 
   return `
     <!DOCTYPE html>
     <html>
     <head>
+      <meta charset="UTF-8" />
       <style>
-        :root {
-          --theme: ${theme};
-          --theme-light: ${theme}22;  /* 13% opacity tint */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+          font-family: Arial, sans-serif;
+          padding: 48px;
+          color: #333;
+          font-size: 14px;
+          line-height: 1.6;
+          background: #fff;
         }
-  
-        body { font-family: Arial, sans-serif; padding: 32px; color: #333; }
-        .row { display: flex; justify-content: space-between; align-items: flex-start; }
-        .header-left { display: block; }
-        .logo { width: 70px; height: 70px; object-fit: contain; margin-bottom: 8px; }
-        .business-name { font-size: 18px; font-weight: bold; }
-        .business-address { color: #666; font-size: 13px; margin-top: 2px; max-width: 200px; }
-        .padding-top { padding-top: 30px; }
-        h1 { margin: 0; color: var(--theme); }  /* ← themed */
-        .muted { color: #666; font-size: 13px; margin-top: 2px; }
-  
-        table { width: 100%; border-collapse: collapse; margin-top: 24px; }
-        th, td { border-bottom: 1px solid #ddd; padding: 10px; font-size: 14px; }
+
+        /* HEADER */
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 48px;
+        }
+        .logo {
+          height: 80px;
+          object-fit: contain;
+          display: block;
+        }
+        .invoice-title {
+          text-align: right;
+        }
+        .invoice-title h1 {
+          font-size: 48px;
+          font-weight: bold;
+          margin-bottom: 8px;
+          color: #333;
+        }
+        .invoice-title .invoice-num {
+          font-size: 18px;
+          font-weight: 600;
+        }
+
+        /* BALANCE DUE (top right) */
+        .balance-due-header {
+          text-align: right;
+          margin-bottom: 32px;
+        }
+        .balance-due-header .label {
+          color: #666;
+          font-size: 14px;
+          margin-bottom: 4px;
+        }
+        .balance-due-header .amount {
+          font-size: 24px;
+          font-weight: bold;
+        }
+
+        /* COMPANY DETAILS */
+        .company-details {
+          margin-bottom: 48px;
+        }
+        .company-details .name {
+          font-weight: bold;
+          font-size: 14px;
+          margin-bottom: 12px;
+        }
+        .company-details .address-line {
+          font-size: 14px;
+          color: #333;
+          margin-bottom: 4px;
+        }
+
+        /* BILL TO + DATES */
+        .bill-section {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 48px;
+        }
+        .bill-to .label {
+          font-weight: bold;
+          font-size: 14px;
+          margin-bottom: 8px;
+        }
+        .bill-to .client-name {
+          font-weight: 600;
+        }
+        .dates {
+          text-align: right;
+          min-width: 240px;
+        }
+        .date-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 12px;
+          gap: 32px;
+        }
+        .date-row .date-label { color: #666; }
+        .date-row .date-value { font-weight: 600; }
+
+        /* TABLE */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 32px;
+        }
+        thead tr {
+          background-color: #1f2937;
+          color: white;
+        }
         th {
-          background: var(--theme);   /* ← was hardcoded #333 */
-          color: white;
-          text-align: left;
-        }
-        .right { text-align: right; }
-        .right-gap { display: flex; flex-direction: column; gap: 15px; }
-        .right-gap div { white-space: pre; }
-  
-        .summary { width: 40%; min-width: 300px; margin-left: auto; margin-top: 20px; }
-        .summary-row { display: flex; justify-content: space-between; padding: 6px 0; }
-        .summary-row.total-row { border-top: 2px solid var(--theme); margin-top: 8px; padding-top: 12px; }
-  
-        .balance-box {
-          margin-top: 20px;
-          width: 95%;
-          background: var(--theme);    /* ← was #f1f1f1 */
-          color: white;
           padding: 12px;
-          padding-right: 20px;
+          text-align: left;
+          font-weight: bold;
+        }
+        th.right { text-align: right; }
+        th.center { text-align: center; }
+        td {
+          padding: 12px;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        td.right { text-align: right; }
+        td.center { text-align: center; }
+
+        /* TOTALS */
+        .totals {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          margin-bottom: 48px;
+        }
+        .totals-row {
+          display: flex;
+          gap: 64px;
+          margin-bottom: 12px;
+        }
+        .totals-row .totals-label {
+          font-weight: 600;
+          color: #374151;
+        }
+        .totals-row .totals-value {
+          width: 160px;
+          text-align: right;
+        }
+        .totals-row.grand-total {
           font-size: 18px;
           font-weight: bold;
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: space-between;
-          gap: 30px;
-          border-radius: 4px;
         }
-  
-        .invoice-label {
-          color: var(--theme);
-          font-size: 11px;
+        .balance-box {
+          width: 100%;
+          border-top: 2px solid #d1d5db;
+          border-bottom: 2px solid #d1d5db;
+          padding: 12px 16px;
+          display: flex;
+          gap: 64px;
+          background-color: #f9fafb;
+          margin-top: 4px;
+        }
+        .balance-box .totals-label { font-weight: bold; }
+        .balance-box .totals-value { font-weight: bold; }
+
+        /* BANK DETAILS */
+        .bank-details {
+          padding-top: 24px;
+          border-top: 1px solid #d1d5db;
+          margin-bottom: 32px;
+        }
+        .bank-details h4 {
           font-weight: bold;
-          letter-spacing: 1px;
-          text-transform: uppercase;
+          font-size: 14px;
+          margin-bottom: 12px;
+        }
+        .bank-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+        }
+        .bank-item .bank-label {
+          font-size: 12px;
+          color: #666;
           margin-bottom: 4px;
+        }
+        .bank-item .bank-value {
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        /* NOTES */
+        .notes {
+          margin-bottom: 32px;
+        }
+        .notes h4 {
+          font-weight: bold;
+          font-size: 14px;
+          margin-bottom: 12px;
+        }
+        .notes p {
+          font-size: 14px;
+          white-space: pre-line;
+          color: #374151;
+        }
+
+        /* TERMS */
+        .terms {
+          padding-top: 24px;
+          border-top: 1px solid #d1d5db;
+        }
+        .terms h4 {
+          font-weight: bold;
+          font-size: 14px;
+          margin-bottom: 8px;
+        }
+        .terms p {
+          font-size: 14px;
+          color: #374151;
         }
       </style>
     </head>
     <body>
-  
-      <!-- HEADER -->
-      <div class="row">
-        <div class="header-left">
-          ${
-            brandSetting?.logoUrl
-              ? `<img src="${brandSetting.logoUrl}" class="logo" alt="Logo" style="max-width:150px;height:auto;object-fit:contain;" />`
-              : ""
-          }
-          <div class="business-name padding-top">${brandSetting?.businessName ?? ""}</div>
-          <div class="business-address">${brandSetting?.businessAddress ?? ""}</div>
-        </div>
-        <div class="right">
-          <h1>INVOICE</h1>
-          <div># ${data?.invoiceNumber ? data.invoiceNumber.slice(0, 8) : generateInvoiceId().slice(0, 8)}</div>
-        </div>
-      </div>
-  
-      <br/>
-  
-      <!-- BILL INFO -->
-      <div class="row padding-top">
+
+      <!-- HEADER: logo left, INVOICE title right -->
+      <div class="header">
         <div>
-          <b>Bill To</b><br/>
-          <div>${data.clientName}</div>
-          <div>${data.clientPhone ?? ""}</div>
+          ${logoUrl ? `<img src="${logoUrl}" class="logo" alt="Logo" />` : ""}
         </div>
-        <div class="right right-gap">
-          <div>Invoice Date:            ${toDisplay(data?.invoiceDate as any)}</div>
-          <div>Due Date:            ${toDisplay(data.dueDate as any)}</div>
+        <div class="invoice-title">
+          <h1>INVOICE</h1>
+          <div class="invoice-num">#${invoiceNumber}</div>
         </div>
       </div>
-  
-      <!-- TABLE -->
-      <table>
-        <tr>
-          <th>#</th>
-          <th>Item &amp; Description</th>
-          <th class="right">Qty</th>
-          <th class="right">Rate</th>
-          <th class="right">Amount</th>
-        </tr>
-        ${data.items
-          .map(
-            (item, i) => `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${item.description}</td>
-            <td class="right">${item.quantity}</td>
-            <td class="right">${formatMoney(item.price)}</td>
-            <td class="right">${formatMoney(item.quantity * item.price)}</td>
-          </tr>
-        `,
-          )
+
+      <!-- BALANCE DUE (top right, below header) -->
+      <div class="balance-due-header">
+        <div class="label">Balance Due</div>
+        <div class="amount">${formatMoney(balanceDue)}</div>
+      </div>
+
+      <!-- COMPANY DETAILS -->
+      <div class="company-details">
+        <div class="name">${companyName}</div>
+        ${companyAddress
+          .split("\n")
+          .map((line: string) => `<div class="address-line">${line}</div>`)
           .join("")}
+      </div>
+
+      <!-- BILL TO & DATES -->
+      <div class="bill-section">
+        <div class="bill-to">
+          <div class="label">Bill To</div>
+          <div class="client-name">${data.clientName ?? "—"}</div>
+          ${data.clientPhone ? `<div>${data.clientPhone}</div>` : ""}
+          ${data.clientEmail ? `<div>${data.clientEmail}</div>` : ""}
+        </div>
+        <div class="dates">
+          <div class="date-row">
+            <span class="date-label">Invoice Date :</span>
+            <span class="date-value">${toDisplay(data.invoiceDate as any)}</span>
+          </div>
+          ${data.terms ? `
+          <div class="date-row">
+            <span class="date-label">Terms :</span>
+            <span class="date-value">${data.terms}</span>
+          </div>` : ""}
+          <div class="date-row">
+            <span class="date-label">Due Date :</span>
+            <span class="date-value">${toDisplay(data.dueDate as any)}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEMS TABLE -->
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Item &amp; Description</th>
+            <th class="center">Qty</th>
+            <th class="right">Rate</th>
+            <th class="right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.items
+            .map(
+              (item, i) => `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${item.description}</td>
+              <td class="center">${(Number(item.quantity) || 0).toFixed(2)}</td>
+              <td class="right">${formatMoney(Number(item.price) || 0)}</td>
+              <td class="right">${formatMoney((Number(item.quantity) || 0) * (Number(item.price) || 0))}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
       </table>
-  
-      <!-- SUMMARY -->
-      <div class="summary">
-        <div class="summary-row">
-          <span><b>Subtotal</b></span>
-          <span><strong>${formatMoney(subtotal)}</strong></span>
+
+      <!-- TOTALS -->
+      <div class="totals">
+        <div class="totals-row">
+          <span class="totals-label">Sub Total</span>
+          <span class="totals-value">${formatMoney(subtotal)}</span>
         </div>
-        <div class="summary-row">
-          <span><b>Tax (${TAX_RATE}%)</b></span>
-          <span><strong>${formatMoney(taxAmount)}</strong></span>
-        </div>
-        <div class="summary-row total-row">
-          <span><b>Total</b></span>
-          <span><strong>${formatMoney(total)}</strong></span>
+        <div class="totals-row grand-total">
+          <span>Total</span>
+          <span class="totals-value">${formatMoney(total)}</span>
         </div>
         <div class="balance-box">
-          <span>Balance Due:</span>
-          <span><strong>${formatMoney(total)}</strong></span>
+          <span class="totals-label">Balance Due</span>
+          <span class="totals-value">${formatMoney(balanceDue)}</span>
         </div>
       </div>
-  
-      ${data.notes?.length ? `<br/><b>Notes</b><br/>${data.notes.join("<br/>")}` : ""}
-      ${data.termsAndConditions ? `<br/><br/><b>Terms &amp; Conditions</b><br/>${data.termsAndConditions}` : ""}
-  
+
+      ${
+        data.notes?.length
+          ? `
+      <div class="notes">
+        <h4>Notes</h4>
+        <p>${data.notes.join("\n")}</p>
+      </div>`
+          : ""
+      }
+
+      ${
+        data.termsAndConditions
+          ? `
+      <div class="terms">
+        <h4>Terms &amp; Conditions</h4>
+        <p>${data.termsAndConditions}</p>
+      </div>`
+          : ""
+      }
+
+      ${
+        bankName || accountNumber || accountName
+          ? `
+      <div class="bank-details">
+        <h4>Payment Details</h4>
+        <div class="bank-grid">
+          <div class="bank-item">
+            <p class="bank-label">Bank Name</p>
+            <p class="bank-value">${bankName || "—"}</p>
+          </div>
+          <div class="bank-item">
+            <p class="bank-label">Account Number</p>
+            <p class="bank-value">${accountNumber || "—"}</p>
+          </div>
+          <div class="bank-item">
+            <p class="bank-label">Account Name</p>
+            <p class="bank-value">${accountName || "—"}</p>
+          </div>
+        </div>
+      </div>`
+          : ""
+      }
+
     </body>
     </html>
-    `;
+  `;
 };

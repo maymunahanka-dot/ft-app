@@ -1,249 +1,373 @@
+import MoneyAmount from "@/src/components/shared/MoneyAmount";
 import GlassCard from "@/src/components/dashboard/boxes/GlassBox";
 import { HapticTab } from "@/src/components/haptic-tab";
 import CategoryList from "@/src/components/inventory/CategoryList";
 import StockItem from "@/src/components/inventory/Item";
-import BGScreenBG from "@/src/components/shared/BGScreenBG";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
+import SortByButton, { useSavedSort } from "@/src/components/shared/SortByButton";
 import { useInventoryStore } from "@/src/stores/inventorySlice";
+import { sortItems } from "@/src/utils/sortBy";
 import { useUserStore } from "@/src/stores/userSlice";
-import { GetTotalInventoryValue } from "@/src/types/inventory";
+import { storedUnitPrice } from "@/src/types/inventory";
 import {
-  FormatNairaShorthand,
   scale,
   scaleFontSize,
   spacing,
 } from "@/src/utils/random";
-import { router } from "expo-router";
+import { router, useNavigation } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import {
   BanknoteArrowUp,
+  Menu,
   Plus,
   Search,
   TrendingDown,
   TriangleAlert,
 } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Dimensions,
-  FlatList,
+  ImageBackground,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const BOXWIDTH = SCREEN_WIDTH / 3 - 16;
+const HORIZONTAL_PADDING = 16;
+const CARD_GAP = spacing(8);
+const HEADER_SCROLL_DISTANCE = 100;
 
+// ─── Summary boxes ──────────────────────────────────────────────────────────
 const RowBoxes = () => {
-  const user = useUserStore((state) => state.user);
   const stocks = useInventoryStore((state) => state.stocks);
-  const fetchStocks = useInventoryStore((state) => state.getInventoryByTailor);
-
-  const lowStock = stocks.map((prev) => prev.status === "low-stock").length;
-  const outOfStock = stocks.map(
-    (prev) => prev.status === "out-of-stock",
-  ).length;
-  const inventoryValue = GetTotalInventoryValue(stocks);
-
-  const fetchData = useCallback(async () => {
-    if (!user) return;
-    try {
-      await Promise.all([fetchStocks(user.email)]);
-    } catch (error) {
-      console.error("error fetching data", error);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const lowStock = stocks.filter((s) => s.status === "low-stock").length;
+  const outOfStock = stocks.filter((s) => s.status === "out-of-stock").length;
+  const inventoryValue = stocks.reduce(
+    (sum, item) => sum + (Number(item.quantity) || 0) * storedUnitPrice(item),
+    0,
+  );
 
   return (
     <View style={styles.row}>
       <GlassCard style={styles.box}>
-        <View style={[styles.startRow, { paddingBottom: spacing(12) }]}>
-          <BanknoteArrowUp size={scale(15)} color={"white"} />
-          <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>
-            Stock Value
-          </Text>
+        <View style={[styles.cardInner]}>
+          <View style={styles.startRow}>
+            <BanknoteArrowUp size={scale(13)} color={"white"} />
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Stock Value</Text>
+          </View>
+          <MoneyAmount
+            amount={inventoryValue}
+            color="white"
+            secondaryColor="rgba(255,255,255,0.8)"
+            primarySize={scaleFontSize(20)}
+          />
         </View>
-
-        <Text style={styles.sm18}>
-          {FormatNairaShorthand(inventoryValue.toString())}
-        </Text>
       </GlassCard>
 
       <GlassCard style={styles.box}>
-        <View style={[styles.startRow, { paddingBottom: spacing(12) }]}>
-          <TriangleAlert size={scale(15)} color={"white"} />
-          <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>
-            Low Stock
-          </Text>
+        <View style={styles.cardInner}>
+          <View style={styles.startRow}>
+            <TriangleAlert size={scale(13)} color={"white"} />
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Low Stock</Text>
+          </View>
+          <Text style={styles.sm18}>{lowStock}</Text>
         </View>
-
-        <Text style={styles.sm18}>{lowStock}</Text>
       </GlassCard>
 
       <GlassCard style={styles.box}>
-        <View style={[styles.startRow, { paddingBottom: spacing(12) }]}>
-          <TrendingDown size={scale(15)} color={"white"} />
-          <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>
-            Out of Stock
-          </Text>
+        <View style={styles.cardInner}>
+          <View style={styles.startRow}>
+            <TrendingDown size={scale(13)} color={"white"} />
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Out of Stock</Text>
+          </View>
+          <Text style={styles.sm18}>{outOfStock}</Text>
         </View>
-
-        <Text style={styles.sm18}>{outOfStock}</Text>
       </GlassCard>
     </View>
   );
 };
 
+// ─── Main screen ─────────────────────────────────────────────────────────────
 const InventoryScreen = () => {
   const [searchValue, setSearchValue] = useState("");
-
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [sortBy, setSortBy] = useSavedSort("ft.sort.inventory");
 
+  const { isDark } = useTheme();
+  const { top, bottom } = useSafeAreaInsets();
+  const navigation = useNavigation();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const searchBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(249, 250, 251, 1)";
+  const headerSolidColor = isDark ? "#0f0f0f" : "white";
+  const themeIconColor = isDark ? Colors.text.white : Colors.text.black;
+  const searchBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(229, 231, 235, 1)";
+  const searchIconColor = isDark ? "rgba(120,120,120,1)" : "rgba(153, 161, 175, 1)";
+  const searchTextColor = isDark ? Colors.text.white : Colors.black;
+  const countTextColor = isDark ? "rgba(200,200,200,1)" : "black";
+
+  const user = useUserStore((state) => state.user);
   const loading = useInventoryStore((state) => state.loading);
   const stocks = useInventoryStore((state) => state.stocks);
+  const fetchStocks = useInventoryStore((state) => state.getInventoryByTailor);
+
+  const fetchData = useCallback(async () => {
+    await fetchStocks("");
+  }, [fetchStocks]);
+
+  useEffect(() => {
+    if (user) fetchData();
+  }, [user]);
 
   const filteredStocks = useMemo(() => {
     const q = searchValue.trim().toLowerCase();
-    return stocks.filter((item) => {
+    const base = stocks.filter((item) => {
       const matchesCategory =
         selectedCategory === "all" || item.category === selectedCategory;
       if (!q) return matchesCategory;
-      const name = (item.name || "").toString().toLowerCase();
-      return matchesCategory && name.includes(q);
+      const supplierText = [
+        item.supplierName,
+        item.supplier,
+        ...(item.suppliers ?? []).flatMap((entry) => [entry.name, entry.contact]),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return matchesCategory && ((item.name || "").toLowerCase().includes(q) || supplierText.includes(q));
     });
-  }, [stocks, searchValue, selectedCategory]);
+    return sortItems(base, sortBy, {
+      name: (item) => item?.name || "",
+      createdAt: (item) => item?.createdAt,
+      number: (item) =>
+        sortBy === "quantity"
+          ? Number(item?.quantity) || 0
+          : Number((item as { price?: number }).price ?? item?.sellingPricePerUnit ?? item?.costPerUnit) || 0,
+    });
+  }, [stocks, searchValue, selectedCategory, sortBy]);
+
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const whiteIconOpacity = scrollY.interpolate({ inputRange: [0, HEADER_SCROLL_DISTANCE], outputRange: [1, 0], extrapolate: "clamp" });
+  const themeIconOpacity = scrollY.interpolate({ inputRange: [0, HEADER_SCROLL_DISTANCE], outputRange: [0, 1], extrapolate: "clamp" });
+  const headerIconColor = scrollY.interpolate({ inputRange: [0, HEADER_SCROLL_DISTANCE], outputRange: ["rgba(255,255,255,1)", isDark ? "rgba(238,238,238,1)" : "rgba(17,24,39,1)"], extrapolate: "clamp" });
+
+  const headerBgOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  const titleOpacity = scrollY.interpolate({
+    inputRange: [HEADER_SCROLL_DISTANCE * 0.5, HEADER_SCROLL_DISTANCE],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  const HEADER_HEIGHT = top + spacing(56);
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: "white" }}
-      edges={["bottom"]}
-    >
-      <BGScreenBG
-        title="Inventory"
-        subText
-        text="Manage your stock and supplies"
-        rightIcon={() => (
-          <HapticTab
-            style={styles.plusBtn}
-            onPress={() => router.push("/protected/form/create-stock")}
-          >
-            <Plus size={24} color={Colors.primary} />
-          </HapticTab>
+    <View style={{ flex: 1, backgroundColor: Colors.primary }}>
+      <StatusBar style="light" />
+
+      {/* ── Single scrollable layer — bg image scrolls with content ── */}
+      <Animated.ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardDismissMode="interactive"
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
         )}
-        drawer
-        headerChildren={RowBoxes}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={fetchData}
+            tintColor={Colors.primary}
+            progressViewOffset={HEADER_HEIGHT}
+          />
+        }
       >
-        {/* <ScrollView
-          contentContainerStyle={{ flexGrow: 1, gap: spacing(32) }}
-          horizontal={false}
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode="interactive"
-          //   scrollEnabled={false}
-        > */}
-        <View style={styles.content}>
+        {/* Background image hero — scrolls away with the page */}
+        <ImageBackground
+          source={require("@/assets/images/screen_bg.png")}
+          style={[styles.heroBg, { paddingTop: top + spacing(56), }]}
+              resizeMode="cover"
+        >
           <View
-            style={[
-              styles.searchContainer,
-              styles.startRow,
-              { gap: spacing(12) },
-            ]}
+            style={{
+              flex: 1,
+              paddingHorizontal: 16,
+              paddingBottom: spacing(24),
+              gap: spacing(16),
+            }}
           >
-            <Search
-              size={scale(20)}
-              color={"rgba(153, 161, 175, 1)"}
-              strokeWidth={2}
-            />
-            <TextInput
-              value={searchValue}
-              onChangeText={setSearchValue}
-              placeholder={"Search inventory..."}
-              placeholderTextColor={Colors.grey}
-              style={styles.input}
-            />
+            <View style={{ gap: spacing(4) }}>
+              <Text style={styles.heroTitle}>Inventory</Text>
+              <Text style={[Styles.reg14, { color: "rgba(255,255,255,0.8)", lineHeight: 18 }]}>
+                Manage your stock and supplies
+              </Text>
+            </View>
+            <RowBoxes />
           </View>
+        </ImageBackground>
 
-          <View style={{ height: 48 }}>
-            <CategoryList
-              onSelect={(category) => setSelectedCategory(category)}
-              selectedCategory={selectedCategory}
-            />
-          </View>
+        {/* White/dark card slides up over the bg image */}
+        <View style={[styles.content, { backgroundColor: bg }]}>
+          <View
+            style={{
+              gap: spacing(16),
+              paddingVertical: spacing(26),
+              paddingBottom: bottom + 100,
+            }}
+          >
+            {/* Search */}
+            <View style={styles.searchRow}>
+              <View
+                style={[
+                  styles.searchContainer,
+                  styles.startRow,
+                  { flex: 1, gap: spacing(12), backgroundColor: searchBg, borderColor: searchBorder },
+                ]}
+              >
+                <Search size={scale(20)} color={searchIconColor} strokeWidth={2} />
+                <TextInput
+                  value={searchValue}
+                  onChangeText={setSearchValue}
+                  placeholder={"Search inventory..."}
+                  placeholderTextColor={isDark ? "rgba(120,120,120,1)" : Colors.grey}
+                  style={[styles.input, { color: searchTextColor }]}
+                />
+              </View>
+              <SortByButton
+                value={sortBy}
+                onChange={setSortBy}
+                borderColor={searchBorder}
+                options={[
+                  { value: "newest", label: "Newest" },
+                  { value: "oldest", label: "Oldest" },
+                  { value: "name-asc", label: "Name (A–Z)" },
+                  { value: "name-desc", label: "Name (Z–A)" },
+                  { value: "quantity", label: "Quantity" },
+                  { value: "price", label: "Price" },
+                ]}
+              />
+            </View>
 
-          <View style={styles.listView}>
-            <Text style={[Styles.reg16, { color: "black" }]}>
+            {/* Categories */}
+            <View style={{ height: 48 }}>
+              <CategoryList
+                onSelect={(category) => setSelectedCategory(category)}
+                selectedCategory={selectedCategory}
+              />
+            </View>
+
+            {/* List header */}
+            <Text style={[Styles.reg16, { color: countTextColor }]}>
               {stocks.length} Items
             </Text>
 
-            {loading ? (
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <ActivityIndicator size={"small"} color={"black"} />
+            {/* Items */}
+            {loading && stocks.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <ActivityIndicator size={"small"} color={Colors.primary} />
+              </View>
+            ) : filteredStocks.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
+                  No item found.
+                </Text>
               </View>
             ) : (
-              <FlatList
-                data={filteredStocks}
-                renderItem={({ item }) => <StockItem item={item} />}
-                keyExtractor={(item, index) => item.id}
-                style={{ flex: 1 }}
-                contentContainerStyle={{
-                  flexGrow: 1,
-                  gap: spacing(16),
-                  paddingBottom: spacing(40),
-                }}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={() => (
-                  <View style={styles.emptyContainer}>
-                    <Text
-                      style={[Styles.med12, { color: Colors.text.gray }]}
-                    >{`No item found.`}</Text>
-                  </View>
-                )}
-              />
+              <View style={{ gap: spacing(16) }}>
+                {filteredStocks.map((item) => (
+                  <StockItem key={item.id} item={item} />
+                ))}
+              </View>
             )}
           </View>
         </View>
-        {/* </ScrollView> */}
-      </BGScreenBG>
-    </SafeAreaView>
+      </Animated.ScrollView>
+
+      {/* ── Fixed overlay header background (transparent → theme color) ── */}
+      <Animated.View
+        style={[
+          styles.overlayHeader,
+          { height: HEADER_HEIGHT, backgroundColor: headerSolidColor, opacity: headerBgOpacity },
+        ]}
+        pointerEvents="none"
+      />
+
+      {/* ── Fixed header icons + fading title ── */}
+      <View
+        style={[styles.overlayHeader, { height: HEADER_HEIGHT, paddingTop: top }]}
+        pointerEvents="box-none"
+      >
+        <View style={styles.headerRow}>
+          <HapticTab hitSlop={20} onPress={() => (navigation as any).toggleDrawer()}>
+            <Animated.View style={[StyleSheet.absoluteFill, { opacity: whiteIconOpacity }]}>
+              <Menu size={scale(24)} color="white" />
+            </Animated.View>
+            <Animated.View style={{ opacity: themeIconOpacity }}>
+              <Menu size={scale(24)} color={themeIconColor} />
+            </Animated.View>
+          </HapticTab>
+
+          <Animated.Text style={[styles.headerTitle, { opacity: titleOpacity, color: headerIconColor }]}>
+            Inventory
+          </Animated.Text>
+
+          <View style={{ width: scale(24) }} />
+        </View>
+      </View>
+
+      {/* ── Floating action button ── */}
+      <TouchableOpacity
+        style={[styles.fab, { bottom: bottom + spacing(24) }]}
+        onPress={() => router.push("/protected/form/create-stock")}
+        activeOpacity={0.85}
+      >
+        <Plus size={scale(24)} color="white" />
+      </TouchableOpacity>
+    </View>
   );
 };
 
 export default InventoryScreen;
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    gap: spacing(16),
-    paddingVertical: spacing(26),
+  heroBg: {
+    paddingBottom: spacing(0),
   },
-  plusBtn: {
-    width: 48,
-    aspectRatio: 1,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 100,
+  heroTitle: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(28),
+    lineHeight: 34,
+    color: "white",
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: CARD_GAP,
+   marginBottom: 30,
   },
   box: {
-    width: BOXWIDTH,
-    height: 110,
-    padding: spacing(16),
+    flex: 1,
+    height: 100,
+  },
+  cardInner: {
+    flex: 1,
+    padding: spacing(12),
+    justifyContent: "space-between",
   },
   startRow: {
     flexDirection: "row",
@@ -258,24 +382,65 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
   },
+  overlayHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    justifyContent: "flex-end",
+    paddingBottom: spacing(10),
+    paddingHorizontal: 16,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerTitle: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(18),
+    color: "white",
+  },
+  content: {
+    borderTopRightRadius: 30,
+    borderTopLeftRadius: 30,
+    paddingHorizontal: spacing(16),
+    height:'100%',
+    marginTop: -30
+  },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing(8),
+  },
   searchContainer: {
-    backgroundColor: "rgba(249, 250, 251, 1)",
     borderWidth: 1,
-    borderColor: "rgba(229, 231, 235, 1)",
     borderRadius: 14,
-    paddingVertical: spacing(12),
+    paddingVertical: spacing(4),
     paddingHorizontal: spacing(16),
   },
   input: {
     flex: 1,
   },
-  listView: {
-    flex: 1,
-    gap: spacing(20),
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingTop: spacing(40),
+  },
+  fab: {
+    position: "absolute",
+    right: spacing(20),
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
 });

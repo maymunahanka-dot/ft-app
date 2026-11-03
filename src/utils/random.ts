@@ -253,11 +253,28 @@ export const FormatNairaShorthand = (value: string): string => {
  * @returns Formatted string like "10 Jan 2026" or "10 Jan"
  */
 export const FormatOrderDate = (
-  dateString: string,
+  dateString: string | any,
   showYear: boolean = true,
 ): string => {
+  if (!dateString) return "—";
+
+  // Handle Firestore Timestamp objects
+  if (typeof dateString === "object" && typeof dateString.toDate === "function") {
+    const date = dateString.toDate();
+    if (isNaN(date.getTime())) return "Invalid Date";
+    const options: Intl.DateTimeFormatOptions = {
+      day: "2-digit",
+      month: "short",
+      ...(showYear && { year: "numeric" }),
+    };
+    return new Intl.DateTimeFormat("en-GB", options).format(date);
+  }
+
+  // Ensure it's a string before calling .replace
+  const str = typeof dateString === "string" ? dateString : String(dateString);
+
   // 1. Remove the word "at" which often breaks the Date parser
-  const sanitizedDate = dateString.replace(/\bat\b/g, "");
+  const sanitizedDate = str.replace(/\bat\b/g, "");
 
   const date = new Date(sanitizedDate);
 
@@ -378,6 +395,8 @@ export const formatFintechDate = (dateString: string | Date): string => {
   if (!dateString) return "N/A";
 
   const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) return "N/A";
 
   // 1. Format the Date part (March 7, 2024)
   const dateOptions: Intl.DateTimeFormatOptions = {
@@ -622,11 +641,19 @@ export const extractClientMeasurements = (client: Client) => {
 export const emptyBrandSettings = (email: string): BrandSettings => ({
   businessName: "",
   businessAddress: "",
-  businessWebsite: "",
-  logoUrl: "",
+  businessEmail: "",
   businessPhone: "",
+  businessWebsite: "",
+  instagramHandle: "",
+  primaryColor: "#000000",
+  secondaryColor: "#666666",
+  bankName: "",
+  accountNumber: "",
+  accountName: "",
+  logoUrl: "",
   footerText: "",
   termsAndConditions: "",
+  inventoryCurrency: "NGN",
   updatedAt: "",
   userEmail: email,
 });
@@ -638,17 +665,25 @@ export const sanitizeBrandSettings = (
 
   const base = emptyBrandSettings(email);
 
-  // Force no null/undefined — Firebase safe
+  // Force no null/undefined — safe for both Firebase and MongoDB
   return {
     ...base,
     ...payload,
     businessName: payload.businessName ?? "",
     businessAddress: payload.businessAddress ?? "",
-    businessWebsite: payload.businessWebsite ?? "",
-    logoUrl: payload.logoUrl ?? "",
+    businessEmail: payload.businessEmail ?? "",
     businessPhone: payload.businessPhone ?? "",
+    businessWebsite: payload.businessWebsite ?? "",
+    instagramHandle: payload.instagramHandle ?? "",
+    primaryColor: payload.primaryColor ?? "#000000",
+    secondaryColor: payload.secondaryColor ?? "#666666",
+    bankName: payload.bankName ?? "",
+    accountNumber: payload.accountNumber ?? "",
+    accountName: payload.accountName ?? "",
+    logoUrl: payload.logoUrl ?? "",
     footerText: payload.footerText ?? "",
     termsAndConditions: payload.termsAndConditions ?? "",
+    inventoryCurrency: payload.inventoryCurrency === "USD" ? "USD" : "NGN",
     updatedAt: payload.updatedAt ?? "",
     userEmail: email,
   };

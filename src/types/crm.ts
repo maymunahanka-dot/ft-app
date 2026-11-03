@@ -1,7 +1,5 @@
 // lib/crm-types.ts
 
-import { Timestamp } from "firebase/firestore";
-
 export interface LoyaltyMember {
   id?: string;
   name: string;
@@ -9,14 +7,14 @@ export interface LoyaltyMember {
   level: "Bronze" | "Silver" | "Gold" | "Platinum";
   points: number;
   totalSpent: number;
-  lastActivity?: Timestamp;
-  birthday?: Date;
+  lastActivity?: string;
+  birthday?: string;
   avatar?: string;
   tags?: string[];
   notes?: string;
   tailorId: string;
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Reward {
@@ -29,9 +27,9 @@ export interface Reward {
   isActive: boolean;
   usageLimit?: number;
   usageCount: number;
-  validUntil?: Timestamp;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  validUntil?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface EmailCampaign {
@@ -42,12 +40,12 @@ export interface EmailCampaign {
   status: "draft" | "scheduled" | "sent" | "archived";
   recipients: string[];
   recipientCount: number;
-  sentAt?: Timestamp;
-  scheduledAt?: Timestamp;
+  sentAt?: string;
+  scheduledAt?: string;
   openRate?: number;
   clickRate?: number;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CommunicationTemplate {
@@ -55,11 +53,11 @@ export interface CommunicationTemplate {
   name: string;
   type: "email" | "sms" | "push";
   content: string;
-  lastUsed?: Timestamp;
+  lastUsed?: string;
   usageCount: number;
   tags?: string[];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ClientFeedback {
@@ -68,6 +66,7 @@ export interface ClientFeedback {
   clientEmail: string;
   rating: number;
   comment: string;
+  imageUrl?: string;
   productName: string;
   orderNumber: string;
   invoiceNumber: string;
@@ -75,9 +74,9 @@ export interface ClientFeedback {
   isPublic: boolean;
   reply?: string;
   tailorId: string;
-  repliedAt?: Timestamp;
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  repliedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const getAverageRating = (feedbacks: ClientFeedback[]): number => {
@@ -92,7 +91,7 @@ export interface CRMStats {
   loyaltyMembers: number;
   loyaltyPercentage: number;
   totalCampaigns: number;
-  lastCampaignDate?: Timestamp;
+  lastCampaignDate?: string;
   averageRating: number;
   totalReviews: number;
 }

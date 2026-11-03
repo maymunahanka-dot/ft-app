@@ -133,7 +133,7 @@ const CRMScreen = () => {
   //   }, []);
 
   return (
-    <SafeAreaView
+    <SafeAreaView edges={["left","right","bottom"]}
       style={{ flex: 1, backgroundColor: "white" }}
       edges={["bottom"]}
     >

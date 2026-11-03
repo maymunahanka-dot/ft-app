@@ -1,6 +1,7 @@
 import PrimaryButton from "@/src/components/button/PrimaryButton";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { useAuth } from "@/src/hooks/auth";
 import { scale, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
@@ -19,15 +20,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export const redirectToExternalURL = async (url: string) => {
   try {
     const supported = await Linking.canOpenURL(url);
-
     if (supported) {
       await Linking.openURL(url);
     } else {
@@ -40,20 +37,20 @@ export const redirectToExternalURL = async (url: string) => {
 };
 
 const SignInScreen = () => {
-  const paddingTop = useSafeAreaInsets().top;
-
+  const { top: statusBarHeight } = useSafeAreaInsets();
   const { signIn, loading } = useAuth();
-  console.log("auth loading", loading);
+  const { isDark } = useTheme();
 
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
-  const [loginError, setLoginError] = useState({
-    email: "",
-    password: "",
-  });
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [loginError, setLoginError] = useState({ email: "", password: "" });
   const [isSecure, setIsSecure] = useState(true);
+
+  const bg = isDark ? "#151718" : "white";
+  const textColor = isDark ? Colors.text.white : Colors.text.black;
+  const labelColor = isDark ? "rgba(180,180,180,1)" : Colors.label;
+  const inputBg = isDark ? "rgba(30,30,30,1)" : "white";
+  const inputBorder = isDark ? "rgba(60,60,60,1)" : Colors.inputBorder;
+  const placeholderColor = isDark ? "rgba(100,100,100,1)" : Colors.grayText;
 
   const handleEmailChange = (text: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,6 +63,7 @@ const SignInScreen = () => {
       setLoginError((prev) => ({ ...prev, email: "" }));
     }
   };
+
   const handlePasswordChange = (text: string) => {
     setLoginData((prev) => ({ ...prev, password: text }));
     if (!text) {
@@ -81,14 +79,10 @@ const SignInScreen = () => {
   };
 
   const validateForm = (): boolean => {
-    const newErrors = {
-      email: "",
-      password: "",
-    };
+    const newErrors = { email: "", password: "" };
     let isValid = true;
-
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!loginData.email?.trim()) {
       newErrors.email = "Email is required";
       isValid = false;
@@ -97,7 +91,6 @@ const SignInScreen = () => {
       isValid = false;
     }
 
-    // password validation
     if (!loginData.password?.trim() && loginData.password.length < 6) {
       newErrors.password = "Password is required";
       isValid = false;
@@ -120,29 +113,35 @@ const SignInScreen = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={["bottom", "left", "right"]}>
-      <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: Colors.primary }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? spacing(50) : spacing(0)}
+    >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardDismissMode="interactive"
+      >
         <ImageBackground
           source={require("@/assets/images/screen_bg.png")}
-          style={[styles.headerBg, { paddingTop: paddingTop + spacing(20) }]}
+          style={[styles.headerBg, { paddingTop: statusBarHeight + spacing(20) }]}
         >
           <View style={styles.headerContent}>
-            <View style={[styles.col, {}]}>
-              <Text style={[Styles.bold32]}>Welcome Back To Business</Text>
-              <Text style={[Styles.reg14]}>
+            <View style={styles.col}>
+              <Text style={Styles.bold32}>Welcome Back To Business</Text>
+              <Text style={Styles.reg14}>
                 Access your dashboard and continue where you left off
               </Text>
             </View>
 
-            <Text style={[Styles.bold12]}>
-              Don’t have an account?{"  "}
+            <Text style={Styles.bold12}>
+              Don't have an account?{"  "}
               <Text
                 style={[
                   Styles.med16,
-                  {
-                    color: Colors.secondary,
-                    textDecorationLine: "underline",
-                  },
+                  { color: Colors.secondary, textDecorationLine: "underline" },
                 ]}
                 onPress={() => router.replace("/sign-up")}
               >
@@ -151,161 +150,151 @@ const SignInScreen = () => {
             </Text>
           </View>
         </ImageBackground>
-        <KeyboardAvoidingView
+
+        <View
           style={{
             flex: 1,
-            backgroundColor: "white",
+            backgroundColor: bg,
+            marginTop: -30,
+            borderTopRightRadius: 30,
+            borderTopLeftRadius: 30,
+            paddingBottom: spacing(30),
           }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={
-            Platform.OS === "ios" ? spacing(50) : spacing(0)
-          }
         >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingBottom: spacing(30),
-            }}
-            keyboardDismissMode="interactive"
-          >
-            <View style={styles.content}>
-              <View style={styles.inputsWrapper}>
-                <View style={styles.inputs}>
-                  {/* email */}
-                  <View style={Styles.inputContainer}>
-                    <Text style={Styles.label}>Email</Text>
-                    <TextInput
-                      value={loginData.email}
-                      onChangeText={handleEmailChange}
-                      placeholder="Email"
-                      placeholderTextColor={Colors.grayText}
-                      textContentType="emailAddress"
-                      returnKeyLabel="next"
-                      returnKeyType="next"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      style={Styles.input}
-                    />
-                    {loginError.email ? (
-                      <Text
-                        style={{ ...Styles.reg12, color: "red", marginTop: 4 }}
-                      >
-                        {loginError.email}
-                      </Text>
-                    ) : null}
-                  </View>
-
-                  {/* password */}
-                  <View style={Styles.inputContainer}>
-                    <Text style={Styles.label}>Password</Text>
-                    <View style={Styles.input2}>
-                      <TextInput
-                        value={loginData.password}
-                        onChangeText={handlePasswordChange}
-                        placeholder="*****"
-                        placeholderTextColor={Colors.grayText}
-                        secureTextEntry={isSecure}
-                        textContentType="password"
-                        returnKeyLabel="done"
-                        returnKeyType="done"
-                        autoCorrect={false}
-                        style={{
-                          ...Styles.inputFontPadding,
-                          flex: 1,
-                        }}
-                      />
-                      <TouchableOpacity
-                        onPress={() => setIsSecure(!isSecure)}
-                        hitSlop={20}
-                      >
-                        {isSecure ? (
-                          <EyeOff size={scale(15)} color={Colors.iconGrey} />
-                        ) : (
-                          <Eye size={scale(15)} color={Colors.primary} />
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                    {loginError.password ? (
-                      <Text
-                        style={{ ...Styles.reg12, color: "red", marginTop: 4 }}
-                      >
-                        {loginError.password}
-                      </Text>
-                    ) : null}
-                  </View>
+          <View style={styles.content}>
+            <View style={styles.inputsWrapper}>
+              <View style={styles.inputs}>
+                <View style={Styles.inputContainer}>
+                  <Text style={[Styles.label, { color: labelColor }]}>
+                    Email
+                  </Text>
+                  <TextInput
+                    value={loginData.email}
+                    onChangeText={handleEmailChange}
+                    placeholder="Email"
+                    placeholderTextColor={placeholderColor}
+                    textContentType="emailAddress"
+                    returnKeyType="next"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={[
+                      Styles.input,
+                      {
+                        backgroundColor: inputBg,
+                        borderColor: inputBorder,
+                        color: textColor,
+                      },
+                    ]}
+                  />
+                  {loginError.email ? (
+                    <Text
+                      style={{ ...Styles.reg12, color: "red", marginTop: 4 }}
+                    >
+                      {loginError.email}
+                    </Text>
+                  ) : null}
                 </View>
 
-                <Text
-                  style={[
-                    Styles.med12,
-                    { textAlign: "right", color: Colors.secondary },
-                  ]}
-                  onPress={() =>
-                    router.replace("/(auth)/screen/forget-password")
-                  }
-                >
-                  Forgot Password ?
-                </Text>
+                <View style={Styles.inputContainer}>
+                  <Text style={[Styles.label, { color: labelColor }]}>
+                    Password
+                  </Text>
+                  <View
+                    style={[
+                      Styles.input2,
+                      { backgroundColor: inputBg, borderColor: inputBorder },
+                    ]}
+                  >
+                    <TextInput
+                      value={loginData.password}
+                      onChangeText={handlePasswordChange}
+                      placeholder="*****"
+                      placeholderTextColor={placeholderColor}
+                      secureTextEntry={isSecure}
+                      textContentType="password"
+                      returnKeyType="done"
+                      autoCorrect={false}
+                      autoCapitalize="none"
+                      style={{
+                        ...Styles.inputFontPadding,
+                        flex: 1,
+                        color: textColor,
+                      }}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setIsSecure(!isSecure)}
+                      hitSlop={20}
+                    >
+                      {isSecure ? (
+                        <EyeOff size={scale(15)} color={Colors.iconGrey} />
+                      ) : (
+                        <Eye size={scale(15)} color={Colors.primary} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                  {loginError.password ? (
+                    <Text
+                      style={{ ...Styles.reg12, color: "red", marginTop: 4 }}
+                    >
+                      {loginError.password}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
 
-              <View style={styles.footer}>
-                <PrimaryButton
-                  title="Log In"
-                  onPress={handleContinue}
-                  loading={loading}
-                  // props={{ disabled: loading }}
-                />
-                <Text
-                  style={[
-                    Styles.med12,
-                    { textAlign: "center", color: Colors.text.gray },
-                  ]}
-                >
-                  By signing up, you agree to the{" "}
-                  <Text
-                    style={{ ...Styles.bold12, color: Colors.text.black }}
-                    onPress={() =>
-                      redirectToExternalURL(
-                        "https://www.fashiontally.com/terms-of-service",
-                      )
-                    }
-                  >
-                    Terms of Service
-                  </Text>{" "}
-                  and{" "}
-                  <Text
-                    style={{ ...Styles.bold12, color: Colors.text.black }}
-                    onPress={() =>
-                      redirectToExternalURL(
-                        "https://www.fashiontally.com/privacy-policy",
-                      )
-                    }
-                  >
-                    Data Processing Agreement
-                  </Text>
-                </Text>
-              </View>
+              <Text
+                style={[Styles.med12, { textAlign: "right", color: textColor }]}
+                onPress={() => router.replace("/(auth)/screen/forget-password")}
+              >
+                Forgot Password ?
+              </Text>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </View>
-    </SafeAreaView>
+
+            <View style={styles.footer}>
+              <PrimaryButton
+                title="Log In"
+                onPress={handleContinue}
+                loading={loading}
+              />
+              <Text
+                style={[Styles.med12, { textAlign: "center", color: textColor }]}
+              >
+                By signing up, you agree to the{" "}
+                <Text
+                  style={{ ...Styles.bold12, color: textColor }}
+                  onPress={() =>
+                    redirectToExternalURL(
+                      "https://www.fashiontally.com/terms-of-service"
+                    )
+                  }
+                >
+                  Terms of Service
+                </Text>{" "}
+                and{" "}
+                <Text
+                  style={{ ...Styles.bold12, color: textColor }}
+                  onPress={() =>
+                    redirectToExternalURL(
+                      "https://www.fashiontally.com/privacy-policy"
+                    )
+                  }
+                >
+                  Data Processing Agreement
+                </Text>
+              </Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 export default SignInScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: "100%",
-    backgroundColor: "white",
-  },
   headerBg: {
-    height: "auto",
     backgroundColor: Colors.primary,
     padding: spacing(16),
     paddingBottom: spacing(50),

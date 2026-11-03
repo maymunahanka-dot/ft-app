@@ -1,6 +1,5 @@
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   ActivityIndicator,
@@ -8,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   TouchableOpacityProps,
+  View,
 } from "react-native";
 
 type Props = {
@@ -20,21 +20,13 @@ type Props = {
 const PrimaryButton = ({ title, onPress, loading = false, props }: Props) => {
   return (
     <TouchableOpacity onPress={onPress} {...props} disabled={loading}>
-      <LinearGradient
-        colors={[
-          "rgba(255, 255, 255, 0.4)",
-          "rgba(255, 255, 255, 0)",
-          "rgba(255, 255, 255, 0)",
-        ]}
-        locations={[0, 1, 2]}
-        style={styles.button}
-      >
+      <View style={styles.button}>
         {loading ? (
           <ActivityIndicator size={"small"} color={"white"} />
         ) : (
           <Text style={[Styles.med14]}>{title}</Text>
         )}
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 };

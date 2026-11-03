@@ -1,33 +1,26 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  Timestamp,
-  updateDoc,
-  where,
-} from "firebase/firestore";
 import { create } from "zustand";
-import { db } from "../context/firebase";
-import { getCurrentUserEmail } from "../lib/auth-utils";
+import { apiFetch } from "../lib/apiClient";
 import { ClientFeedback, EmailCampaign, LoyaltyMember } from "../types/crm";
+import { readCache, writeCache } from "../utils/storeCache";
+import { ShowToastMessage } from "../utils/random";
+import { resolveImageUrl } from "../utils/uploadImage";
+
+const CACHE_LOYALTY   = "store_loyalty_members";
+const CACHE_FEEDBACKS = "store_feedbacks";
 
 interface CrmState {
   loyaltyMembers: LoyaltyMember[];
   clientFeedbacks: ClientFeedback[];
   campaigns: EmailCampaign[];
   loading: boolean;
+
+  // ─── Loyalty Members ───────────────────────────────────────────────────────
   getLoyaltyMembers: () => Promise<void>;
   addLoyaltyMember: (member: Omit<LoyaltyMember, "id">) => Promise<boolean>;
-  editLoyaltyMember: (
-    id: string,
-    updatedData: LoyaltyMember,
-  ) => Promise<boolean>;
+  editLoyaltyMember: (id: string, updatedData: LoyaltyMember) => Promise<boolean>;
   deleteMemeber: (id: string) => Promise<boolean>;
 
-  // feedback
+  // ─── Feedback ──────────────────────────────────────────────────────────────
   getFeedBacks: () => Promise<void>;
   addFeeback: (feedback: Omit<ClientFeedback, "id">) => Promise<boolean>;
   editFeedback: (id: string, updatedData: ClientFeedback) => Promise<boolean>;
@@ -36,203 +29,243 @@ interface CrmState {
   deleteFeedback: (id: string) => Promise<boolean>;
 }
 
-const loyaltyMembersCollection = collection(db, "loyaltyMembers");
-const feedbackCollection = collection(db, "feedback");
-
 export const useCrmStore = create<CrmState>((set, get) => ({
   loyaltyMembers: [],
   clientFeedbacks: [],
   campaigns: [],
   loading: false,
+
+  // ─── LIST loyalty members ──────────────────────────────────────────────────
   async getLoyaltyMembers() {
-    set({ loading: true });
+    const cached = await readCache<LoyaltyMember[]>(CACHE_LOYALTY);
+    if (cached) set({ loyaltyMembers: cached });
+
+    if (!cached) set({ loading: true });
     try {
-      const userEmail = getCurrentUserEmail();
-
-      const q = query(
-        loyaltyMembersCollection,
-        where("tailorId", "==", userEmail),
+      const res = await apiFetch<{ success: boolean; data: LoyaltyMember[] }>(
+        "/loyalty-member/list",
       );
-
-      const snapshot = await getDocs(q);
-      const members = snapshot.docs.map(
-        (doc) => ({ id: doc.id, ...doc.data() }) as LoyaltyMember,
+      const sorted = (res.data ?? []).slice().sort(
+        (a, b) => (b.points || 0) - (a.points || 0),
       );
-      set({
-        loyaltyMembers: members.sort(
-          (a, b) => (b.points || 0) - (a.points || 0),
-        ),
-      });
-      console.log("loyalty", members.length);
-    } catch (error) {
+      set({ loyaltyMembers: sorted });
+      await writeCache(CACHE_LOYALTY, sorted);
+    } catch (error: any) {
       console.error("Error fetching loyalty members:", error);
+      if (!cached) {
+        ShowToastMessage({ title: error.message ?? "Failed to fetch members", preset: "error", haptic: "error" });
+      }
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── CREATE loyalty member ─────────────────────────────────────────────────
   async addLoyaltyMember(member) {
     set({ loading: true });
     try {
-      const userEmail = getCurrentUserEmail();
-
-      const newMember: LoyaltyMember = {
-        ...member,
-        tailorId: userEmail,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-      };
-
-      console.log("hit in action", JSON.stringify(newMember, null, 2));
-
-      await addDoc(loyaltyMembersCollection, newMember);
-      await get().getLoyaltyMembers();
+      const res = await apiFetch<{ success: boolean; data: LoyaltyMember }>(
+        "/loyalty-member/create",
+        {
+          method: "POST",
+          body: JSON.stringify(member),
+        },
+      );
+      const saved = res.data;
+      set((state) => ({
+        loyaltyMembers: [saved, ...state.loyaltyMembers],
+      }));
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding loyalty member:", error);
+      ShowToastMessage({ title: error.message ?? "Failed to add member", preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── EDIT loyalty member ───────────────────────────────────────────────────
   async editLoyaltyMember(id, updatedData) {
     set({ loading: true });
     try {
-      const memberRef = doc(db, "loyaltyMembers", id);
-      await updateDoc(memberRef, {
-        ...updatedData,
-        updatedAt: Timestamp.now(),
-      });
+      const res = await apiFetch<{ success: boolean; data: LoyaltyMember }>(
+        `/loyalty-member/edit/${encodeURIComponent(id)}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(updatedData),
+        },
+      );
+      const updated = res.data;
+      set((state) => ({
+        loyaltyMembers: state.loyaltyMembers.map((m) =>
+          m.id === updated.id ? updated : m,
+        ),
+      }));
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error editing loyalty member:", error);
+      ShowToastMessage({ title: error.message ?? "Failed to update member", preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── DELETE loyalty member ─────────────────────────────────────────────────
   async deleteMemeber(id) {
     set({ loading: true });
     try {
-      const memberRef = doc(db, "loyaltyMembers", id);
-      await deleteDoc(memberRef);
+      await apiFetch(`/loyalty-member/delete/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      set((state) => ({
+        loyaltyMembers: state.loyaltyMembers.filter((m) => m.id !== id),
+      }));
+      ShowToastMessage({ title: "Member deleted", preset: "done", haptic: "success" });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting loyalty member:", error);
+      ShowToastMessage({ title: error.message ?? "Failed to delete member", preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── LIST feedback ─────────────────────────────────────────────────────────
   async getFeedBacks() {
+    const cached = await readCache<ClientFeedback[]>(CACHE_FEEDBACKS);
+    if (cached) set({ clientFeedbacks: cached });
+
+    if (!cached) set({ loading: true });
     try {
-      const userEmail = getCurrentUserEmail();
-
-      const q = query(feedbackCollection, where("tailorId", "==", userEmail));
-
-      const snapshot = await getDocs(q);
-      const feedbacks = snapshot.docs.map(
-        (doc) => ({ id: doc.id, ...doc.data() }) as ClientFeedback,
+      const res = await apiFetch<{ success: boolean; data: ClientFeedback[] }>(
+        "/feedback/list",
       );
-      set({
-        clientFeedbacks: feedbacks.sort((a, b) => {
-          const aTime = a.createdAt?.seconds || 0;
-          const bTime = b.createdAt?.seconds || 0;
-          return bTime - aTime;
-        }),
+      const sorted = (res.data ?? []).slice().sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt as any).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt as any).getTime() : 0;
+        return bTime - aTime;
       });
-    } catch (error) {
-      console.error("Error getting feedbacks", error);
-      return;
+      set({ clientFeedbacks: sorted });
+      await writeCache(CACHE_FEEDBACKS, sorted);
+    } catch (error: any) {
+      console.error("Error fetching feedback:", error);
+      if (!cached) {
+        ShowToastMessage({ title: error.message ?? "Failed to fetch feedback", preset: "error", haptic: "error" });
+      }
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── CREATE feedback ───────────────────────────────────────────────────────
   async addFeeback(feedback) {
     set({ loading: true });
     try {
-      const userEmail = getCurrentUserEmail();
-
-      const newFeeback: ClientFeedback = {
-        ...feedback,
-        tailorId: userEmail,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-      };
-
-      await addDoc(feedbackCollection, newFeeback);
-      await get().getFeedBacks();
+      const imageUrl = await resolveImageUrl(feedback.imageUrl, "feedback");
+      const res = await apiFetch<{ success: boolean; data: ClientFeedback }>(
+        "/feedback/create",
+        {
+          method: "POST",
+          body: JSON.stringify({ ...feedback, imageUrl: imageUrl || "" }),
+        },
+      );
+      const saved = res.data;
+      set((state) => ({
+        clientFeedbacks: [saved, ...state.clientFeedbacks],
+      }));
       return true;
-    } catch (error) {
-      console.error("Error adding feedbacks:", error);
+    } catch (error: any) {
+      console.error("Error adding feedback:", error);
+      ShowToastMessage({ title: error.message ?? "Failed to add feedback", preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── EDIT feedback ─────────────────────────────────────────────────────────
   async editFeedback(id, updatedData) {
     set({ loading: true });
     try {
-      const feedbackRef = doc(db, "feedback", id);
-      await updateDoc(feedbackRef, {
-        ...updatedData,
-        updatedAt: Timestamp.now(),
-      });
-
-      console.log("hit in action", JSON.stringify(updatedData, null, 2));
-      await get().getFeedBacks();
+      const imageUrl = updatedData.imageUrl === undefined
+        ? undefined
+        : await resolveImageUrl(updatedData.imageUrl, "feedback");
+      const res = await apiFetch<{ success: boolean; data: ClientFeedback }>(
+        `/feedback/edit/${encodeURIComponent(id)}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            ...updatedData,
+            ...(imageUrl !== undefined ? { imageUrl } : {}),
+          }),
+        },
+      );
+      const updated = res.data;
+      set((state) => ({
+        clientFeedbacks: state.clientFeedbacks.map((f) =>
+          f.id === updated.id ? updated : f,
+        ),
+      }));
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error editing feedback:", error);
+      ShowToastMessage({ title: error.message ?? "Failed to update feedback", preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── REPLY to feedback ─────────────────────────────────────────────────────
   async replyToFeedback(id, reply) {
     set({ loading: true });
     try {
-      const feedbackRef = doc(db, "feedback", id);
-      await updateDoc(feedbackRef, {
-        reply,
-        repliedAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-      });
-      await get().getFeedBacks();
+      const res = await apiFetch<{ success: boolean; data: ClientFeedback }>(
+        `/feedback/reply/${encodeURIComponent(id)}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ reply }),
+        },
+      );
+      const updated = res.data;
+      set((state) => ({
+        clientFeedbacks: state.clientFeedbacks.map((f) =>
+          f.id === updated.id ? updated : f,
+        ),
+      }));
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error replying to feedback:", error);
+      ShowToastMessage({ title: error.message ?? "Failed to send reply", preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── UPDATE feedback reply (alias → same endpoint) ─────────────────────────
   async updateFeedbackReply(id, reply) {
-    set({ loading: true });
-    try {
-      const feedbackRef = doc(db, "feedback", id);
-      await updateDoc(feedbackRef, {
-        reply,
-        updatedAt: Timestamp.now(),
-      });
-      await get().getFeedBacks();
-      return true;
-    } catch (error) {
-      console.error("Error editing reply feedback:", error);
-      return false;
-    } finally {
-      set({ loading: false });
-    }
+    return get().replyToFeedback(id, reply);
   },
+
+  // ─── DELETE feedback ───────────────────────────────────────────────────────
   async deleteFeedback(id) {
     set({ loading: true });
     try {
-      const feedbackref = doc(db, "feedback", id);
-      await deleteDoc(feedbackref);
-      await get().getFeedBacks();
+      await apiFetch(`/feedback/delete/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      set((state) => ({
+        clientFeedbacks: state.clientFeedbacks.filter((f) => f.id !== id),
+      }));
+      ShowToastMessage({ title: "Feedback deleted", preset: "done", haptic: "success" });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting feedback:", error);
+      ShowToastMessage({ title: error.message ?? "Failed to delete feedback", preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });

@@ -1,20 +1,10 @@
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  orderBy,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from "firebase/firestore";
 import { create } from "zustand";
-import { db } from "../context/firebase";
-import { generateDesignId } from "../lib/design";
+import { apiFetch } from "../lib/apiClient";
 import { Design } from "../types/designs";
+import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
-import { uploadImageToCloudinary } from "../utils/uploadImageToCloudinary";
+
+const CACHE_KEY = "store_designs";
 
 interface DesignState {
   designs: Design[];
@@ -27,140 +17,150 @@ interface DesignState {
   deleteDesign(designId: string): Promise<void>;
 }
 
+/**
+ * Upload a local image URI directly to Cloudinary using XMLHttpRequest.
+ * XHR uses the native RN network layer, which correctly handles
+ * { uri, name, type } file objects in FormData without any Blob/ArrayBuffer.
+ */
+const uploadDesignImageToCloudinary = (uri: string): Promise<string> => {
+  const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+  const preset    = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
+
+  const ext      = uri.split(".").pop()?.split("?")[0]?.toLowerCase() || "jpg";
+  const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+
+  return new Promise((resolve, reject) => {
+    const form = new FormData();
+    form.append("file",          { uri, name: `design.${ext}`, type: mimeType } as any);
+    form.append("upload_preset", preset);
+    form.append("folder",        "designs");
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/upload`);
+    xhr.onload = () => {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300 && data.secure_url) {
+          resolve(data.secure_url);
+        } else {
+          reject(new Error(data?.error?.message || "Cloudinary upload failed"));
+        }
+      } catch {
+        reject(new Error("Failed to parse Cloudinary response"));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Network error during Cloudinary upload"));
+    xhr.send(form);
+  });
+};
+
 export const useDesignStore = create<DesignState>((set, get) => ({
   designs: [],
   loading: false,
 
+  // ─── CREATE ────────────────────────────────────────────────────────────────
   async createDesign(payload) {
+    if (!payload.imageUrl) {
+      ShowToastMessage({ title: "Please add a design image", preset: "error", haptic: "error" });
+      return;
+    }
     set({ loading: true });
-    const body = {
-      ...payload,
-    };
-    if (!body.imageUrl) return;
     try {
-      const imageUrl = await uploadImageToCloudinary(body.imageUrl);
-      console.log("image url", imageUrl);
-      if (!imageUrl) {
-        return;
+      // If imageUrl is a local URI (not already on Cloudinary), upload it first
+      let imageUrl = payload.imageUrl;
+      if (!imageUrl.startsWith("https")) {
+        // Strip the data:image/...;base64, prefix to get a usable URI
+        const uri = imageUrl.startsWith("data:") ? imageUrl : imageUrl;
+        imageUrl = await uploadDesignImageToCloudinary(uri);
       }
-      const id = generateDesignId();
-      const now = new Date().toISOString();
-      const design: Design = {
-        ...payload,
-        id,
-        imageUrl,
-        createdAt: now,
-        category: payload.category ?? "Others",
-        status: payload.status ?? "Active",
-      };
-      const designRef = doc(db, "fashiontally_designs", id);
-      await setDoc(designRef, design);
-      set((state) => ({ designs: [design, ...state.designs] }));
+
+      const { imageUrl: _old, ...rest } = payload;
+      const json = await apiFetch<{ success: boolean; data: Design }>(
+        "/design/create",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: JSON.stringify({ ...rest, imageUrl }) }),
+        },
+      );
+      set((state) => ({ designs: [json.data, ...state.designs] }));
     } catch (error: any) {
       console.error("Error creating design:", error);
-      // throw new Error("Failed to create design");
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to create design", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
 
+  // ─── LIST ──────────────────────────────────────────────────────────────────
+  async getDesignsByTailor(_email) {
+    // 1. Show cached data immediately if available
+    const cached = await readCache<Design[]>(CACHE_KEY);
+    if (cached) set({ designs: cached });
+
+    // 2. Fetch fresh data (show spinner only when cache is empty)
+    if (!cached) set({ loading: true });
+    try {
+      const res = await apiFetch<{ success: boolean; data: Design[] }>(
+        "/design/list?type=design",
+      );
+      const fresh = res.data ?? [];
+      set({ designs: fresh });
+      await writeCache(CACHE_KEY, fresh);
+    } catch (error: any) {
+      console.error("Error getting designs:", error);
+      if (!cached) {
+        ShowToastMessage({ title: error.message ?? "Failed to fetch designs", preset: "error", haptic: "error" });
+      }
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  // ─── EDIT ──────────────────────────────────────────────────────────────────
   async editDesign(itemId, updates) {
     set({ loading: true });
-    let finalUpdates = { ...updates };
-    if (updates.imageUrl && updates.imageUrl.startsWith("data:image")) {
-      const uploadedUrl = await uploadImageToCloudinary(updates.imageUrl);
-      if (!uploadedUrl) {
-        set({ loading: false });
-        return;
+    try {
+      // Upload new image if it's a local URI
+      let imageUrl = updates.imageUrl;
+      if (imageUrl && !imageUrl.startsWith("https")) {
+        imageUrl = await uploadDesignImageToCloudinary(imageUrl);
       }
-      finalUpdates.imageUrl = uploadedUrl;
-    }
-    try {
-      const itemRef = doc(db, "fashiontally_designs", itemId);
 
-      const updateData = {
-        ...finalUpdates,
-        updatedAt: new Date().toISOString(),
-      };
-
-      await updateDoc(itemRef, updateData);
-
-      set((state) => ({
-        designs: state.designs.map((item) =>
-          item.id === itemId ? { ...item, ...updateData } : item,
-        ),
-      }));
-
-      ShowToastMessage({
-        title: "Design updated successfully",
-        preset: "done",
-        haptic: "success",
-      });
-    } catch (error: any) {
-      console.error("Error updating Design item:", error);
-      ShowToastMessage({
-        title: "Update failed",
-        message: error.message,
-        preset: "error",
-        haptic: "error",
-      });
-    } finally {
-      set({ loading: false });
-    }
-  },
-
-  async getDesignsByTailor(email) {
-    set({ loading: true });
-    try {
-      const clientsRef = collection(db, "fashiontally_designs");
-      const q = query(
-        clientsRef,
-        where("userEmail", "==", email),
-        orderBy("createdAt", "desc"),
+      const { imageUrl: _old, ...rest } = updates;
+      const json = await apiFetch<{ success: boolean; data: Design }>(
+        `/design/edit/${encodeURIComponent(itemId)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: JSON.stringify({ ...rest, ...(imageUrl ? { imageUrl } : {}) }) }),
+        },
       );
-      const querySnapshot = await getDocs(q);
-
-      const designs = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Design[];
-
-      set({ designs });
+      set((state) => ({
+        designs: state.designs.map((d) => (d.id === json.data.id ? json.data : d)),
+      }));
+      ShowToastMessage({ title: "Design updated successfully", preset: "done", haptic: "success" });
     } catch (error: any) {
-      console.error("Error getting clients:", error);
-      // throw new Error("Failed to get clients");
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      console.error("Error updating design:", error);
+      ShowToastMessage({ title: error.message ?? "Update failed", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
   },
+
+  // ─── DELETE ────────────────────────────────────────────────────────────────
   async deleteDesign(designId) {
     set({ loading: true });
     try {
-      const designRef = doc(db, "fashiontally_designs", designId);
-      await deleteDoc(designRef);
-      console.log(`Design ${designId} successfully deleted`);
-
+      await apiFetch(`/design/delete/${encodeURIComponent(designId)}`, {
+        method: "DELETE",
+      });
       set((state) => ({
-        designs: state.designs.filter((i) => i.id !== designId),
+        designs: state.designs.filter((d) => d.id !== designId),
       }));
     } catch (error: any) {
       console.error("Error deleting design:", error);
-      // throw new Error("Failed to delete client");
-      ShowToastMessage({
-        title: error,
-        preset: "error",
-        haptic: "error",
-      });
+      ShowToastMessage({ title: error.message ?? "Failed to delete design", preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

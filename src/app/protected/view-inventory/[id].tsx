@@ -1,10 +1,13 @@
-import { HapticTab } from "@/src/components/haptic-tab";
+﻿import { HapticTab } from "@/src/components/haptic-tab";
+import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { useInventoryStore } from "@/src/stores/inventorySlice";
+import { initialSuppliers, storedUnitPrice } from "@/src/types/inventory";
+import MoneyAmount from "@/src/components/shared/MoneyAmount";
+import { useDisplayCurrency } from "@/src/hooks/useDisplayCurrency";
 import {
   CapitalizeFirstName,
-  FormatCurrency,
   formatFintechDate,
-  FormatNairaShorthand,
   scale,
   scaleFontSize,
   spacing,
@@ -25,6 +28,7 @@ import {
   UserIcon,
 } from "lucide-react-native";
 import React from "react";
+import { PhotoPlaceholder } from "@/src/components/shared/ImageUploadField";
 import {
   ActivityIndicator,
   Alert,
@@ -36,22 +40,37 @@ import {
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ViewInventoryItemScreen = () => {
   const { id } = useLocalSearchParams();
+
+  const { isDark } = useTheme();
+  const { top } = useSafeAreaInsets();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : "rgba(10, 10, 10, 1)";
+  const subTextColor = isDark ? "rgba(160,160,160,1)" : "rgba(106, 114, 130, 1)";
+  const sectionTitleColor = isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)";
+  const iconColor = isDark ? "rgba(180,180,180,1)" : "black";
+  const boxBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(249, 250, 251, 1)";
+  const borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(54, 65, 83, 1)";
+  const recBoxBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(249, 250, 251, 1)";
+  const chevronColor = isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)";
 
   const loading = useInventoryStore((state) => state.loading);
   const deleteItem = useInventoryStore((state) => state.deleteInventoryItem);
 
   const stocks = useInventoryStore((state) => state.stocks);
   const foundInventory = stocks.find((prev) => prev.id === id.toString());
+  const suppliers = initialSuppliers(foundInventory);
 
+  const { currency, usdToNgn, symbol } = useDisplayCurrency();
   const inStock = foundInventory?.status.toLowerCase().includes("in stock");
-
-  const totalValue =
-    (foundInventory?.quantity ?? 1) *
-    (foundInventory?.sellingPricePerUnit ?? 0);
+  const unitPrice = storedUnitPrice(foundInventory);
+  const totalValue = (foundInventory?.quantity ?? 0) * unitPrice;
+  const unitInCurrency =
+    currency === "USD" && usdToNgn ? (unitPrice / usdToNgn).toFixed(2) : unitPrice.toLocaleString();
 
   const handleDelete = () => {
     Alert.alert(
@@ -70,9 +89,7 @@ const ViewInventoryItemScreen = () => {
   };
   return (
     <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
-      >
+      <View style={[{ flex: 1, paddingTop: top, backgroundColor: bg }]}>
         <View style={styles.header}>
           <HapticTab
             style={{
@@ -85,82 +102,51 @@ const ViewInventoryItemScreen = () => {
           >
             <ChevronLeft
               size={scale(20)}
-              color={"rgba(54, 65, 83, 1)"}
+              color={chevronColor}
               strokeWidth={1.5}
             />
           </HapticTab>
 
           <View style={styles.col}>
-            <Text style={styles.reg20}>{foundInventory?.name}</Text>
-            <Text style={styles.reg14g}>
+            <Text style={[styles.reg20, { color: textColor }]}>{foundInventory?.name}</Text>
+            <Text style={[styles.reg14g, { color: subTextColor }]}>
               SKU: {foundInventory?.id.slice(0, 6)}
             </Text>
           </View>
         </View>
 
         <KeyboardAvoidingView
-          style={{
-            flex: 1,
-            backgroundColor: "white",
-          }}
+          style={{ flex: 1, backgroundColor: bg }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={
-            Platform.OS === "ios" ? spacing(50) : spacing(0)
-          }
+          keyboardVerticalOffset={Platform.OS === "ios" ? spacing(50) : spacing(0)}
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
             bounces={false}
-            contentContainerStyle={{
-              flexGrow: 1,
-              paddingVertical: spacing(30),
-            }}
+            contentContainerStyle={{ flexGrow: 1, paddingVertical: spacing(30) }}
             keyboardDismissMode="interactive"
           >
             <View style={styles.content}>
+              <PhotoPlaceholder uri={foundInventory?.imageUrl} height={200} />
               <View style={styles.sections}>
                 <View style={styles.section}>
                   <View style={[styles.gapRow, { gap: spacing(8) }]}>
-                    <Info size={scale(14)} color={"black"} />
-                    <Text
-                      style={[styles.reg14g, { color: "rgba(54, 65, 83, 1)" }]}
-                    >
+                    <Info size={scale(14)} color={iconColor} />
+                    <Text style={[styles.reg14g, { color: sectionTitleColor }]}>
                       Item Details
                     </Text>
                   </View>
 
-                  <View style={styles.box}>
+                  <View style={[styles.box, { backgroundColor: boxBg }]}>
                     <View style={[styles.gapRow, { gap: spacing(8) }]}>
                       <View style={[styles.gapRow, { gap: spacing(8) }]}>
-                        <CheckCircle size={scale(12)} color={"black"} />
-                        <Text
-                          style={[
-                            styles.reg14g,
-                            { color: "rgba(54, 65, 83, 1)" },
-                          ]}
-                        >
+                        <CheckCircle size={scale(12)} color={iconColor} />
+                        <Text style={[styles.reg14g, { color: sectionTitleColor }]}>
                           Status
                         </Text>
                       </View>
-
-                      <View
-                        style={[
-                          styles.badge,
-                          inStock && {
-                            backgroundColor: "rgba(220, 252, 231, 1)",
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.reg14g,
-                            {
-                              color: inStock
-                                ? "rgba(0, 130, 54, 1)"
-                                : "rgba(231, 0, 11, 1)",
-                            },
-                          ]}
-                        >
+                      <View style={[styles.badge, inStock && { backgroundColor: "rgba(220, 252, 231, 1)" }]}>
+                        <Text style={[styles.reg14g, { color: inStock ? "rgba(0, 130, 54, 1)" : "rgba(231, 0, 11, 1)" }]}>
                           {foundInventory?.status}
                         </Text>
                       </View>
@@ -170,132 +156,70 @@ const ViewInventoryItemScreen = () => {
                       <View style={styles.row}>
                         <View style={styles.col}>
                           <View style={[styles.gapRow, { gap: spacing(4) }]}>
-                            <Tag
-                              size={scale(12)}
-                              color={"rgba(106, 114, 130, 1)"}
-                            />
-                            <Text
-                              style={[
-                                styles.reg12,
-                                { color: "rgba(106, 114, 130, 1)" },
-                              ]}
-                            >
-                              CATEGORY
-                            </Text>
+                            <Tag size={scale(12)} color={subTextColor} />
+                            <Text style={[styles.reg12, { color: subTextColor }]}>CATEGORY</Text>
                           </View>
-                          <Text
-                            style={[
-                              styles.reg14g,
-                              { color: "rgba(16, 24, 40, 1)" },
-                            ]}
-                          >
+                          <Text style={[styles.reg14g, { color: textColor }]}>
                             {CapitalizeFirstName(foundInventory?.category)}
                           </Text>
                         </View>
 
                         <View style={styles.col}>
                           <View style={[styles.gapRow, { gap: spacing(4) }]}>
-                            <CircleDollarSign
-                              size={scale(12)}
-                              color={"rgba(106, 114, 130, 1)"}
-                            />
-                            <Text
-                              style={[
-                                styles.reg12,
-                                { color: "rgba(106, 114, 130, 1)" },
-                              ]}
-                            >
-                              UNIT PRICE
-                            </Text>
+                            <CircleDollarSign size={scale(12)} color={subTextColor} />
+                            <Text style={[styles.reg12, { color: subTextColor }]}>UNIT PRICE</Text>
                           </View>
-                          <Text
-                            style={[
-                              styles.reg14g,
-                              { color: "rgba(16, 24, 40, 1)" },
-                            ]}
-                          >
-                            {FormatCurrency(
-                              foundInventory?.sellingPricePerUnit ?? 0,
-                            )}
-                          </Text>
+                          <MoneyAmount amount={unitPrice} color={textColor} />
                         </View>
                       </View>
 
-                      <View style={styles.row}>
-                        <View style={styles.col}>
-                          <View style={[styles.gapRow, { gap: spacing(4) }]}>
-                            <UserIcon
-                              size={scale(12)}
-                              color={"rgba(106, 114, 130, 1)"}
-                            />
-                            <Text
-                              style={[
-                                styles.reg12,
-                                { color: "rgba(106, 114, 130, 1)" },
-                              ]}
-                            >
-                              SUPPLIER
-                            </Text>
-                          </View>
-                          <Text
-                            style={[
-                              styles.reg14g,
-                              { color: "rgba(16, 24, 40, 1)" },
-                            ]}
-                          >
-                            {CapitalizeFirstName(foundInventory?.supplierName)}
+                      <View style={{ gap: spacing(8) }}>
+                        <View style={[styles.gapRow, { gap: spacing(4) }]}>
+                          <UserIcon size={scale(12)} color={subTextColor} />
+                          <Text style={[styles.reg12, { color: subTextColor }]}>
+                            {suppliers.length > 1 ? "SUPPLIERS" : "SUPPLIER"}
                           </Text>
                         </View>
+                        {suppliers.length === 0 && (
+                          <Text style={[styles.reg14g, { color: textColor }]}>—</Text>
+                        )}
+                        {suppliers.map((entry, index) => (
+                          <View
+                            key={`${entry.name}-${index}`}
+                            style={[styles.supplierCard, { borderColor, backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(248, 250, 252, 1)" }]}
+                          >
+                            <Text style={[styles.reg14g, { color: textColor }]}>
+                              {entry.name || "Unnamed supplier"}
+                            </Text>
+                            {entry.contact ? (
+                              <Text style={[styles.reg12, { color: subTextColor }]}>{entry.contact}</Text>
+                            ) : null}
+                          </View>
+                        ))}
+                      </View>
 
-                        {foundInventory?.color.trim() && (
+                      {foundInventory?.color.trim() && (
+                        <View style={styles.row}>
                           <View style={styles.col}>
                             <View style={[styles.gapRow, { gap: spacing(4) }]}>
-                              <SwatchBook
-                                size={scale(12)}
-                                color={"rgba(106, 114, 130, 1)"}
-                              />
-                              <Text
-                                style={[
-                                  styles.reg12,
-                                  { color: "rgba(106, 114, 130, 1)" },
-                                ]}
-                              >
-                                COLOR
-                              </Text>
+                              <SwatchBook size={scale(12)} color={subTextColor} />
+                              <Text style={[styles.reg12, { color: subTextColor }]}>COLOR</Text>
                             </View>
-                            <Text
-                              style={[
-                                styles.reg14g,
-                                { color: "rgba(16, 24, 40, 1)" },
-                              ]}
-                            >
+                            <Text style={[styles.reg14g, { color: textColor }]}>
                               {CapitalizeFirstName(foundInventory.color)}
                             </Text>
                           </View>
-                        )}
-                      </View>
+                        </View>
+                      )}
 
-                      <View style={styles.borderSection}>
+                      <View style={[styles.borderSection, { borderTopColor: borderColor }]}>
                         <View style={styles.col}>
                           <View style={[styles.gapRow, { gap: spacing(4) }]}>
-                            <FileText
-                              size={scale(12)}
-                              color={"rgba(106, 114, 130, 1)"}
-                            />
-                            <Text
-                              style={[
-                                styles.reg12,
-                                { color: "rgba(106, 114, 130, 1)" },
-                              ]}
-                            >
-                              Description
-                            </Text>
+                            <FileText size={scale(12)} color={subTextColor} />
+                            <Text style={[styles.reg12, { color: subTextColor }]}>Description</Text>
                           </View>
                           <Text
-                            style={[
-                              styles.reg14g,
-                              { color: "rgba(16, 24, 40, 1)", flexShrink: 1 },
-                            ]}
+                            style={[styles.reg14g, { color: textColor, flexShrink: 1 }]}
                             numberOfLines={1}
                             ellipsizeMode="tail"
                           >
@@ -308,114 +232,32 @@ const ViewInventoryItemScreen = () => {
 
                   <View style={styles.section}>
                     <View style={[styles.gapRow, { gap: spacing(8) }]}>
-                      <Box size={scale(14)} color={"black"} />
-                      <Text
-                        style={[
-                          styles.reg14g,
-                          { color: "rgba(54, 65, 83, 1)" },
-                        ]}
-                      >
+                      <Box size={scale(14)} color={iconColor} />
+                      <Text style={[styles.reg14g, { color: sectionTitleColor }]}>
                         Stock Information
                       </Text>
                     </View>
 
                     <View style={[styles.row, { gap: spacing(8) }]}>
-                      <View
-                        style={[
-                          styles.card,
-                          { backgroundColor: "rgba(240, 253, 250, 1)" },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.reg24,
-                            { color: "rgba(22, 152, 141, 1)" },
-                          ]}
-                        >
+                      <View style={[styles.card, { backgroundColor: isDark ? "rgba(22,152,141,0.15)" : "rgba(240, 253, 250, 1)" }]}>
+                        <Text style={[styles.reg24, { color: "rgba(22, 152, 141, 1)" }]}>
                           {foundInventory?.quantity}
                         </Text>
-                        <Text
-                          style={[
-                            styles.reg12,
-                            { color: "rgba(74, 85, 101, 1)" },
-                          ]}
-                        >
-                          Current Stock
-                        </Text>
-                        <Text
-                          style={[
-                            styles.reg12,
-                            { color: "rgba(106, 114, 130, 1)" },
-                          ]}
-                        >
-                          pieces
-                        </Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>Current Stock</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>pieces</Text>
                       </View>
-                      <View
-                        style={[
-                          styles.card,
-                          { backgroundColor: "rgba(255, 247, 237, 1)" },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.reg24,
-                            { color: "rgba(245, 73, 0, 1)" },
-                          ]}
-                        >
+                      <View style={[styles.card, { backgroundColor: isDark ? "rgba(245,73,0,0.12)" : "rgba(255, 247, 237, 1)" }]}>
+                        <Text style={[styles.reg24, { color: "rgba(245, 73, 0, 1)" }]}>
                           {foundInventory?.reorderPoint}
                         </Text>
-                        <Text
-                          style={[
-                            styles.reg12,
-                            { color: "rgba(74, 85, 101, 1)" },
-                          ]}
-                        >
-                          Reorder Point
-                        </Text>
-                        <Text
-                          style={[
-                            styles.reg12,
-                            { color: "rgba(106, 114, 130, 1)" },
-                          ]}
-                        >
-                          pieces
-                        </Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>Reorder Point</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>pieces</Text>
                       </View>
-                      <View
-                        style={[
-                          styles.card,
-                          { backgroundColor: "rgba(240, 253, 244, 1)" },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.reg24,
-                            {
-                              color: "rgba(22, 152, 141, 1)",
-                            },
-                          ]}
-                        >
-                          {FormatNairaShorthand(totalValue.toString())}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.reg12,
-                            { color: "rgba(74, 85, 101, 1)" },
-                          ]}
-                        >
-                          Total Value
-                        </Text>
-                        <Text
-                          style={[
-                            styles.reg12,
-                            { color: "rgba(106, 114, 130, 1)" },
-                          ]}
-                        >
-                          {foundInventory?.quantity ?? 1} x{" "}
-                          {FormatCurrency(
-                            foundInventory?.sellingPricePerUnit ?? 0,
-                          )}
+                      <View style={[styles.card, { backgroundColor: isDark ? "rgba(22,152,141,0.15)" : "rgba(240, 253, 244, 1)" }]}>
+                        <MoneyAmount amount={totalValue} color="rgba(22, 152, 141, 1)" align="center" primarySize={scaleFontSize(20)} />
+                        <Text style={[styles.reg12, { color: subTextColor }]}>Total Value</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>
+                          {foundInventory?.quantity ?? 0} x {symbol}{unitInCurrency}
                         </Text>
                       </View>
                     </View>
@@ -423,53 +265,21 @@ const ViewInventoryItemScreen = () => {
 
                   <View style={styles.section}>
                     <View style={[styles.gapRow, { gap: spacing(8) }]}>
-                      <Clock size={scale(15)} color={"black"} />
-                      <Text
-                        style={[
-                          styles.reg14g,
-                          { color: "rgba(54, 65, 83, 1)" },
-                        ]}
-                      >
-                        Timeline
-                      </Text>
+                      <Clock size={scale(15)} color={iconColor} />
+                      <Text style={[styles.reg14g, { color: sectionTitleColor }]}>Timeline</Text>
                     </View>
 
                     <View style={{ gap: spacing(12) }}>
-                      <View style={styles.recBox}>
-                        <Text
-                          style={[
-                            styles.reg12,
-                            { color: "rgba(106, 114, 130, 1)" },
-                          ]}
-                        >
-                          Created
-                        </Text>
-                        <Text
-                          style={[
-                            styles.reg14g,
-                            { color: "rgba(16, 24, 40, 1)" },
-                          ]}
-                        >
-                          {formatFintechDate(foundInventory?.createdAt ?? "")}
+                      <View style={[styles.recBox, { backgroundColor: recBoxBg }]}>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>Created</Text>
+                        <Text style={[styles.reg14g, { color: textColor }]}>
+                          {foundInventory?.createdAt ? formatFintechDate(foundInventory.createdAt) : "N/A"}
                         </Text>
                       </View>
-
-                      <View style={styles.recBox}>
-                        <Text
-                          style={[
-                            styles.reg12,
-                            { color: "rgba(106, 114, 130, 1)" },
-                          ]}
-                        >
-                          Last Updated
-                        </Text>
-                        <Text
-                          style={[
-                            styles.reg14g,
-                            { color: "rgba(16, 24, 40, 1)" },
-                          ]}
-                        >
-                          {formatFintechDate(foundInventory?.updatedAt ?? "")}
+                      <View style={[styles.recBox, { backgroundColor: recBoxBg }]}>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>Last Updated</Text>
+                        <Text style={[styles.reg14g, { color: textColor }]}>
+                          {foundInventory?.updatedAt ? formatFintechDate(foundInventory.updatedAt) : "N/A"}
                         </Text>
                       </View>
                     </View>
@@ -477,20 +287,14 @@ const ViewInventoryItemScreen = () => {
                 </View>
               </View>
             </View>
-            <View
-              style={[
-                styles.row,
-                { gap: spacing(80), paddingHorizontal: spacing(16) },
-              ]}
-            >
+
+            <View style={[styles.row, { gap: spacing(80), paddingHorizontal: spacing(16) }]}>
               <HapticTab
                 style={styles.primaryBtn}
                 onPress={() => {
                   router.push({
                     pathname: "/protected/inventory/[id]",
-                    params: {
-                      id: foundInventory?.id ?? "",
-                    },
+                    params: { id: foundInventory?.id ?? "" },
                   });
                 }}
               >
@@ -498,16 +302,9 @@ const ViewInventoryItemScreen = () => {
                 <Text style={styles.btnText}>Edit Item</Text>
               </HapticTab>
 
-              <Pressable
-                style={styles.deleteBtn}
-                onPress={handleDelete}
-                disabled={loading}
-              >
+              <Pressable style={[styles.deleteBtn, { backgroundColor: isDark ? "rgba(231,0,11,0.15)" : "rgba(254, 242, 242, 1)" }]} onPress={handleDelete} disabled={loading}>
                 {loading ? (
-                  <ActivityIndicator
-                    size={"small"}
-                    color={"rgba(231, 0, 11, 1)"}
-                  />
+                  <ActivityIndicator size={"small"} color={"rgba(231, 0, 11, 1)"} />
                 ) : (
                   <Trash2 size={scale(15)} color={"rgba(231, 0, 11, 1)"} />
                 )}
@@ -515,7 +312,7 @@ const ViewInventoryItemScreen = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </>
   );
 };
@@ -572,6 +369,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  supplierCard: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: spacing(10),
+    paddingHorizontal: spacing(12),
+    gap: spacing(2),
+  },
   gapRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -584,7 +388,6 @@ const styles = StyleSheet.create({
     gap: spacing(16),
   },
   box: {
-    backgroundColor: "rgba(249, 250, 251, 1)",
     gap: spacing(16),
     padding: spacing(16),
     borderRadius: 16,
@@ -615,7 +418,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   recBox: {
-    backgroundColor: "rgba(249, 250, 251, 1)",
     padding: spacing(16),
     gap: spacing(4),
     borderRadius: 14,
@@ -631,7 +433,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   deleteBtn: {
-    backgroundColor: "rgba(254, 242, 242, 1)",
     width: 66,
     height: 56,
     justifyContent: "center",

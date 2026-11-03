@@ -1,6 +1,7 @@
-import ClientApptList from "@/src/components/appointment/ClientApptList";
+﻿import ClientApptList from "@/src/components/appointment/ClientApptList";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { useAppointmentStore } from "@/src/stores/appointmentSlice";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
@@ -11,6 +12,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const ClientAppointments = () => {
   const { phone } = useLocalSearchParams();
+  const { isDark } = useTheme();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : Colors.text.black;
+  const subTextColor = isDark ? "rgba(160,160,160,1)" : Colors.text.gray;
+  const iconColor = isDark ? "rgba(200,200,200,1)" : "black";
 
   const appointments = useAppointmentStore((state) => state.appointments);
   const clientAppt = appointments.filter(
@@ -22,34 +29,23 @@ const ClientAppointments = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={styles.container}>
+    <SafeAreaView edges={["left","right","bottom"]} style={{ flex: 1, backgroundColor: bg }}>
+      <View style={[styles.container, { backgroundColor: bg }]}>
         <View style={styles.rowHeader}>
           <Pressable hitSlop={20} onPress={handleBack}>
-            <X size={scale(20)} color={"black"} />
+            <X size={scale(20)} color={iconColor} />
           </Pressable>
 
-          <Text style={[styles.reg20, { flex: 1, textAlign: "center" }]}>
+          <Text style={[styles.reg20, { flex: 1, textAlign: "center", color: textColor }]}>
             Appointments
           </Text>
-
-          {/* <Text style={[Styles.reg14, { color: Colors.secondary }]}>
-            history
-          </Text> */}
         </View>
 
         <View style={styles.content}>
           <View style={styles.rowHeader}>
-            <Text style={[Styles.med16, { color: Colors.text.black }]}>
+            <Text style={[Styles.med16, { color: textColor }]}>
               Upcoming
             </Text>
-
-            {/* <Pressable style={styles.schBtn}>
-              <Plus size={scale(16)} color={"white"} />
-              <Text style={[Styles.reg16, { color: Colors.text.white }]}>
-                Schedule
-              </Text>
-            </Pressable> */}
           </View>
 
           <View style={styles.list}>
@@ -68,7 +64,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: spacing(20),
     paddingHorizontal: 16,
-    backgroundColor: "white",
   },
   content: {
     flex: 1,

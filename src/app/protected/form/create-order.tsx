@@ -4,16 +4,18 @@ import { HapticTab } from "@/src/components/haptic-tab";
 import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { getCurrentUserEmail } from "@/src/lib/auth-utils";
 import { GenerateOrderId } from "@/src/lib/order";
 import { useClientStore } from "@/src/stores/clientSlice";
+import { EntryMoney } from "@/src/components/shared/MoneyAmount";
+import { useDisplayCurrency } from "@/src/hooks/useDisplayCurrency";
 import { useOrderStore } from "@/src/stores/orderSlice";
 import { Client } from "@/src/types/client";
 import { Order } from "@/src/types/Order";
 import {
   CapitalizeFirstName,
   extractClientMeasurements,
-  FormatCurrency,
   FormatDateToYYYYMMDD,
   GetDetailedDate,
   scale,
@@ -21,6 +23,7 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { Calendar, ChevronDown, ChevronLeft } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
@@ -33,7 +36,8 @@ import {
   TextInput,
   View,
 } from "react-native";
-import DatePicker from "react-native-date-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 const orderStatusList = [
   {
@@ -103,7 +107,27 @@ const CreateOrderScreen = () => {
   const foundClient = clients.find((prev) => prev.id === clientId?.toString());
 
   const createOrder = useOrderStore((state) => state.saveOrder);
+  const { symbol, toNaira, blockUntilRate } = useDisplayCurrency();
   const loading = useOrderStore((state) => state.loading);
+
+  const { isDark } = useTheme();
+  const { top } = useSafeAreaInsets();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : "rgba(54, 65, 83, 1)";
+  const labelColor = isDark ? "rgba(160,160,160,1)" : "#4A5565";
+  const inputBg = isDark ? "rgba(255,255,255,0.06)" : "white";
+  const inputBorder = isDark ? "rgba(255,255,255,0.1)" : Colors.inputBorder;
+  const inputTextColor = isDark ? Colors.text.white : Colors.black;
+  const placeholderColor = isDark ? "rgba(100,100,100,1)" : Colors.grayText;
+  const dropdownTextColor = isDark ? "rgba(200,200,200,1)" : "rgba(10, 10, 10, 0.5)";
+  const dropdownActiveColor = isDark ? Colors.text.white : "rgba(10, 10, 10, 1)";
+  const chevronColor = isDark ? "rgba(160,160,160,1)" : Colors.grey;
+  const detailBoxBg = isDark ? "rgba(13,40,80,0.5)" : "rgba(239, 246, 255, 1)";
+  const detailBoxBorder = isDark ? "rgba(30,80,160,0.4)" : "rgba(190, 219, 255, 1)";
+  const summaryBoxBg = isDark ? "rgba(80,60,0,0.3)" : "rgba(254, 230, 133, 0.3)";
+  const summaryBoxBorder = isDark ? "rgba(120,90,0,0.3)" : "rgba(254, 230, 133, 0.3)";
+  const summaryTitleColor = isDark ? "rgba(255,190,80,1)" : "rgba(123, 51, 6, 1)";
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   // console.log("foundClient", JSON.stringify(selectedClient, null, 2));
@@ -266,13 +290,17 @@ const CreateOrderScreen = () => {
   };
 
   const handleCreateOrder = async () => {
-    if (!validateForm()) return;
+    if (!validateForm() || blockUntilRate()) return;
 
     try {
+      const unitPrice = toNaira(orderData.price) ?? 0;
+      const deposit = toNaira(orderData.deposit) ?? 0;
       const payload: Order = {
         ...orderData,
+        price: unitPrice,
+        deposit,
         clientId: selectedClient ? selectedClient.id : "",
-        balance: orderData.price * orderData.quantity - orderData.deposit,
+        balance: unitPrice * orderData.quantity - deposit,
         paymentStatus:
           orderData.deposit >= orderData.price * orderData.quantity
             ? "paid"
@@ -311,8 +339,10 @@ const CreateOrderScreen = () => {
   return (
     <>
       <View
-        style={{ flex: 1, paddingTop: spacing(50), backgroundColor: "white" }}
+        style={{ flex: 1, paddingTop: top, backgroundColor: bg }}
       >
+        <StatusBar style={isDark ? "light" : "dark"} />
+
         <View style={styles.header}>
           <HapticTab
             style={{
@@ -325,18 +355,18 @@ const CreateOrderScreen = () => {
           >
             <ChevronLeft
               size={scale(20)}
-              color={"rgba(54, 65, 83, 1)"}
+              color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"}
               strokeWidth={1.5}
             />
           </HapticTab>
 
-          <Text style={styles.reg24}>Create order</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>Create order</Text>
         </View>
 
         <KeyboardAvoidingView
           style={{
             flex: 1,
-            backgroundColor: "white",
+            backgroundColor: bg,
           }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={
@@ -354,32 +384,32 @@ const CreateOrderScreen = () => {
           >
             <View style={styles.content}>
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Clients</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Clients</Text>
                 <Pressable
-                  style={[Styles.input, { ...styles.row, paddingVertical: 0 }]}
+                  style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleClientModal}
                 >
                   {selectedClient ? (
                     <Text
-                      style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
+                      style={[Styles.reg16, { color: dropdownTextColor }]}
                     >
                       {selectedClient.name}
                     </Text>
                   ) : (
                     <Text
-                      style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
+                      style={[Styles.reg16, { color: dropdownTextColor }]}
                     >
                       Select a Client
                     </Text>
                   )}
 
-                  <ChevronDown size={scale(20)} color={Colors.grey} />
+                  <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
               </View>
 
-              <View style={styles.detailBox}>
+              <View style={[styles.detailBox, { backgroundColor: detailBoxBg, borderColor: detailBoxBorder }]}>
                 <View style={Styles.inputContainer}>
-                  <Text style={Styles.label}>
+                  <Text style={[Styles.label, { color: labelColor }]}>
                     Name<Text style={styles.red}> *</Text>
                   </Text>
                   <TextInput
@@ -388,7 +418,7 @@ const CreateOrderScreen = () => {
                       handleDataChange("clientName", text)
                     }
                     placeholder="e.g., Adaeze Okonkwo"
-                    placeholderTextColor={Colors.grayText}
+                    placeholderTextColor={placeholderColor}
                     returnKeyLabel="next"
                     returnKeyType="next"
                     keyboardType="default"
@@ -397,8 +427,10 @@ const CreateOrderScreen = () => {
                       Styles.input,
                       {
                         paddingVertical: 0,
-                        backgroundColor: "white",
+                        backgroundColor: inputBg,
+                        borderColor: inputBorder,
                         paddingHorizontal: spacing(16),
+                        color: inputTextColor,
                       },
                     ]}
                   />
@@ -412,7 +444,7 @@ const CreateOrderScreen = () => {
                 </View>
 
                 <View style={Styles.inputContainer}>
-                  <Text style={Styles.label}>
+                  <Text style={[Styles.label, { color: labelColor }]}>
                     Phone<Text style={styles.red}> *</Text>
                   </Text>
                   <TextInput
@@ -421,7 +453,7 @@ const CreateOrderScreen = () => {
                       handleDataChange("clientPhone", text)
                     }
                     placeholder="e.g., +234 801 234 5678"
-                    placeholderTextColor={Colors.grayText}
+                    placeholderTextColor={placeholderColor}
                     returnKeyLabel="next"
                     returnKeyType="next"
                     keyboardType="phone-pad"
@@ -430,8 +462,10 @@ const CreateOrderScreen = () => {
                       Styles.input,
                       {
                         paddingVertical: 0,
-                        backgroundColor: "white",
+                        backgroundColor: inputBg,
+                        borderColor: inputBorder,
                         paddingHorizontal: spacing(16),
+                        color: inputTextColor,
                       },
                     ]}
                   />
@@ -446,23 +480,23 @@ const CreateOrderScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Order Status</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Order Status</Text>
                 <Pressable
-                  style={[Styles.input, { ...styles.row, paddingVertical: 0 }]}
+                  style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleStatusModal}
                 >
                   <Text
-                    style={[Styles.reg16, { color: "rgba(10, 10, 10, 1)" }]}
+                    style={[Styles.reg16, { color: dropdownActiveColor }]}
                   >
                     {CapitalizeFirstName(orderData.status)}
                   </Text>
 
-                  <ChevronDown size={scale(20)} color={Colors.grey} />
+                  <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>
+                <Text style={[Styles.label, { color: labelColor }]}>
                   Design/Style Name<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
@@ -471,7 +505,7 @@ const CreateOrderScreen = () => {
                     handleDataChange("garmentDescription", text)
                   }
                   placeholder="e.g., Elegant Wedding Gown"
-                  placeholderTextColor={Colors.grayText}
+                  placeholderTextColor={placeholderColor}
                   returnKeyLabel="next"
                   returnKeyType="next"
                   autoCorrect={false}
@@ -479,8 +513,10 @@ const CreateOrderScreen = () => {
                     Styles.input,
                     {
                       paddingVertical: 0,
-                      backgroundColor: "white",
+                      backgroundColor: inputBg,
+                      borderColor: inputBorder,
                       paddingHorizontal: spacing(16),
+                      color: inputTextColor,
                     },
                   ]}
                 />
@@ -493,26 +529,26 @@ const CreateOrderScreen = () => {
 
               <View style={[styles.row, { gap: spacing(20) }]}>
                 <View style={[Styles.inputContainer, { flex: 1 }]}>
-                  <Text style={Styles.label}>Fabric Type</Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>Fabric Type</Text>
                   <Pressable
                     style={[
                       Styles.input,
-                      { ...styles.row, paddingVertical: 0 },
+                      { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder },
                     ]}
                     onPress={toggleTypeModal}
                   >
                     <Text
-                      style={[Styles.reg16, { color: "rgba(10, 10, 10, 1)" }]}
+                      style={[Styles.reg16, { color: dropdownActiveColor }]}
                     >
                       {CapitalizeFirstName(orderData.garmentType)}
                     </Text>
 
-                    <ChevronDown size={scale(20)} color={Colors.grey} />
+                    <ChevronDown size={scale(20)} color={chevronColor} />
                   </Pressable>
                 </View>
 
                 <View style={[Styles.inputContainer, { flex: 1 }]}>
-                  <Text style={Styles.label}>
+                  <Text style={[Styles.label, { color: labelColor }]}>
                     Quantity<Text style={styles.red}> *</Text>
                   </Text>
                   <TextInput
@@ -521,7 +557,7 @@ const CreateOrderScreen = () => {
                       handleDataChange("quantity", Number(text))
                     }
                     placeholder="e.g., 5"
-                    placeholderTextColor={Colors.grayText}
+                    placeholderTextColor={placeholderColor}
                     returnKeyLabel="next"
                     returnKeyType="next"
                     keyboardType="number-pad"
@@ -530,8 +566,10 @@ const CreateOrderScreen = () => {
                       Styles.input,
                       {
                         paddingVertical: 0,
-                        backgroundColor: "white",
+                        backgroundColor: inputBg,
+                        borderColor: inputBorder,
                         paddingHorizontal: spacing(16),
+                        color: inputTextColor,
                       },
                     ]}
                   />
@@ -546,13 +584,11 @@ const CreateOrderScreen = () => {
               </View>
 
               <View style={{}}>
-                <Text style={Styles.label}>Measurements</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Measurements</Text>
 
                 <View
                   style={{
                     flexDirection: "row",
-                    // justifyContent: "space-between",
-                    // gap: "2.5%",
                     alignItems: "center",
                     flexWrap: "wrap",
                     gap: spacing(8),
@@ -571,7 +607,7 @@ const CreateOrderScreen = () => {
                           ]}
                           key={index}
                         >
-                          <Text style={Styles.label}>
+                          <Text style={[Styles.label, { color: labelColor }]}>
                             {CapitalizeFirstName(measurement)}
                           </Text>
                           <TextInput
@@ -580,7 +616,7 @@ const CreateOrderScreen = () => {
                               handleMeasurementUpdate(`${measurement}`, text)
                             }
                             placeholder={`${CapitalizeFirstName(measurement)}`}
-                            placeholderTextColor={Colors.grayText}
+                            placeholderTextColor={placeholderColor}
                             returnKeyLabel="next"
                             returnKeyType="next"
                             keyboardType="number-pad"
@@ -589,8 +625,10 @@ const CreateOrderScreen = () => {
                               Styles.input,
                               {
                                 paddingVertical: 0,
-                                backgroundColor: "white",
+                                backgroundColor: inputBg,
+                                borderColor: inputBorder,
                                 paddingHorizontal: spacing(16),
+                                color: inputTextColor,
                               },
                             ]}
                           />
@@ -602,26 +640,26 @@ const CreateOrderScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>
+                <Text style={[Styles.label, { color: labelColor }]}>
                   Delivery Date<Text style={styles.red}> *</Text>
                 </Text>
                 <Pressable
                   style={[
                     Styles.input,
-                    { ...styles.gapRow, paddingVertical: 0 },
+                    { ...styles.gapRow, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder },
                   ]}
                   onPress={() => setShowPicker(true)}
                 >
-                  <Calendar size={scale(20)} color={Colors.grey} />
+                  <Calendar size={scale(20)} color={chevronColor} />
                   {orderData.dueDate ? (
                     <Text
-                      style={[Styles.reg16, { color: "rgba(10, 10, 10, 1)" }]}
+                      style={[Styles.reg16, { color: dropdownActiveColor }]}
                     >
                       {GetDetailedDate(orderData.dueDate)}
                     </Text>
                   ) : (
                     <Text
-                      style={[Styles.reg16, { color: "rgba(10, 10, 10, 0.5)" }]}
+                      style={[Styles.reg16, { color: dropdownTextColor }]}
                     >
                       Select date
                     </Text>
@@ -636,37 +674,35 @@ const CreateOrderScreen = () => {
                 </Pressable>
 
                 {showPicker && (
-                  <DatePicker
-                    modal
-                    open={showPicker}
-                    date={
+                  <DateTimePicker
+                    value={
                       orderData.dueDate
                         ? new Date(orderData.dueDate)
                         : new Date()
                     }
                     mode="date"
-                    onConfirm={(date) => {
-                      setShowPicker(false);
-                      setOrderData({
-                        ...orderData,
-                        dueDate: FormatDateToYYYYMMDD(date.toISOString()),
-                      });
-                    }}
-                    onCancel={() => {
+                    display={Platform.OS === "ios" ? "spinner" : "default"}
+                    onChange={(event: any, date?: Date) => {
+                      if (event.type === "set" && date) {
+                        setOrderData({
+                          ...orderData,
+                          dueDate: FormatDateToYYYYMMDD(date.toISOString()),
+                        });
+                      }
                       setShowPicker(false);
                     }}
                   />
                 )}
               </View>
 
-              <View style={styles.summaryBox}>
-                <Text style={[Styles.med14, { color: "rgba(123, 51, 6, 1)" }]}>
+              <View style={[styles.summaryBox, { backgroundColor: summaryBoxBg, borderColor: summaryBoxBorder }]}>
+                <Text style={[Styles.med14, { color: summaryTitleColor }]}>
                   Pricing
                 </Text>
 
                 <View style={[styles.row, { gap: spacing(20) }]}>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={Styles.label}>Base Price (₦)</Text>
+                    <Text style={[Styles.label, { color: labelColor }]}>Base Price ({symbol})</Text>
                     <TextInput
                       value={
                         orderData.price === 0 ? "" : orderData.price.toString()
@@ -675,7 +711,7 @@ const CreateOrderScreen = () => {
                         handleDataChange("price", Number(text))
                       }
                       placeholder="e.g., 50000"
-                      placeholderTextColor={Colors.grayText}
+                      placeholderTextColor={placeholderColor}
                       returnKeyLabel="next"
                       returnKeyType="next"
                       keyboardType="number-pad"
@@ -684,15 +720,17 @@ const CreateOrderScreen = () => {
                         Styles.input,
                         {
                           paddingVertical: 0,
-                          backgroundColor: "white",
+                          backgroundColor: inputBg,
+                          borderColor: inputBorder,
                           paddingHorizontal: spacing(16),
+                          color: inputTextColor,
                         },
                       ]}
                     />
                   </View>
 
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={Styles.label}>Deposit Paid (₦)</Text>
+                    <Text style={[Styles.label, { color: labelColor }]}>Deposit Paid ({symbol})</Text>
                     <TextInput
                       value={
                         orderData.deposit === 0
@@ -703,7 +741,7 @@ const CreateOrderScreen = () => {
                         handleDataChange("deposit", Number(text))
                       }
                       placeholder="e.g., 25000"
-                      placeholderTextColor={Colors.grayText}
+                      placeholderTextColor={placeholderColor}
                       returnKeyLabel="next"
                       returnKeyType="next"
                       keyboardType="number-pad"
@@ -712,8 +750,10 @@ const CreateOrderScreen = () => {
                         Styles.input,
                         {
                           paddingVertical: 0,
-                          backgroundColor: "white",
+                          backgroundColor: inputBg,
+                          borderColor: inputBorder,
                           paddingHorizontal: spacing(16),
+                          color: inputTextColor,
                         },
                       ]}
                     />
@@ -726,35 +766,29 @@ const CreateOrderScreen = () => {
                     {
                       paddingBottom: spacing(8),
                       borderBottomWidth: 1.5,
-                      borderBottomColor: "rgba(255, 210, 48, 0.3)",
+                      borderBottomColor: isDark ? "rgba(120,90,0,0.4)" : "rgba(255, 210, 48, 0.3)",
                     },
                   ]}
                 >
                   <View style={styles.row}>
-                    <Text style={[Styles.reg14, { color: Colors.text.black }]}>
+                    <Text style={[Styles.reg14, { color: inputTextColor }]}>
                       Total Amount:
                     </Text>
-                    <Text style={[Styles.reg16, { color: Colors.text.black }]}>
-                      {FormatCurrency(totalAmount)}
-                    </Text>
+                    <EntryMoney amount={totalAmount} color={inputTextColor} align="end" />
                   </View>
 
                   <View style={styles.row}>
-                    <Text style={[Styles.reg14, { color: Colors.text.black }]}>
+                    <Text style={[Styles.reg14, { color: inputTextColor }]}>
                       Deposit:
                     </Text>
-                    <Text style={[Styles.reg16, { color: Colors.text.black }]}>
-                      {FormatCurrency(orderData.deposit)}
-                    </Text>
+                    <EntryMoney amount={orderData.deposit} color={inputTextColor} align="end" />
                   </View>
                 </View>
                 <View style={styles.row}>
-                  <Text style={[Styles.reg14, { color: Colors.text.black }]}>
+                  <Text style={[Styles.reg14, { color: inputTextColor }]}>
                     Balance:
                   </Text>
-                  <Text style={[Styles.reg16, { color: Colors.text.black }]}>
-                    {FormatCurrency(totalAmount - orderData.deposit)}
-                  </Text>
+                  <EntryMoney amount={totalAmount - orderData.deposit} color={inputTextColor} align="end" />
                 </View>
                 {error.price || error.deposit ? (
                   <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>
@@ -764,14 +798,14 @@ const CreateOrderScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={Styles.label}>Special Instructions / Notes</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>Special Instructions / Notes</Text>
                 <TextInput
                   value={orderData.specialInstructions}
                   onChangeText={(text) =>
                     handleDataChange("specialInstructions", text)
                   }
                   placeholder="Any special requirements, modifications, or notes..."
-                  placeholderTextColor={Colors.grayText}
+                  placeholderTextColor={placeholderColor}
                   returnKeyLabel="next"
                   returnKeyType="next"
                   autoCorrect={false}
@@ -784,8 +818,10 @@ const CreateOrderScreen = () => {
                       textAlignVertical: "top",
                       paddingTop: spacing(15),
                       paddingVertical: 0,
-                      backgroundColor: "white",
+                      backgroundColor: inputBg,
+                      borderColor: inputBorder,
                       paddingHorizontal: spacing(16),
+                      color: inputTextColor,
                     },
                   ]}
                 />
@@ -866,7 +902,6 @@ const styles = StyleSheet.create({
   reg24: {
     fontFamily: "regular",
     fontSize: scaleFontSize(24),
-    color: "rgba(54, 65, 83, 1)",
     lineHeight: 32,
   },
   reg30: {
@@ -896,20 +931,16 @@ const styles = StyleSheet.create({
     color: "rgba(251, 44, 54, 1)",
   },
   detailBox: {
-    backgroundColor: "rgba(239, 246, 255, 1)",
     padding: spacing(17),
     borderWidth: 1.1,
-    borderColor: "rgba(190, 219, 255, 1)",
     borderRadius: 16,
     gap: spacing(12),
   },
   summaryBox: {
     marginTop: spacing(10),
-    backgroundColor: "rgba(254, 230, 133, 0.3)",
     padding: spacing(17),
     borderWidth: 1.1,
     borderRadius: 16,
-    borderColor: "rgba(254, 230, 133, 0.3)",
     gap: spacing(10),
   },
   button: {

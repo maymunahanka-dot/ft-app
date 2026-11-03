@@ -1,4 +1,5 @@
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 // import * as Clipboard from "expo-clipboard";
 import React, { useEffect, useRef } from "react";
 import {
@@ -35,6 +36,13 @@ const OTPInput: React.FC<Props> = ({
   autoFocus = true,
 }) => {
   const inputRef = useRef<TextInput>(null);
+  const { isDark } = useTheme();
+
+  const boxBg = isDark ? "rgba(30,30,30,1)" : "white";
+  const digitColor = isDark ? Colors.text.white : Colors.black;
+  const borderActive = isDark ? Colors.text.white : Colors.black;
+  const borderInactive = isDark ? "rgba(80,80,80,1)" : Colors.black50;
+  const separatorColor = isDark ? "rgba(80,80,80,1)" : Colors.black50;
 
   useEffect(() => {
     if (value.length === 6 && onComplete) {
@@ -97,16 +105,17 @@ const OTPInput: React.FC<Props> = ({
                   {
                     width: BOX_SIZE,
                     height: BOX_SIZE,
-                    borderColor: digit ? Colors.black : Colors.black50,
+                    backgroundColor: boxBg,
+                    borderColor: digit ? borderActive : borderInactive,
                   },
                 ]}
               >
-                <Text style={styles.digit}>{digit}</Text>
+                <Text style={[styles.digit, { color: digitColor }]}>{digit}</Text>
               </View>
 
               {showSeparator && (
                 <View style={styles.separator}>
-                  <View style={styles.separatorLine} />
+                  <View style={[styles.separatorLine, { backgroundColor: separatorColor }]} />
                 </View>
               )}
             </React.Fragment>
@@ -138,7 +147,6 @@ const styles = StyleSheet.create({
   box: {
     borderWidth: 1,
     borderRadius: 12,
-    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
     ...Platform.select({
@@ -165,6 +173,5 @@ const styles = StyleSheet.create({
   digit: {
     fontSize: 22,
     fontWeight: "600",
-    color: Colors.black,
   },
 });

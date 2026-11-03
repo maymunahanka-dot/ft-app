@@ -42,14 +42,14 @@ const ClientCard = ({ item }: Props) => {
         <View style={[styles.gapRow, { gap: spacing(4) }]}>
           <Mail size={scale(15)} color={"white"} />
           <Text style={[Styles.reg14, { color: "white", lineHeight: 20 }]}>
-            {item?.email ?? "N/A"}
+            {item?.email || "N/A"}
           </Text>
         </View>
 
         <View style={[styles.gapRow, { gap: spacing(4) }]}>
           <Phone size={scale(15)} color={"white"} />
           <Text style={[Styles.reg14, { color: "white", lineHeight: 20 }]}>
-            {item?.phone ?? "N/A"}
+            {item?.phone || "N/A"}
           </Text>
         </View>
 

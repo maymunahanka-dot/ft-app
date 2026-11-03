@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Building2, Info, Shield, User, Users } from "lucide-react-native";
+import { Bell, Building2, CreditCard, Info, Palette, Shield, User, Users } from "lucide-react-native";
 import { Linking } from "react-native";
 
 export const MoreSection = [
@@ -24,7 +24,15 @@ export const MoreSection = [
     title: "Team",
     details: "Manage team members",
     onPress: () => {
-      Linking.openURL("https://www.fashiontally.com/login");
+      Linking.openURL("https://www.fashiontally.com/settings?tab=admins");
+    },
+  },
+  {
+    icon: CreditCard,
+    title: "Subscription",
+    details: "Manage your subscription plan",
+    onPress: () => {
+      router.push("/protected/more/subscription-details");
     },
   },
   {
@@ -33,6 +41,22 @@ export const MoreSection = [
     details: "Password & authentication",
     onPress: () => {
       router.push("/protected/more/security-details");
+    },
+  },
+  {
+    icon: Bell,
+    title: "Notifications",
+    details: "Push notification settings",
+    onPress: () => {
+      router.push("/protected/more/notification-details");
+    },
+  },
+  {
+    icon: Palette,
+    title: "Appearance",
+    details: "Theme & display settings",
+    onPress: () => {
+      router.push("/protected/more/appearance-details");
     },
   },
   {

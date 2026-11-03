@@ -1,13 +1,14 @@
+﻿import MoneyAmount from "@/src/components/shared/MoneyAmount";
 import { HapticTab } from "@/src/components/haptic-tab";
 import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
 import { useOrderStore } from "@/src/stores/orderSlice";
 import { ClientMeasurements } from "@/src/types/client";
 import { OrderStatus } from "@/src/types/Order";
 import {
   CapitalizeFirstName,
-  FormatCurrency,
   FormatMeasurementsForUI,
   GetInitials,
   scale,
@@ -15,6 +16,7 @@ import {
   spacing,
 } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import {
   Check,
   ChevronLeft,
@@ -27,35 +29,13 @@ import {
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-export const callPhoneNumber = async (phoneNumber: string) => {
-  if (!phoneNumber) {
-    Alert.alert("Error", "Phone number not available");
-    return;
-  }
-
-  const cleanedNumber = phoneNumber.replace(/[^\d+]/g, "");
-
-  const phoneUrl = `tel:${cleanedNumber}`;
-
-  const supported = await Linking.canOpenURL(phoneUrl);
-
-  if (!supported) {
-    Alert.alert("Error", "Calling is not supported on this device");
-    return;
-  }
-
-  await Linking.openURL(phoneUrl);
-};
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const orderStatusList = [
   {
@@ -87,12 +67,14 @@ const orderStatusList = [
 type StandProps = {
   active: boolean;
   title: string;
+  isDark?: boolean;
 };
 
-const StatusStand = ({ active, title }: StandProps) => {
-  const iconColor = active ? "#00A63E" : "#99A1AF";
-  const bgColor = active ? "#DCFCE7" : "#E5E7EB";
-  const stickColor = active ? "#B9F8CF" : "#D1D5DC";
+const StatusStand = ({ active, title, isDark }: StandProps) => {
+  const iconColor = active ? "#00A63E" : isDark ? "rgba(100,100,100,1)" : "#99A1AF";
+  const bgColor = active ? (isDark ? "rgba(0,100,50,0.3)" : "#DCFCE7") : isDark ? "rgba(255,255,255,0.08)" : "#E5E7EB";
+  const stickColor = active ? (isDark ? "rgba(0,160,80,0.3)" : "#B9F8CF") : isDark ? "rgba(255,255,255,0.06)" : "#D1D5DC";
+  const titleColor = isDark ? "rgba(180,180,180,1)" : "#4A5565";
 
   return (
     <View style={[styles.gapRow, { alignItems: "flex-start" }]}>
@@ -106,7 +88,7 @@ const StatusStand = ({ active, title }: StandProps) => {
         </View>
         <View style={[styles.stick, { backgroundColor: stickColor }]} />
       </View>
-      <Text style={[styles.reg14, { color: "#4A5565" }]}>{title}</Text>
+      <Text style={[styles.reg14, { color: titleColor }]}>{title}</Text>
     </View>
   );
 };
@@ -118,23 +100,47 @@ const OrderDetailScreen = () => {
 
   const loading = useOrderStore((state) => state.loading);
   const deleteOrder = useOrderStore((state) => state.deleteOrder);
-  const updateOrderStatus = useOrderStore((state) => state.updateOrderStatus);
   const orders = useOrderStore((state) => state.orders);
   const order = orders.find((prev) => prev.id === orderId);
+
+  // Debug — log order fields to see what client data is present
+  if (order) {
+    console.log("[OrderDetail] order client fields:", {
+      clientName: order.clientName,
+      clientPhone: order.clientPhone,
+      clientEmail: order.clientEmail,
+      clientId: order.clientId,
+    });
+  }
+
+  const { isDark } = useTheme();
+  const { top } = useSafeAreaInsets();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : "rgba(54, 65, 83, 1)";
+  const subTextColor = isDark ? "rgba(160,160,160,1)" : Colors.text.gray;
+  const boxBg = isDark ? "rgba(255,255,255,0.05)" : "#F9FAFB";
+  const sectionLabelColor = isDark ? "rgba(160,160,160,1)" : Colors.text.black;
+  const updateLinkColor = isDark ? "rgba(80,200,180,1)" : "#0D6B62";
+
+  const pricingBoxBg = isDark ? "rgba(80,60,0,0.3)" : "#FFFBEB";
+  const pricingBoxBorder = isDark ? "rgba(120,90,0,0.5)" : "#FEE685";
+  const pricingDivider = isDark ? "rgba(120,90,0,0.5)" : "#FFD230";
+  const pricingText = isDark ? Colors.text.white : Colors.text.black;
+  const depositColor = isDark ? "rgba(80,200,100,1)" : "#008236";
+  const balanceColor = isDark ? "rgba(255,140,60,1)" : "#973C00";
 
   const isCompleted = order?.status === "completed";
   const isCancelled = order?.status === "cancelled";
 
-  const textColor = isCompleted
+  const badgeTextColor = isCompleted
     ? "rgba(0, 130, 54, 1)"
     : isCancelled
       ? "rgba(193, 0, 7, 1)"
-      : "rgba(20, 71, 230, 1)";
-  const bgColor = isCompleted
-    ? "rgba(220, 252, 231, 1)"
-    : isCancelled
-      ? "rgba(255, 226, 226, 1)"
-      : "rgba(239, 246, 255, 1)";
+      : "rgba(0, 130, 54, 1)";
+  const badgeBgColor = isDark
+    ? isCompleted ? "rgba(0,100,50,0.25)" : isCancelled ? "rgba(193,0,7,0.2)" : "rgba(0,100,50,0.25)"
+    : isCompleted ? "rgba(220, 252, 231, 1)" : isCancelled ? "rgba(255, 226, 226, 1)" : "rgba(220, 252, 231, 1)";
 
   const [statusModal, setStatusModal] = useState(false);
   const toggleStatusModal = () => setStatusModal((prev) => !prev);
@@ -184,19 +190,6 @@ const OrderDetailScreen = () => {
 
   const currentStatusIndex = getStatusIndex(orderStatus);
 
-  const handleOrderUpdate = async () => {
-    if (order?.status === orderStatus) {
-      handleBack();
-      return;
-    }
-    try {
-      await updateOrderStatus(order?.id ?? "", orderStatus);
-      handleBack();
-    } catch (error) {
-      console.error("error handling order update", error);
-    }
-  };
-
   const handleDeleteOrder = async () => {
     try {
       await deleteOrder(order?.id ?? "");
@@ -212,10 +205,12 @@ const OrderDetailScreen = () => {
 
   return (
     <>
-      <SafeAreaView
-        style={{ flex: 1, paddingTop: spacing(20), backgroundColor: "white" }}
+      <View
+        style={{ flex: 1, paddingTop: top, backgroundColor: bg }}
       >
-        <View style={[styles.row, { paddingHorizontal: spacing(16) }]}>
+        <StatusBar style={isDark ? "light" : "dark"} />
+
+        <View style={[styles.row, { paddingHorizontal: spacing(16), paddingTop: spacing(12), paddingBottom: spacing(8) }]}>
           <View style={styles.header}>
             <HapticTab
               hitSlop={20}
@@ -228,12 +223,12 @@ const OrderDetailScreen = () => {
             >
               <ChevronLeft
                 size={scale(20)}
-                color={"rgba(54, 65, 83, 1)"}
+                color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"}
                 strokeWidth={1.5}
               />
             </HapticTab>
 
-            <Text style={styles.reg24}>Order Details</Text>
+            <Text style={[styles.reg24, { color: textColor }]}>Order Details</Text>
           </View>
 
           <Pressable onPress={handleDeleteOrder}>
@@ -255,25 +250,25 @@ const OrderDetailScreen = () => {
           keyboardDismissMode="interactive"
         >
           <View style={styles.content}>
-            <Text style={styles.reg14}>#{order?.id.slice(0, 10)}</Text>
+            <Text style={[styles.reg14, { color: subTextColor }]}>#{order?.id.slice(0, 10)}</Text>
             <View
               style={[
-                styles.badgeView,
+                styles.statusBadge,
                 {
-                  backgroundColor: bgColor,
-                  borderWidth: 1,
-                  borderColor: textColor,
+                  backgroundColor: badgeBgColor,
+                  borderColor: badgeTextColor,
                 },
               ]}
             >
-              <Text style={[Styles.reg16, { color: textColor }]}>
+              <View style={[styles.statusDot, { backgroundColor: badgeTextColor }]} />
+              <Text style={[styles.reg14, { color: badgeTextColor, fontFamily: "medium" }]}>
                 {CapitalizeFirstName(order?.status)}
               </Text>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.reg14}>Client Information</Text>
-              <View style={styles.box}>
+              <Text style={[styles.reg14, { color: sectionLabelColor }]}>Client Information</Text>
+              <View style={[styles.box, { backgroundColor: boxBg }]}>
                 <View style={[styles.gapRow]}>
                   <View style={styles.bgView}>
                     <Text style={[styles.reg16, { color: "white" }]}>
@@ -281,20 +276,30 @@ const OrderDetailScreen = () => {
                     </Text>
                   </View>
 
-                  <Text style={styles.reg14}>
-                    {CapitalizeFirstName(order?.clientName)}
+                  <Text style={[styles.reg14, { color: sectionLabelColor }]}>
+                    {CapitalizeFirstName(order?.clientName) || "No Client"}
                   </Text>
                 </View>
 
                 <View style={styles.gapRow}>
                   <Phone size={scale(18)} color={Colors.primary} />
-                  <Text style={styles.reg14}>{order?.clientPhone}</Text>
+                  <Text style={[styles.reg14, { color: sectionLabelColor }]}>
+                    {order?.clientPhone || "N/A"}
+                  </Text>
                 </View>
+                {(order?.clientEmail) ? (
+                  <View style={styles.gapRow}>
+                    <Text style={[styles.reg14, { color: Colors.primary }]}>@</Text>
+                    <Text style={[styles.reg14, { color: sectionLabelColor }]}>
+                      {order.clientEmail}
+                    </Text>
+                  </View>
+                ) : null}
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.reg14}>Order Details</Text>
-                <View style={styles.box}>
+                <Text style={[styles.reg14, { color: sectionLabelColor }]}>Order Details</Text>
+                <View style={[styles.box, { backgroundColor: boxBg }]}>
                   <View style={[styles.gapRow, { alignItems: "flex-start" }]}>
                     <Package
                       size={scale(20)}
@@ -302,18 +307,18 @@ const OrderDetailScreen = () => {
                       height={30}
                     />
                     <View style={[styles.col, { gap: spacing(4) }]}>
-                      <Text style={[styles.reg14, { color: Colors.text.gray }]}>
+                      <Text style={[styles.reg14, { color: subTextColor }]}>
                         Item
                       </Text>
-                      <Text style={styles.reg14}>
-                        {order?.garmentDescription}
+                      <Text style={[styles.reg14, { color: sectionLabelColor }]}>
+                        {order?.name || order?.garmentDescription || "Not Specified"}
                       </Text>
                       <Text
                         style={[
                           styles.reg14,
                           {
                             fontSize: scaleFontSize(12),
-                            color: Colors.text.gray,
+                            color: subTextColor,
                           },
                         ]}
                       >
@@ -329,10 +334,10 @@ const OrderDetailScreen = () => {
                       height={30}
                     />
                     <View style={[styles.col, { gap: spacing(4) }]}>
-                      <Text style={[styles.reg14, { color: Colors.text.gray }]}>
+                      <Text style={[styles.reg14, { color: subTextColor }]}>
                         Fabric
                       </Text>
-                      <Text style={styles.reg14}>
+                      <Text style={[styles.reg14, { color: sectionLabelColor }]}>
                         {order?.fabric ? order?.fabric : "Not Specified"}
                       </Text>
                       <Text
@@ -340,7 +345,7 @@ const OrderDetailScreen = () => {
                           styles.reg14,
                           {
                             fontSize: scaleFontSize(12),
-                            color: Colors.text.gray,
+                            color: subTextColor,
                           },
                         ]}
                       >
@@ -354,7 +359,7 @@ const OrderDetailScreen = () => {
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.reg14}>Measurements</Text>
+              <Text style={[styles.reg14, { color: sectionLabelColor }]}>Measurements</Text>
               <View style={styles.measurements}>
                 {measurementList.map((measure, index) => (
                   <View style={styles.measure} key={index}>
@@ -363,62 +368,56 @@ const OrderDetailScreen = () => {
                         styles.reg14,
                         {
                           fontSize: scaleFontSize(12),
-                          color: Colors.text.gray,
+                          color: subTextColor,
                         },
                       ]}
                     >
                       {measure.label}
                     </Text>
-                    <Text style={styles.reg14}>{measure.value}&quot;</Text>
+                    <Text style={[styles.reg14, { color: sectionLabelColor }]}>{measure.value}&quot;</Text>
                   </View>
                 ))}
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.reg14}>Pricing</Text>
+                <Text style={[styles.reg14, { color: sectionLabelColor }]}>Pricing</Text>
                 <View
                   style={[
                     styles.box,
                     {
-                      backgroundColor: "#FFFBEB",
+                      backgroundColor: pricingBoxBg,
                       borderWidth: 1,
-                      borderColor: "#FEE685",
+                      borderColor: pricingBoxBorder,
                       borderRadius: 16,
                     },
                   ]}
                 >
                   <View style={[styles.row]}>
-                    <Text style={[Styles.reg14, { color: Colors.text.black }]}>
+                    <Text style={[Styles.reg14, { color: pricingText }]}>
                       Total Amount
                     </Text>
-                    <Text style={[Styles.reg16, { color: Colors.text.black }]}>
-                      {FormatCurrency(order?.price ?? 0)}
-                    </Text>
+                    <MoneyAmount amount={Number(order?.price) || 0} color={pricingText} align="end" primarySize={16} />
                   </View>
                   <View style={[styles.row]}>
-                    <Text style={[Styles.reg14, { color: "#008236" }]}>
+                    <Text style={[Styles.reg14, { color: depositColor }]}>
                       Deposit Paid
                     </Text>
-                    <Text style={[Styles.reg16, { color: Colors.text.black }]}>
-                      {FormatCurrency(order?.deposit ?? 0)}
-                    </Text>
+                    <MoneyAmount amount={Number(order?.deposit) || 0} color={pricingText} align="end" primarySize={16} />
                   </View>
                   <View
                     style={[
                       styles.row,
                       {
                         borderTopWidth: 1,
-                        borderTopColor: "#FFD230",
+                        borderTopColor: pricingDivider,
                         paddingTop: spacing(12),
                       },
                     ]}
                   >
-                    <Text style={[Styles.reg14, { color: "#973C00" }]}>
+                    <Text style={[Styles.reg14, { color: balanceColor }]}>
                       Balance Due
                     </Text>
-                    <Text style={[Styles.reg16, { color: Colors.text.black }]}>
-                      {FormatCurrency(order?.balance ?? 0)}
-                    </Text>
+                    <MoneyAmount amount={Number(order?.balance) || 0} color={pricingText} align="end" primarySize={16} />
                   </View>
                 </View>
               </View>
@@ -426,18 +425,18 @@ const OrderDetailScreen = () => {
 
             <View style={styles.section}>
               <View style={styles.row}>
-                <Text style={styles.reg14}>Order Timeline</Text>
+                <Text style={[styles.reg14, { color: sectionLabelColor }]}>Order Timeline</Text>
                 <Pressable hitSlop={20} onPress={toggleStatusModal}>
-                  <Text style={[styles.reg14, { color: "#0D6B62" }]}>
+                  <Text style={[styles.reg14, { color: updateLinkColor }]}>
                     Update timeline
                   </Text>
                 </Pressable>
               </View>
-              <View style={styles.box}>
+              <View style={[styles.box, { backgroundColor: boxBg }]}>
                 <View style={styles.statusStands}>
                   {order?.status === "cancelled" ? (
                     <View style={styles.statusStands}>
-                      <StatusStand title="Order Cancelled" active />
+                      <StatusStand title="Order Cancelled" active isDark={isDark} />
                     </View>
                   ) : (
                     ORDER_FLOW.map((status, index) => (
@@ -445,6 +444,7 @@ const OrderDetailScreen = () => {
                         key={status}
                         title={CapitalizeFirstName(status.replace("-", " "))}
                         active={index <= currentStatusIndex}
+                        isDark={isDark}
                       />
                     ))
                   )}
@@ -452,31 +452,9 @@ const OrderDetailScreen = () => {
               </View>
             </View>
 
-            <View style={[styles.row, { gap: spacing(30) }]}>
-              <Pressable
-                onPress={() => callPhoneNumber(order?.clientPhone ?? "")}
-                style={styles.rowBtn}
-              >
-                <Phone size={scale(18)} color={Colors.black} />
-                <Text style={styles.reg16}>Contact</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={handleOrderUpdate}
-                style={[styles.rowBtn, { backgroundColor: Colors.primary }]}
-              >
-                {loading ? (
-                  <ActivityIndicator size={"small"} color={"white"} />
-                ) : (
-                  <Text style={[styles.reg16, { color: "white" }]}>
-                    Send timeline Update
-                  </Text>
-                )}
-              </Pressable>
-            </View>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
       {statusModal && (
         <SelectFilterModal
           data={orderStatusList}
@@ -505,17 +483,14 @@ const styles = StyleSheet.create({
   reg14: {
     fontFamily: "regular",
     fontSize: scaleFontSize(14),
-    color: Colors.text.black,
   },
   reg16: {
     fontFamily: "regular",
     fontSize: scaleFontSize(14),
-    color: Colors.text.black,
   },
   reg24: {
     fontFamily: "regular",
     fontSize: scaleFontSize(24),
-    color: "rgba(54, 65, 83, 1)",
     lineHeight: 32,
   },
   reg30: {
@@ -543,12 +518,20 @@ const styles = StyleSheet.create({
   red: {
     color: "rgba(251, 44, 54, 1)",
   },
-  badgeView: {
-    height: 50,
-    paddingHorizontal: spacing(20),
-    borderRadius: 14,
-    justifyContent: "center",
-    // alignItems: "center",
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: spacing(8),
+    paddingHorizontal: spacing(14),
+    paddingVertical: spacing(8),
+    borderRadius: 100,
+    borderWidth: 1,
+  },
+  statusDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 100,
   },
   bgView: {
     width: 48,
@@ -562,7 +545,6 @@ const styles = StyleSheet.create({
     gap: spacing(12),
   },
   box: {
-    backgroundColor: "#F9FAFB",
     padding: spacing(16),
     gap: spacing(12),
     borderRadius: 16,
@@ -598,15 +580,5 @@ const styles = StyleSheet.create({
   },
   statusStands: {
     gap: spacing(15),
-  },
-  rowBtn: {
-    flex: 1,
-    backgroundColor: "#F3F4F6",
-    height: 56,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: spacing(7),
-    borderRadius: 14,
   },
 });

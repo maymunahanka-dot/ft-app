@@ -1,9 +1,10 @@
+import MoneyAmount from "@/src/components/shared/MoneyAmount";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import { InventoryItem } from "@/src/types/inventory";
+import { useTheme } from "@/src/context/ThemeContext";
+import { InventoryItem, storedUnitPrice } from "@/src/types/inventory";
 import {
   CapitalizeFirstName,
-  FormatCurrency,
   scale,
   scaleFontSize,
   spacing,
@@ -29,6 +30,16 @@ const Icons = {
 } as const;
 
 const StockItem = ({ item }: Props) => {
+  const { isDark } = useTheme();
+
+  const cardBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(253, 254, 254, 1)";
+  const cardBorder = isDark ? "rgba(255,255,255,0.08)" : "rgba(74, 85, 101, 1)";
+  const textColor = isDark ? Colors.text.white : Colors.text.black;
+  const subTextColor = isDark ? "rgba(160,160,160,1)" : "rgba(106, 114, 130, 1)";
+  const tagBg = isDark ? "rgba(255,255,255,0.1)" : "rgba(229, 231, 235, 1)";
+  const tagText = isDark ? "rgba(200,200,200,1)" : "rgba(106, 114, 130, 1)";
+  const boxBg = isDark ? "rgba(22,152,141,0.12)" : "rgba(232, 245, 244, 1)";
+  const eyeBtnColor = isDark ? "rgba(180,180,180,1)" : "rgba(74, 85, 101, 1)";
   const outOfStock = item.status === "out-of-stock";
   const lowStock =
     item.status === "low-stock" ||
@@ -43,10 +54,10 @@ const StockItem = ({ item }: Props) => {
   const bgColor = lowStock
     ? "rgba(254, 249, 194, 1)"
     : "rgba(198, 233, 212, 1)";
-  const textColor = lowStock ? "rgba(166, 95, 0, 1)" : "rgba(21, 177, 83, 0.9)";
+  const badgeTextColor = lowStock ? "rgba(166, 95, 0, 1)" : "rgba(21, 177, 83, 0.9)";
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: cardBg, borderColor: cardBorder }]}>
       <View style={[styles.row, { alignItems: "flex-start" }]}>
         <View style={[styles.startRow, { gap: spacing(12) }]}>
           <LinearGradient
@@ -65,25 +76,21 @@ const StockItem = ({ item }: Props) => {
           </LinearGradient>
 
           <View style={{ gap: spacing(5) }}>
-            <Text style={[Styles.reg14, { color: Colors.text.black }]}>
+            <Text style={[Styles.reg14, { color: textColor }]}>
               {item.name}
             </Text>
             <View style={[styles.gapRow, { gap: spacing(8) }]}>
-              <View style={styles.typeView}>
-                <Text
-                  style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}
-                >
+              <View style={[styles.typeView, { backgroundColor: tagBg }]}>
+                <Text style={[Styles.reg12, { color: tagText }]}>
                   {CapitalizeFirstName(item.category)}
                 </Text>
               </View>
-              <Text style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
-                {"•"}
-              </Text>
-              <Text style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
+              <Text style={[Styles.reg12, { color: subTextColor }]}>{"•"}</Text>
+              <Text style={[Styles.reg12, { color: subTextColor }]}>
                 {item.id.slice(0, 6)}
               </Text>
             </View>
-            <Text style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
+            <Text style={[Styles.reg12, { color: subTextColor }]}>
               {item.notes ? item.notes : "No notes"}
             </Text>
           </View>
@@ -96,115 +103,53 @@ const StockItem = ({ item }: Props) => {
             onPress={() => {
               router.push({
                 pathname: "/protected/view-inventory/[id]",
-                params: {
-                  id: item.id,
-                },
+                params: { id: item.id },
               });
             }}
           >
-            <Eye size={scale(15)} color={"rgba(74, 85, 101, 1)"} />
+            <Eye size={scale(15)} color={eyeBtnColor} />
           </Pressable>
-          {/* <Pressable
-            hitSlop={20}
-            style={styles.actionBtn}
-            onPress={handleDelete}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator size={"small"} color={"rgba(231, 0, 11, 1)"} />
-            ) : (
-              <Trash2 size={scale(15)} color={"rgba(231, 0, 11, 1)"} />
-            )}
-          </Pressable> */}
         </View>
       </View>
 
       <View style={styles.row}>
-        <View
-          style={[
-            styles.col,
-            { justifyContent: "center", alignItems: "center" },
-          ]}
-        >
-          <Text style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
-            Quantity
-          </Text>
-
-          <Text style={[Styles.reg14, { color: Colors.text.black }]}>
+        <View style={[styles.col, { justifyContent: "center", alignItems: "center" }]}>
+          <Text style={[Styles.reg12, { color: subTextColor }]}>Quantity</Text>
+          <Text style={[Styles.reg14, { color: textColor }]}>
             {item.quantity} {item.unit}
           </Text>
         </View>
 
-        <View
-          style={[
-            styles.col,
-            { justifyContent: "center", alignItems: "center" },
-          ]}
-        >
-          <Text style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
-            Price per Unit
-          </Text>
-
-          <Text style={[Styles.reg14, { color: Colors.text.black }]}>
-            {FormatCurrency(item.sellingPricePerUnit ?? 1)}
-          </Text>
+        <View style={[styles.col, { justifyContent: "center", alignItems: "center" }]}>
+          <Text style={[Styles.reg12, { color: subTextColor }]}>Price per Unit</Text>
+          <MoneyAmount amount={storedUnitPrice(item)} color={textColor} align="center" />
         </View>
 
-        <View
-          style={[
-            styles.col,
-            { justifyContent: "center", alignItems: "center" },
-          ]}
-        >
-          <Text style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
-            Alert
-          </Text>
-
+        <View style={[styles.col, { justifyContent: "center", alignItems: "center" }]}>
+          <Text style={[Styles.reg12, { color: subTextColor }]}>Alert</Text>
           <View
             style={[
               styles.badgeView,
-              {
-                backgroundColor: outOfStock
-                  ? "rgba(255, 226, 226, 1)"
-                  : bgColor,
-              },
+              { backgroundColor: outOfStock ? "rgba(255, 226, 226, 1)" : bgColor },
             ]}
           >
-            <Text
-              style={[
-                Styles.reg12,
-                { color: outOfStock ? "rgba(193, 0, 7, 1)" : textColor },
-              ]}
-            >
+            <Text style={[Styles.reg12, { color: outOfStock ? "rgba(193, 0, 7, 1)" : badgeTextColor }]}>
               {alert}
             </Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.box}>
+      <View style={[styles.box, { backgroundColor: boxBg }]}>
         <View style={styles.row}>
-          <Text style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}>
-            Stock Value
-          </Text>
-          <Text
-            style={[Styles.med16, { color: Colors.primary, lineHeight: 24 }]}
-          >
-            {FormatCurrency(item.quantity * (item.sellingPricePerUnit ?? 1))}
-          </Text>
+          <Text style={[Styles.reg12, { color: subTextColor }]}>Stock Value</Text>
+          <MoneyAmount amount={item.quantity * storedUnitPrice(item)} color={Colors.primary} align="end" primarySize={16} />
         </View>
-
         <View style={styles.row}>
-          <Text
-            style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}
-            numberOfLines={1}
-          >
-            Supplier: {item.supplier}
+          <Text style={[Styles.reg12, { color: subTextColor }]} numberOfLines={1}>
+            Supplier: {item.supplierName || item.suppliers?.find((entry) => entry.name)?.name || item.supplier || "—"}
           </Text>
-          <Text
-            style={[Styles.reg12, { color: "rgba(106, 114, 130, 1)" }]}
-            numberOfLines={1}
-          >
+          <Text style={[Styles.reg12, { color: subTextColor }]} numberOfLines={1}>
             Min: {item.minStockLevel} {item.unit}
           </Text>
         </View>
@@ -217,12 +162,10 @@ export default StockItem;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "rgba(253, 254, 254, 1)",
     padding: spacing(16),
     gap: spacing(12),
     borderWidth: 0.3,
     borderRadius: 16,
-    borderColor: "rgba(74, 85, 101, 1)",
   },
   row: {
     flexDirection: "row",
@@ -248,7 +191,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   typeView: {
-    backgroundColor: "rgba(229, 231, 235, 1)",
     paddingHorizontal: spacing(7),
     paddingVertical: spacing(2),
     justifyContent: "center",
@@ -272,7 +214,6 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   box: {
-    backgroundColor: "rgba(232, 245, 244, 1)",
     padding: spacing(12),
     gap: spacing(8),
     borderRadius: 14,

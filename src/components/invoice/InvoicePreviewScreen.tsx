@@ -1,3 +1,4 @@
+import { useDisplayCurrency } from "@/src/hooks/useDisplayCurrency";
 import { Colors } from "@/src/constants/theme";
 import { InvoiceData } from "@/src/types/Invoice";
 import { scale } from "@/src/utils/random";
@@ -9,6 +10,7 @@ import { HapticTab } from "../haptic-tab";
 import { createAndShareInvoice, generateInvoiceHTML } from "./util";
 
 const InvoicePreviewScreen = ({ invoice }: { invoice: InvoiceData }) => {
+  useDisplayCurrency();
   return (
     <View style={{ flex: 1 }}>
       <WebView

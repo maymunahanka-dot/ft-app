@@ -1,8 +1,6 @@
 export type RegisterUserData = {
   uid?: string;
   name: string;
-  // firstName: string;
-  // lastName: string;
   email: string;
   phone: string;
   phoneNumber?: string;
@@ -12,15 +10,22 @@ export type RegisterUserData = {
   state: string;
   country: string;
   createdAt: string;
-  //   state: string;
-  //   lga: string;
-  //   address: string;
   logo?: string;
   metadata?: any;
-  // businessName?: string;
-  // businessAddress?: string;
-  // website?: string;
-  // instagram?: string;
+  // sub-admin fields
+  isAdmin?: boolean;
+  invitedBy?: string | null;
+  permissions?: Record<string, boolean> | null;
+  // subscription fields (returned by loginController from MongoDB)
+  isSubscribed?: boolean;
+  subscriptionType?: "trial" | "paid" | "free";
+  planType?: string;
+  isTrialActive?: boolean;
+  subscriptionEndDate?: string;
+  subscriptionStartDate?: string;
+  trialStartDate?: string;
+  payment_amount?: number;
+  payment_date?: string;
 };
 
 export const emptyUserData: RegisterUserData = {
@@ -44,10 +49,17 @@ export type BrandSettings = {
   businessName: string;
   businessAddress?: string;
   businessEmail?: string;
-  businessWebsite?: string;
   businessPhone?: string;
+  businessWebsite?: string;
+  instagramHandle?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  bankName?: string;
+  accountNumber?: string;
+  accountName?: string;
   footerText?: string;
   termsAndConditions?: string;
+  inventoryCurrency?: "NGN" | "USD";
   updatedAt: string;
   userEmail: string;
 };

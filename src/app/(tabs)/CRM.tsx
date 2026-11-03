@@ -2,80 +2,87 @@ import GlassCard from "@/src/components/dashboard/boxes/GlassBox";
 import FeedbackItem from "@/src/components/feedback/Item";
 import { HapticTab } from "@/src/components/haptic-tab";
 import CrmItem from "@/src/components/member/Item";
-import BGScreenBG from "@/src/components/shared/BGScreenBG";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
+import { useTheme } from "@/src/context/ThemeContext";
+import SortByButton, { useSavedSort } from "@/src/components/shared/SortByButton";
 import { useCrmStore } from "@/src/stores/crmSlice";
+import { sortItems } from "@/src/utils/sortBy";
 import {
   ClientFeedback,
   getAverageRating,
   LoyaltyMember,
 } from "@/src/types/crm";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
-import { router } from "expo-router";
+import { router, useNavigation } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import {
   Gift,
   Mail,
+  Menu,
   MessageSquare,
   Plus,
   Search,
   Star,
   UsersIcon,
 } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Dimensions,
   FlatList,
+  ImageBackground,
   Pressable,
-  ScrollView,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const BOXWIDTH = SCREEN_WIDTH / 3 - 16;
+const HORIZONTAL_PADDING = 16;
+const CARD_GAP = spacing(8);
+const HEADER_SCROLL_DISTANCE = 100;
 
+// ─── Summary boxes ──────────────────────────────────────────────────────────
 const RowBoxes = () => {
   const members = useCrmStore((state) => state.loyaltyMembers);
-
   const clientFeedbacks = useCrmStore((state) => state.clientFeedbacks);
 
   return (
     <View style={styles.row}>
       <GlassCard style={styles.box}>
-        <View style={[styles.startRow, { paddingBottom: spacing(12) }]}>
-          <UsersIcon size={scale(15)} color={"white"} />
-          <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>
-            Members
-          </Text>
+        <View style={styles.cardInner}>
+          <View style={styles.startRow}>
+            <UsersIcon size={scale(13)} color={"white"} />
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Members</Text>
+          </View>
+          <Text style={styles.sm18}>{members.length}</Text>
         </View>
-
-        <Text style={styles.sm18}>{members.length}</Text>
       </GlassCard>
 
       <GlassCard style={styles.box}>
-        <View style={[styles.startRow, { paddingBottom: spacing(12) }]}>
-          <Star size={scale(15)} color={"white"} />
-          <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>
-            Rating
-          </Text>
+        <View style={styles.cardInner}>
+          <View style={styles.startRow}>
+            <Star size={scale(13)} color={"white"} />
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Rating</Text>
+          </View>
+          <Text style={styles.sm18}>{getAverageRating(clientFeedbacks)}</Text>
         </View>
-
-        <Text style={styles.sm18}>{getAverageRating(clientFeedbacks)}</Text>
       </GlassCard>
 
       <GlassCard style={styles.box}>
-        <View style={[styles.startRow, { paddingBottom: spacing(12) }]}>
-          <Mail size={scale(15)} color={"white"} />
-          <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>
-            Reviews
-          </Text>
+        <View style={styles.cardInner}>
+          <View style={styles.startRow}>
+            <Mail size={scale(13)} color={"white"} />
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Reviews</Text>
+          </View>
+          <Text style={styles.sm18}>{clientFeedbacks.length}</Text>
         </View>
-
-        <Text style={styles.sm18}>{clientFeedbacks.length}</Text>
       </GlassCard>
     </View>
   );
@@ -84,53 +91,67 @@ const RowBoxes = () => {
 type TAB = "loyalty" | "feedback";
 
 const TabsList = [
-  {
-    label: "Loyalty",
-    icon: Gift,
-    value: "loyalty",
-  },
-  {
-    label: "Feedback",
-    icon: MessageSquare,
-    value: "feedback",
-  },
+  { label: "Loyalty", icon: Gift, value: "loyalty" },
+  { label: "Feedback", icon: MessageSquare, value: "feedback" },
 ];
 
+// ─── Main screen ─────────────────────────────────────────────────────────────
 const CRMScreen = () => {
   const [selectedTab, setSelectedTab] = useState<TAB>("loyalty");
+  const { isDark } = useTheme();
+  const { top, bottom } = useSafeAreaInsets();
+  const navigation = useNavigation();
+
+  const bg = isDark ? "#0f0f0f" : "white";
+  const textColor = isDark ? Colors.text.white : Colors.text.black;
+  const searchBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(249, 250, 251, 1)";
+  const headerSolidColor = isDark ? "#0f0f0f" : "white";
+  const themeIconColor = isDark ? Colors.text.white : Colors.text.black;
+  const searchBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(229, 231, 235, 1)";
+  const searchIconColor = isDark ? "rgba(120,120,120,1)" : "rgba(153, 161, 175, 1)";
+  const placeholderColor = isDark ? "rgba(120,120,120,1)" : Colors.grey;
+  const tabInactiveText = isDark ? "rgba(160,160,160,1)" : Colors.grey;
 
   const loading = useCrmStore((state) => state.loading);
   const getLoyaltyMembers = useCrmStore((state) => state.getLoyaltyMembers);
   const getFeedBacks = useCrmStore((state) => state.getFeedBacks);
-
   const members = useCrmStore((state) => state.loyaltyMembers);
   const clientFeedbacks = useCrmStore((state) => state.clientFeedbacks);
 
   const [searchValue, setSearchValue] = useState("");
+  const [loyaltySort, setLoyaltySort] = useSavedSort("ft.sort.loyalty");
+  const [feedbackSort, setFeedbackSort] = useSavedSort("ft.sort.feedback");
 
   const filteredListData = useMemo(() => {
     const q = searchValue.trim().toLowerCase();
-
     if (selectedTab === "loyalty") {
-      return members.filter(
+      const base = members.filter(
         (m: LoyaltyMember) =>
           q === "" ||
           (m.name && m.name.toLowerCase().includes(q)) ||
           (m.email && m.email.toLowerCase().includes(q)),
       );
+      return sortItems(base, loyaltySort, {
+        name: (item) => item?.name || "",
+        createdAt: (item) => item?.createdAt,
+        number: (item) => Number(item?.points) || 0,
+      });
     }
-
     if (selectedTab === "feedback") {
-      return clientFeedbacks.filter(
+      const base = clientFeedbacks.filter(
         (c: ClientFeedback) =>
           q === "" ||
           (c.productName && c.productName.toLowerCase().includes(q)) ||
           (c.clientName && c.clientName.toLowerCase().includes(q)),
       );
+      return sortItems(base, feedbackSort, {
+        name: (item) => item?.clientName || "",
+        createdAt: (item) => item?.createdAt,
+        number: (item) => Number(item?.rating) || 0,
+      });
     }
-
     return [];
-  }, [selectedTab, searchValue, members, clientFeedbacks]);
+  }, [selectedTab, searchValue, members, clientFeedbacks, loyaltySort, feedbackSort]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -144,134 +165,214 @@ const CRMScreen = () => {
     fetchData();
   }, []);
 
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const whiteIconOpacity = scrollY.interpolate({ inputRange: [0, HEADER_SCROLL_DISTANCE], outputRange: [1, 0], extrapolate: "clamp" });
+  const themeIconOpacity = scrollY.interpolate({ inputRange: [0, HEADER_SCROLL_DISTANCE], outputRange: [0, 1], extrapolate: "clamp" });
+  const headerIconColor = scrollY.interpolate({ inputRange: [0, HEADER_SCROLL_DISTANCE], outputRange: ["rgba(255,255,255,1)", isDark ? "rgba(238,238,238,1)" : "rgba(17,24,39,1)"], extrapolate: "clamp" });
+
+  const headerBgOpacity = scrollY.interpolate({
+    inputRange: [0, HEADER_SCROLL_DISTANCE],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  const titleOpacity = scrollY.interpolate({
+    inputRange: [HEADER_SCROLL_DISTANCE * 0.5, HEADER_SCROLL_DISTANCE],
+    outputRange: [0, 1],
+    extrapolate: "clamp",
+  });
+
+  const HEADER_HEIGHT = top + spacing(56);
+
   return (
-    <View
-      style={{ flex: 1, backgroundColor: "white" }}
-      // edges={["top"]}
-    >
-      <BGScreenBG
-        title="CRM"
-        drawer
-        subText
-        text="Manage Your Customer Relationship"
-        rightIcon={() => (
-          <HapticTab
-            style={styles.plusBtn}
-            onPress={() => {
-              if (selectedTab === "loyalty") {
-                router.push("/protected/form/create-memeber");
-                return;
-              }
-              router.push("/protected/form/create-feedback");
-            }}
-          >
-            <Plus size={24} color={Colors.primary} />
-          </HapticTab>
+    <View style={{ flex: 1, backgroundColor: Colors.primary }}>
+      <StatusBar style="light" />
+
+      {/* ── Single scrollable layer — bg image scrolls with content ── */}
+      <Animated.ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        keyboardDismissMode="interactive"
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
         )}
-        headerChildren={RowBoxes}
-        height={300}
-        paddingVertical={50}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={fetchData}
+            tintColor={Colors.primary}
+            progressViewOffset={HEADER_HEIGHT}
+          />
+        }
       >
-        <ScrollView
-          // style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, gap: spacing(32) }}
-          horizontal={false}
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode="interactive"
-          //   scrollEnabled={false}
+        {/* Background image hero — scrolls away with the page */}
+        <ImageBackground
+          source={require("@/assets/images/screen_bg.png")}
+          style={[styles.heroBg, { paddingTop: top + spacing(56) }]}
         >
-          <View style={styles.content}>
-            <View style={styles.tabs}>
+          <View style={{ paddingHorizontal: 16, paddingBottom: spacing(24), gap: spacing(16) }}>
+            <View style={{ gap: spacing(4) }}>
+              <Text style={styles.heroTitle}>CRM</Text>
+              <Text style={[Styles.reg14, { color: "rgba(255,255,255,0.8)", lineHeight: 18 }]}>
+                Manage Your Customer Relationship
+              </Text>
+            </View>
+            <RowBoxes />
+          </View>
+        </ImageBackground>
+
+        {/* Content card */}
+        <View style={[styles.content, { backgroundColor: bg }]}>
+          <View style={{ gap: spacing(15), paddingVertical: spacing(26), paddingBottom: bottom + 100 }}>
+
+            {/* Tabs */}
+            <View style={[styles.tabs, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(249,250,251,1)", borderRadius: 16, padding: spacing(4) }]}>
               {TabsList.map((tab, index) => {
                 const Icon = tab.icon;
                 const isSelected = selectedTab === tab.value;
-                const textStyle = isSelected
-                  ? [Styles.reg14, styles.selectedText]
-                  : [Styles.reg14, { color: Colors.grey }];
-                const buttonStyle = isSelected
-                  ? [styles.tabBtn, styles.selectedTab]
-                  : [styles.tabBtn];
                 return (
                   <Pressable
-                    style={buttonStyle}
                     key={index}
+                    style={isSelected ? [styles.tabBtn, styles.selectedTab] : [styles.tabBtn, { backgroundColor: "transparent" }]}
                     onPress={() => setSelectedTab(tab.value as TAB)}
                   >
-                    <Icon
-                      size={scale(15)}
-                      color={isSelected ? "white" : Colors.grey}
-                    />
-                    <Text style={textStyle}>{tab.label}</Text>
+                    <Icon size={scale(15)} color={isSelected ? "white" : tabInactiveText} />
+                    <Text style={isSelected ? [Styles.reg14, styles.selectedText] : [Styles.reg14, { color: tabInactiveText }]}>
+                      {tab.label}
+                    </Text>
                   </Pressable>
                 );
               })}
             </View>
 
-            <View
-              style={[
-                styles.searchContainer,
-                styles.startRow,
-                { gap: spacing(12) },
-              ]}
-            >
-              <Search
-                size={scale(20)}
-                color={"rgba(153, 161, 175, 1)"}
-                strokeWidth={2}
-              />
-              <TextInput
-                value={searchValue}
-                onChangeText={setSearchValue}
-                placeholder={`Search ${selectedTab}...`}
-                placeholderTextColor={Colors.grey}
-                style={styles.input}
+            {/* Search */}
+            <View style={styles.searchRow}>
+              <View
+                style={[
+                  styles.searchContainer,
+                  styles.startRow,
+                  { flex: 1, gap: spacing(12), backgroundColor: searchBg, borderColor: searchBorder },
+                ]}
+              >
+                <Search size={scale(20)} color={searchIconColor} strokeWidth={2} />
+                <TextInput
+                  value={searchValue}
+                  onChangeText={setSearchValue}
+                  placeholder={`Search ${selectedTab}...`}
+                  placeholderTextColor={placeholderColor}
+                  style={[styles.input, { color: textColor }]}
+                />
+              </View>
+              <SortByButton
+                value={selectedTab === "loyalty" ? loyaltySort : feedbackSort}
+                onChange={selectedTab === "loyalty" ? setLoyaltySort : setFeedbackSort}
+                borderColor={searchBorder}
+                options={
+                  selectedTab === "loyalty"
+                    ? [
+                        { value: "newest", label: "Newest" },
+                        { value: "oldest", label: "Oldest" },
+                        { value: "name-asc", label: "Name (A–Z)" },
+                        { value: "name-desc", label: "Name (Z–A)" },
+                        { value: "points", label: "Points" },
+                      ]
+                    : [
+                        { value: "newest", label: "Newest" },
+                        { value: "oldest", label: "Oldest" },
+                        { value: "name-asc", label: "Name (A–Z)" },
+                        { value: "name-desc", label: "Name (Z–A)" },
+                        { value: "rating", label: "Rating" },
+                      ]
+                }
               />
             </View>
 
+            {/* Count + list */}
             <View style={{ gap: spacing(24) }}>
-              {selectedTab === "feedback" ? (
-                <Text style={[Styles.reg16, { color: "rgba(16, 24, 40, 1)" }]}>
-                  {clientFeedbacks.length} Reviews
-                </Text>
-              ) : (
-                <Text style={[Styles.reg16, { color: "rgba(16, 24, 40, 1)" }]}>
-                  {members.length} Loyalty Members
-                </Text>
-              )}
+              <Text style={[Styles.reg16, { color: textColor }]}>
+                {selectedTab === "feedback"
+                  ? `${clientFeedbacks.length} Reviews`
+                  : `${members.length} Loyalty Members`}
+              </Text>
+
               {loading ? (
-                <ActivityIndicator size={"small"} color={"black"} />
+                <ActivityIndicator size={"small"} color={Colors.primary} />
               ) : (
                 <FlatList
                   data={filteredListData as any}
                   keyExtractor={(item: any) => item.id}
                   style={{ flex: 1 }}
-                  contentContainerStyle={{
-                    flexGrow: 1,
-                    gap: spacing(16),
-                    paddingBottom: spacing(40),
-                  }}
+                  contentContainerStyle={{ flexGrow: 1, gap: spacing(16), paddingBottom: spacing(40) }}
                   showsVerticalScrollIndicator={false}
                   scrollEnabled={false}
-                  renderItem={({ item }: { item: any }) => {
-                    if (selectedTab === "loyalty") {
-                      return <CrmItem item={item} />;
-                    }
-
-                    return <FeedbackItem item={item} />;
-                  }}
+                  renderItem={({ item }: { item: any }) =>
+                    selectedTab === "loyalty"
+                      ? <CrmItem item={item} />
+                      : <FeedbackItem item={item} />
+                  }
                   ListEmptyComponent={() => (
                     <View style={styles.emptyContainer}>
-                      <Text
-                        style={[Styles.med12, { color: Colors.text.gray }]}
-                      >{`No ${selectedTab} found.`}</Text>
+                      <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
+                        {`No ${selectedTab} found.`}
+                      </Text>
                     </View>
                   )}
                 />
               )}
             </View>
           </View>
-        </ScrollView>
-      </BGScreenBG>
+        </View>
+      </Animated.ScrollView>
+
+      {/* ── Fixed overlay header background (transparent → black) ── */}
+      <Animated.View
+        style={[
+          styles.overlayHeader,
+          { height: HEADER_HEIGHT, backgroundColor: headerSolidColor, opacity: headerBgOpacity },
+        ]}
+        pointerEvents="none"
+      />
+
+      {/* ── Fixed header icons + fading title ── */}
+      <View
+        style={[styles.overlayHeader, { height: HEADER_HEIGHT, paddingTop: top }]}
+        pointerEvents="box-none"
+      >
+        <View style={styles.headerRow}>
+          <HapticTab hitSlop={20} onPress={() => (navigation as any).toggleDrawer()}>
+            <Animated.View style={[StyleSheet.absoluteFill, { opacity: whiteIconOpacity }]}>
+              <Menu size={scale(24)} color="white" />
+            </Animated.View>
+            <Animated.View style={{ opacity: themeIconOpacity }}>
+              <Menu size={scale(24)} color={themeIconColor} />
+            </Animated.View>
+          </HapticTab>
+
+          <Animated.Text style={[styles.headerTitle, { opacity: titleOpacity, color: headerIconColor }]}>
+            CRM
+          </Animated.Text>
+
+          <View style={{ width: scale(24) }} />
+        </View>
+      </View>
+
+      {/* ── Floating action button ── */}
+      <TouchableOpacity
+        style={[styles.fab, { bottom: bottom + spacing(24) }]}
+        onPress={() => {
+          if (selectedTab === "loyalty") {
+            router.push("/protected/form/create-memeber");
+          } else {
+            router.push("/protected/form/create-feedback");
+          }
+        }}
+        activeOpacity={0.85}
+      >
+        <Plus size={scale(24)} color="white" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -279,27 +380,29 @@ const CRMScreen = () => {
 export default CRMScreen;
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    gap: spacing(15),
-    paddingVertical: spacing(26),
+  heroBg: {
+    backgroundColor: Colors.primary,
+    paddingBottom: spacing(24),
   },
-  plusBtn: {
-    width: 40,
-    aspectRatio: 1,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 100,
+  heroTitle: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(28),
+    lineHeight: 34,
+    color: "white",
   },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
+    gap: CARD_GAP,
   },
   box: {
-    width: BOXWIDTH,
+    flex: 1,
     height: 100,
-    padding: spacing(16),
+  },
+  cardInner: {
+    flex: 1,
+    padding: spacing(12),
+    justifyContent: "space-between",
   },
   startRow: {
     flexDirection: "row",
@@ -314,6 +417,32 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
   },
+  overlayHeader: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    justifyContent: "flex-end",
+    paddingBottom: spacing(10),
+    paddingHorizontal: 16,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerTitle: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(18),
+    color: "white",
+  },
+  content: {
+    borderTopRightRadius: 30,
+    borderTopLeftRadius: 30,
+    paddingHorizontal: spacing(16),
+     height:'100%',
+       marginTop: spacing(-40),
+  },
   tabs: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -321,13 +450,12 @@ const styles = StyleSheet.create({
   },
   tabBtn: {
     flex: 1,
-    paddingVertical: spacing(12),
+    paddingVertical: spacing(7),
     borderRadius: 14,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     gap: spacing(8),
-    backgroundColor: "white",
   },
   selectedTab: {
     backgroundColor: Colors.primary,
@@ -335,21 +463,38 @@ const styles = StyleSheet.create({
   selectedText: {
     color: "white",
   },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing(8),
+  },
   searchContainer: {
-    backgroundColor: "rgba(249, 250, 251, 1)",
     borderWidth: 1,
-    borderColor: "rgba(229, 231, 235, 1)",
     borderRadius: 14,
-    paddingVertical: spacing(12),
+    paddingVertical: spacing(7),
     paddingHorizontal: spacing(16),
   },
   input: {
     flex: 1,
-    // backgroundColor: "red",
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  fab: {
+    position: "absolute",
+    right: spacing(20),
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
 });
