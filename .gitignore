@@ -35,7 +35,7 @@ yarn-error.*
 
 # Firebase — contains sensitive project credentials, never commit
 # google-services.json   ← uncommitted to allow EAS builds via git
-GoogleService-Info.plist
+# GoogleService-Info.plist
 
 # typescript
 *.tsbuildinfo
