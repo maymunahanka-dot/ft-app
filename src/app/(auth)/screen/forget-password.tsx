@@ -5,7 +5,7 @@ import { useTheme } from "@/src/context/ThemeContext";
 import { useAuth } from "@/src/hooks/auth";
 import { spacing } from "@/src/utils/random";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ImageBackground,
   KeyboardAvoidingView,

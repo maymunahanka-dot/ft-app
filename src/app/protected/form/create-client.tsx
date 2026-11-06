@@ -10,7 +10,7 @@ import { FormatDateToYYYYMMDD, scale, scaleFontSize, spacing } from "@/src/utils
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ChevronLeft } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,

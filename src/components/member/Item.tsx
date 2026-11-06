@@ -12,7 +12,6 @@ import {
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Award, Crown, Star } from "lucide-react-native";
-import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { HapticTab } from "../haptic-tab";
 import { toDate } from "../invoice/util";

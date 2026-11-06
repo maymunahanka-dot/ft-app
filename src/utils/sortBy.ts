@@ -1,6 +1,6 @@
 export type SortOption = { value: string; label: string };
 
-export function toTime(value: unknown) {
+function toTime(value: unknown) {
   if (!value) return 0;
   const date = value instanceof Date ? value : new Date(String(value));
   const time = date.getTime();

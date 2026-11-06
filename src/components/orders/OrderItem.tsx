@@ -6,7 +6,6 @@ import MoneyAmount from "@/src/components/shared/MoneyAmount";
 import { CapitalizeFirstName, FormatOrderDate, scale, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { Box } from "lucide-react-native";
-import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = { order: Order };

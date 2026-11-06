@@ -21,7 +21,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ChevronDown, ChevronLeft } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -359,7 +359,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    // paddingVertical: spacing(20),
     paddingHorizontal: 16,
     gap: spacing(14),
   },
@@ -381,7 +380,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    // paddingVertical: spacing(15),
     paddingHorizontal: spacing(13),
     height: 50,
     borderWidth: 1,

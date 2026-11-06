@@ -2,7 +2,6 @@ import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { Appointment } from "@/src/types/appointment";
 import { spacing } from "@/src/utils/random";
-import React from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import ClientApptItem from "./ClientApptItem";
 
@@ -15,7 +14,7 @@ const ClientApptList = ({ apptList }: Props) => {
     <FlatList
       data={apptList}
       renderItem={({ item }) => <ClientApptItem item={item} />}
-      keyExtractor={(item, index) => item.id}
+      keyExtractor={(item) => item.id}
       style={{ flex: 1 }}
       contentContainerStyle={{
         flexGrow: 1,

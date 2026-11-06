@@ -28,20 +28,4 @@ export const getCurrentUserId = (): string => {
   return user?.uid ?? "";
 };
 
-/**
- * Get the current authenticated user's data from the Zustand store.
- */
-export const getCurrentUser = (): { uid: string; email: string } => {
-  const email = getCurrentUserEmail();
-  const uid = getCurrentUserId();
-  return { uid, email };
-};
 
-/**
- * Check if a user is currently authenticated.
- */
-export const isUserAuthenticated = (): boolean => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { useUserStore } = require("../stores/userSlice");
-  return useUserStore.getState().user !== null;
-};

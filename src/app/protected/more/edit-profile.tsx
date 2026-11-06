@@ -3,11 +3,7 @@ import { HapticTab } from "@/src/components/haptic-tab";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
-import {
-  apiFetch,
-  AUTH_USER_KEY,
-  getStoredToken,
-} from "@/src/lib/apiClient";
+import { apiFetch, AUTH_USER_KEY } from "@/src/lib/apiClient";
 import { useUserStore } from "@/src/stores/userSlice";
 import {
   GetInitials,
@@ -22,7 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Camera, ChevronLeft } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,

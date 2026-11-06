@@ -3,7 +3,6 @@ import { Colors } from "@/src/constants/theme";
 import { EmailCampaign } from "@/src/types/crm";
 import { CapitalizeFirstName, scale, spacing } from "@/src/utils/random";
 import { Mail } from "lucide-react-native";
-import React from "react";
 import {
   Alert,
   Linking,
@@ -139,7 +138,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   badgeView: {
-    // width: "20%",
     paddingVertical: spacing(2),
     paddingHorizontal: spacing(8),
     borderRadius: 100,

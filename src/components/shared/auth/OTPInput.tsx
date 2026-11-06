@@ -1,6 +1,5 @@
 import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
-// import * as Clipboard from "expo-clipboard";
 import React, { useEffect, useRef } from "react";
 import {
   Dimensions,
@@ -49,22 +48,6 @@ const OTPInput: React.FC<Props> = ({
       onComplete(value);
     }
   }, [value, onComplete]);
-
-  // useEffect(() => {
-  //   const checkClipboard = async () => {
-  //     try {
-  //       const clip = await Clipboard.getStringAsync();
-  //       if (/^\d{6}$/.test(clip)) {
-  //         onChange(clip);
-  //       }
-  //     } catch (error) {}
-  //   };
-
-  //   if (autoFocus) {
-  //     const timer = setTimeout(checkClipboard, 100);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [autoFocus]);
 
   const handlePress = () => {
     if (!disabled) inputRef.current?.focus();

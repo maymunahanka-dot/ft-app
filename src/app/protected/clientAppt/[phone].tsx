@@ -6,7 +6,6 @@ import { useAppointmentStore } from "@/src/stores/appointmentSlice";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
 import { X } from "lucide-react-native";
-import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -16,7 +15,6 @@ const ClientAppointments = () => {
 
   const bg = isDark ? "#0f0f0f" : "white";
   const textColor = isDark ? Colors.text.white : Colors.text.black;
-  const subTextColor = isDark ? "rgba(160,160,160,1)" : Colors.text.gray;
   const iconColor = isDark ? "rgba(200,200,200,1)" : "black";
 
   const appointments = useAppointmentStore((state) => state.appointments);

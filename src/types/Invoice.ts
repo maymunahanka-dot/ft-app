@@ -14,7 +14,6 @@ export type InvoiceData = {
   businessAddress: string;
   logoUrl: string;
 
-  // billTo: string;
   clientName?: string;
   clientPhone?: string;
   clientEmail?: string;

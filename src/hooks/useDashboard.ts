@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { apiFetch, isAuthError } from "../lib/apiClient";
 import { useUserStore } from "../stores/userSlice";
 
-export interface DashboardAppointment {
+interface DashboardAppointment {
   id: string;
   title: string;
   clientName: string;
@@ -12,13 +12,13 @@ export interface DashboardAppointment {
   status: string;
 }
 
-export interface DashboardSalesPoint {
+interface DashboardSalesPoint {
   month: string;
   year: number;
   revenue: number;
 }
 
-export interface DashboardStats {
+interface DashboardStats {
   totalRevenue: number;
   revenueGrowth: number;
   activeClients: number;

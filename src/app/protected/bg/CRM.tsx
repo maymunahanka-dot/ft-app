@@ -7,7 +7,7 @@ import { Colors } from "@/src/constants/theme";
 import { useCrmStore } from "@/src/stores/crmSlice";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { Gift, Mail, Search, UsersIcon } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Dimensions,
   FlatList,
@@ -26,21 +26,6 @@ const BOXWIDTH = SCREEN_WIDTH / 2 - 20 - 16;
 const RowBoxes = () => {
   const members = useCrmStore((state) => state.loyaltyMembers);
   const campaigns = useCrmStore((state) => state.campaigns);
-
-  // const fetchCampaigns = useCrmStore((state) => state.getCampaigns);
-  // const fetchMembers = useCrmStore((state) => state.getLoyaltyMembers);
-
-  // const fetchData = useCallback(async () => {
-  //   try {
-  //     await Promise.all([fetchCampaigns(), fetchMembers()]);
-  //   } catch (error) {
-  //     console.error("error fetching data", error);
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   fetchData();
-  // }, []);
 
   return (
     <View style={styles.row}>
@@ -116,22 +101,6 @@ const CRMScreen = () => {
     return [];
   }, [selectedTab, searchValue, members, campaigns]);
 
-  //   const saveCampaign = useCrmStore((state) => state.addLoyaltyMember);
-  //   const saveCampaign = useCrmStore((state) => state.addCampaign);
-
-  //   useEffect(() => {
-  //     saveCampaign({
-  //       content: "Email content here",
-  //       name: "Year-End Appreciation",
-  //       createdAt: Timestamp.now(),
-  //       updatedAt: Timestamp.now(),
-  //       subject: "Thank You for an Amazing 2025! 🎉",
-  //       status: "scheduled",
-  //       recipients: [],
-  //       recipientCount: 10,
-  //     });
-  //   }, []);
-
   return (
     <SafeAreaView edges={["left","right","bottom"]}
       style={{ flex: 1, backgroundColor: "white" }}
@@ -141,9 +110,6 @@ const CRMScreen = () => {
         title="CRM"
         canGoBack
         rightIcon={() => (
-          // <HapticTab style={{}}>
-          //   <Entypo name="notification" size={24} color="white" />
-          // </HapticTab>
           <View></View>
         )}
         headerChildren={RowBoxes}
@@ -153,7 +119,6 @@ const CRMScreen = () => {
           horizontal={false}
           showsVerticalScrollIndicator={false}
           keyboardDismissMode="interactive"
-          //   scrollEnabled={false}
         >
           <View style={styles.content}>
             <View style={styles.tabs}>
@@ -308,7 +273,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    // backgroundColor: "red",
   },
   emptyContainer: {
     flex: 1,

@@ -19,7 +19,6 @@ interface Props {
 export const ColorWheelPicker: React.FC<Props> = ({
   value,
   onChange,
-  label = "Invoice Theme Color",
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [tempColor, setTempColor] = useState(value);
@@ -41,7 +40,6 @@ export const ColorWheelPicker: React.FC<Props> = ({
   return (
     <>
       <View style={styles.container}>
-        {/* <Text style={styles.label}>{label}</Text> */}
 
         <Pressable
           onPress={() => {

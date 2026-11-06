@@ -10,7 +10,7 @@ import { useAuthStore } from "@/src/stores/authSlice";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { ChevronDown, MoveLeft, Upload } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Image,

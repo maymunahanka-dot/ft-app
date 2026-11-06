@@ -3,7 +3,6 @@ import { Client } from "@/src/types/client";
 import { scale, spacing } from "@/src/utils/random";
 import { LinearGradient } from "expo-linear-gradient";
 import { Calendar, Mail, Phone } from "lucide-react-native";
-import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { formatFirestoreTimestamp } from "../invoice/util";
 import ImagePlaceholder from "../shared/ImagePlaceholder";

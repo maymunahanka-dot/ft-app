@@ -5,7 +5,7 @@ import { useAppointmentStore } from "@/src/stores/appointmentSlice";
 import { useUserStore } from "@/src/stores/userSlice";
 import { toDateKey } from "@/src/utils/blockedDays";
 import { spacing } from "@/src/utils/random";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import AppoinmentListItem from "./appoinmentListItem";
 

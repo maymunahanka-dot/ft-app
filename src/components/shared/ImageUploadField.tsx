@@ -2,7 +2,7 @@ import { useTheme } from "@/src/context/ThemeContext";
 import { useUserImage } from "@/src/hooks/useUserImage";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { Image as ImageIcon, Upload } from "lucide-react-native";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = {

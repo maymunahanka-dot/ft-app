@@ -26,7 +26,7 @@ import {
   ChevronLeft,
   Trash2,
 } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -159,16 +159,18 @@ const EditTransactionScreen = () => {
     if (!validateForm() || !transaction || blockUntilRate()) return;
     const isIncome = selectedType === "income";
     const amount = toNaira(parseAmount(transactionDetails.amount.toString())) ?? 0;
-    const now = new Date().toISOString();
-    const { source, category, ...rest } = transactionDetails;
+    const { description, notes, date, source, category } = transactionDetails;
     try {
-      const payload: Income | Expense = {
-        ...rest,
+      // Only the fields the user can change. The transaction keeps its own id,
+      // owner and creation time; the date is the one picked on this screen.
+      const payload: Partial<Income> | Partial<Expense> = {
+        description,
+        notes,
+        date,
         ...(isIncome ? { source } : { category }),
-        id: isIncome ? generateIncomeId() : generateExpenseId(),
-        type: selectedType, amount,
-        userEmail: "",
-        date: now, createdAt: now, updatedAt: now,
+        type: selectedType,
+        amount,
+        updatedAt: new Date().toISOString(),
       };
       await editTransaction(transaction.id, payload, selectedType);
       handleBack();

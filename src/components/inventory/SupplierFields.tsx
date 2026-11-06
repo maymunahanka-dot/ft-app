@@ -4,7 +4,6 @@ import { useTheme } from "@/src/context/ThemeContext";
 import { InventorySupplier } from "@/src/types/inventory";
 import { scale, spacing } from "@/src/utils/random";
 import { Plus, X } from "lucide-react-native";
-import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 type SupplierFieldsProps = {

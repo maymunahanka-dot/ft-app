@@ -15,20 +15,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { MessageSquare } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import { PhotoPlaceholder } from "@/src/components/shared/ImageUploadField";
-import {
-  ActivityIndicator,
-  Dimensions,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TextInput, View } from "react-native";
 import { HapticTab } from "../haptic-tab";
 import { toDate } from "../invoice/util";
 
-const { width } = Dimensions.get("window");
 
 type StarRatingProps = {
   rating: number;
@@ -51,13 +43,6 @@ const StarRating = ({ rating, size = 24, inactiveColor = "black" }: StarRatingPr
   );
 };
 
-type inputProps = {
-  value: string;
-  setValue: React.Dispatch<React.SetStateAction<string>>;
-  toggleEditModal: () => void;
-  onUpdate: () => Promise<void>;
-  loading: boolean;
-};
 
 type Props = {
   item: ClientFeedback;

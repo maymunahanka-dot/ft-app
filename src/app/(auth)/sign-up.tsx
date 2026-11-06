@@ -2,11 +2,11 @@ import PrimaryButton from "@/src/components/button/PrimaryButton";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
-import { API_BASE_URL } from "@/src/lib/apiClient";
+import { sendEmailOtp } from "@/src/lib/emailOtp";
 import { useAuthStore } from "@/src/stores/authSlice";
 import { ShowToastMessage, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   Alert,
   ImageBackground,
@@ -100,21 +100,15 @@ const SignUpScreen = () => {
       return;
     }
     try {
-      const res  = await fetch(`${API_BASE_URL}/auth/send-email-otp`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ email: userData.email.trim().toLowerCase() }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        ShowToastMessage({ title: data.message || "Failed to send OTP", from: "top", preset: "error" });
-        return;
-      }
-      router.push({ pathname: "/(auth)/verify-otp/[otp]", params: { otp: data.otp } });
+      const email = userData.email.trim().toLowerCase();
+      // Any earlier verification was for the email as it was then
+      updateUserData({ email, emailVerificationToken: undefined });
+      await sendEmailOtp(email);
+      router.push("/(auth)/verify-otp");
       ShowToastMessage({ title: "OTP sent to your email", from: "top", preset: "done" });
-    } catch (err) {
+    } catch (err: any) {
       console.error("error sending email OTP", err);
-      ShowToastMessage({ title: "Network error. Please try again.", from: "top", preset: "error" });
+      ShowToastMessage({ title: err?.message || "Network error. Please try again.", from: "top", preset: "error" });
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,7 @@ import * as Sharing from "expo-sharing";
 
 import { Timestamp } from "firebase/firestore";
 
-export type AnyDate =
+type AnyDate =
   | string
   | number
   | Date
@@ -42,12 +42,9 @@ export const toDate = (input: AnyDate): Date => {
 };
 
 // ALWAYS return ISO
-export const toISO = (input: AnyDate): string => {
-  return toDate(input).toISOString();
-};
 
 // ALWAYS return display
-export const toDisplay = (input: AnyDate): string => {
+const toDisplay = (input: AnyDate): string => {
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "long",

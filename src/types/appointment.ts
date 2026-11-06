@@ -13,7 +13,6 @@ export type Appointment = {
   clientPhone: string;
   clientId?: string;
   date: string;
-  // time: string;
   service: AppointmentType;
   purpose: AppointmentType;
   status: AppointmentStatus;

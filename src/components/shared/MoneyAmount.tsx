@@ -1,5 +1,4 @@
 import { useDisplayCurrency } from "@/src/hooks/useDisplayCurrency";
-import React from "react";
 import { Text, View } from "react-native";
 
 function nairaText(amount: number) {

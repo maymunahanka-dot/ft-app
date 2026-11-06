@@ -28,9 +28,6 @@ export const uploadImageToCloudinary = async (
     const res = await fetch(url, {
       method: "POST",
       body: formData,
-      // headers: {
-      //   Accept: "application/json",
-      // },
     });
 
     const data = await res.json();

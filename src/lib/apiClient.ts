@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? "https://backend.fashiontally.com/api";
 
-export const AUTH_TOKEN_KEY = "authToken";
+const AUTH_TOKEN_KEY = "authToken";
 export const AUTH_USER_KEY = "authUser";
 
 /** Save JWT + user object to AsyncStorage after login */
@@ -23,7 +23,7 @@ export async function clearSession(): Promise<void> {
   await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, AUTH_USER_KEY]);
 }
 
-export class ApiError extends Error {
+class ApiError extends Error {
   status: number;
 
   constructor(message: string, status: number) {
@@ -44,18 +44,29 @@ export function setUnauthorizedHandler(handler: () => void) {
   onUnauthorized = handler;
 }
 
-export function isTokenExpired(token: string): boolean {
+/** Expiry time of a JWT in ms, or null if it can't be read. */
+export function getTokenExpiryMs(token: string): number | null {
   try {
     const part = token.split(".")[1];
-    if (!part || typeof globalThis.atob !== "function") return false;
+    if (!part || typeof globalThis.atob !== "function") return null;
     const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
     const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
     const json = JSON.parse(globalThis.atob(padded));
-    if (typeof json.exp !== "number") return false;
-    return json.exp * 1000 <= Date.now();
+    return typeof json.exp === "number" ? json.exp * 1000 : null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+export function isTokenExpired(token: string): boolean {
+  const expiry = getTokenExpiryMs(token);
+  return expiry !== null && expiry <= Date.now();
+}
+
+/** Clears the stored session and signs the user out, which sends them to sign-in. */
+export async function expireSession(): Promise<void> {
+  await clearSession();
+  onUnauthorized?.();
 }
 
 /** Read the stored JWT */
@@ -86,8 +97,7 @@ export async function apiFetch<T = unknown>(
   const token = await getStoredToken();
 
   if (token && isTokenExpired(token)) {
-    await clearSession();
-    onUnauthorized?.();
+    await expireSession();
     throw new ApiError("Invalid or expired token", 401);
   }
 
@@ -113,8 +123,7 @@ export async function apiFetch<T = unknown>(
     const message = data.error ?? `Request failed (${res.status})`;
     const sessionRejected = res.status === 401 && /token/i.test(String(message));
     if (sessionRejected) {
-      await clearSession();
-      onUnauthorized?.();
+      await expireSession();
       throw new ApiError(message, 401);
     }
     throw new Error(message);

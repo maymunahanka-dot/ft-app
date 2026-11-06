@@ -12,7 +12,7 @@ import {
 } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
 import { MoveLeft } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   ImageBackground,
@@ -225,7 +225,6 @@ export default OtpVerificationScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingHorizontal: spacing(16),
     backgroundColor: "white",
   },
   headerBg: {

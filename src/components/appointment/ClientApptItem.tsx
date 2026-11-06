@@ -18,7 +18,6 @@ import {
   Trash2,
   User,
 } from "lucide-react-native";
-import React from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -29,12 +28,6 @@ import {
 } from "react-native";
 import { formatFirestoreTimestamp } from "../invoice/util";
 
-const getTimeFromISO = (value?: string | Date): string => {
-  if (!value) return "";
-  const date = value instanceof Date ? value : new Date(value);
-  if (isNaN(date.getTime())) return "";
-  return `${date.getHours() % 12 || 12}:${date.getMinutes().toString().padStart(2, "0")}`;
-};
 
 type Props = { item: Appointment };
 

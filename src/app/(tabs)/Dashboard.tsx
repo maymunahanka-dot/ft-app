@@ -17,8 +17,8 @@ import { useUserStore } from "@/src/stores/userSlice";
 import { GetFormattedDate, scale, spacing } from "@/src/utils/random";
 import { router, useNavigation } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { CalendarClock, Bell, FileText, Menu, Plus, UserRoundPlus } from "lucide-react-native";
-import React, { useEffect, useMemo, useRef } from "react";
+import { Bell, FileText, Menu, Plus, UserRoundPlus } from "lucide-react-native";
+import { useEffect, useMemo, useRef } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -91,7 +91,6 @@ const DashboardScreen = () => {
 
   // Interpolate scroll position → content area overlap with bg image
   // The bg image area height (paddingTop + headerView paddingBottom + profile row)
-  const BG_IMAGE_HEIGHT = spacing(50) + spacing(60) + spacing(15) + 80; // ~approx
 
   const incomeFromChart = useMemo(() => {
     if (!stats?.salesChart) return [];

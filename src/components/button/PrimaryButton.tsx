@@ -1,6 +1,5 @@
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
-import React from "react";
 import {
   ActivityIndicator,
   StyleSheet,

@@ -4,7 +4,7 @@
  */
 import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
-import { API_BASE_URL, getStoredToken } from "@/src/lib/apiClient";
+import { API_BASE_URL, expireSession, getStoredToken, isTokenExpired } from "@/src/lib/apiClient";
 import { readCache, writeCache } from "@/src/utils/storeCache";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import * as ImagePicker from "expo-image-picker";
@@ -19,21 +19,7 @@ import {
   X,
 } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -88,14 +74,24 @@ const BOTTOM_CATEGORIES: Category[] = [
 
 // ── API helpers ───────────────────────────────────────────────────────────────
 
+// Own fetch (not lib/apiClient's) because ticket replies upload FormData,
+// but an expired or rejected session still signs the user out the same way.
 async function authHeader() {
   const token = await getStoredToken();
+  if (token && isTokenExpired(token)) {
+    await expireSession();
+    throw new Error("Your session has expired. Please sign in again.");
+  }
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = await authHeader();
   const res  = await fetch(`${API_BASE_URL}${path}`, { ...options, headers: { ...headers, ...(options.headers as any) } });
+  if (res.status === 401 && "Authorization" in headers) {
+    await expireSession();
+    throw new Error("Your session has expired. Please sign in again.");
+  }
   const data = await res.json();
   if (!data.success) throw new Error(data.error || "Request failed");
   return data as T;
@@ -216,7 +212,7 @@ function Badge({ status, isDark }: { status: string; isDark: boolean }) {
   );
 }
 
-function Tabs({ active, onChange, isDark, borderColor }: { active: "new"|"my"; onChange: (t: "new"|"my") => void; isDark: boolean; borderColor: string }) {
+function Tabs({ active, onChange, isDark }: { active: "new"|"my"; onChange: (t: "new"|"my") => void; isDark: boolean; borderColor: string }) {
   const tabBg  = isDark ? "#1a1a1a" : "#f3f4f6";
   const active_ = isDark ? "#2a2a2a" : "#fff";
   const tc      = isDark ? Colors.text.white : Colors.primaryDark;
@@ -236,7 +232,7 @@ function Tabs({ active, onChange, isDark, borderColor }: { active: "new"|"my"; o
 
 // ── VIEW: Home (category list + my tickets) ───────────────────────────────────
 
-function ViewHome({ isDark, bg, textColor, subColor, borderColor, cardBg, activeTab, onTabChange, onSelect, tickets, ticketsLoading, onTicketClick }: any) {
+function ViewHome({ isDark, textColor, subColor, borderColor, cardBg, activeTab, onTabChange, onSelect, tickets, ticketsLoading, onTicketClick }: any) {
   const renderCat = (cat: Category) => (
     <TouchableOpacity key={cat.id} style={[ss.catCard, { backgroundColor: cardBg, borderColor }]} onPress={() => onSelect(cat)} activeOpacity={0.7}>
       <View style={ss.catCardInner}>
@@ -290,7 +286,7 @@ function ViewHome({ isDark, bg, textColor, subColor, borderColor, cardBg, active
 
 // ── VIEW: Sub-issues ──────────────────────────────────────────────────────────
 
-function ViewSubIssues({ isDark, bg, textColor, subColor, borderColor, cardBg, category, activeTab, onTabChange, onSelect }: any) {
+function ViewSubIssues({ isDark, textColor, subColor, borderColor, cardBg, category, activeTab, onTabChange, onSelect }: any) {
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={ss.scrollContent} showsVerticalScrollIndicator={false}>
       <Tabs active={activeTab} onChange={onTabChange} isDark={isDark} borderColor={borderColor} />
@@ -306,7 +302,7 @@ function ViewSubIssues({ isDark, bg, textColor, subColor, borderColor, cardBg, c
 
 // ── VIEW: Form ────────────────────────────────────────────────────────────────
 
-function ViewForm({ isDark, textColor, subColor, borderColor, cardBg, inputBg, subIssue, activeTab, onTabChange, onSubmit, submitting }: any) {
+function ViewForm({ isDark, textColor, subColor, borderColor, inputBg, activeTab, onTabChange, onSubmit, submitting }: any) {
   const [date,   setDate]   = useState("");
   const [desc,   setDesc]   = useState("");
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -464,7 +460,6 @@ function ViewThread({ isDark, textColor, subColor, borderColor, cardBg, inputBg,
   };
 
   const resolved = t.status === "resolved";
-  const sc = statusColors(t.status, isDark);
 
   return (
     <View style={{ flex: 1 }}>
@@ -593,10 +588,6 @@ export default function TicketingPage() {
 
   useEffect(() => { loadTickets(); }, [loadTickets]);
 
-  const reset = () => {
-    setView("home"); setSelectedCategory(null); setSelectedSubIssue(null);
-    setActiveTicket(null); setActiveTab("new"); setError("");
-  };
 
   const handleTabChange = (tab: "new"|"my") => {
     setActiveTab(tab);

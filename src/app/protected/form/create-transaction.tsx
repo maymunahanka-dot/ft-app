@@ -25,7 +25,7 @@ import {
   ChevronDown,
   ChevronLeft,
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,

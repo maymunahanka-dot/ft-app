@@ -21,7 +21,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import ImageUploadField from "@/src/components/shared/ImageUploadField";
 import { ChevronDown, ChevronLeft } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -397,7 +397,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    // paddingVertical: spacing(20),
     paddingHorizontal: 16,
     gap: spacing(14),
   },

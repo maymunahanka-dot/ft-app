@@ -86,12 +86,6 @@ const drawerItems: DrawerItem[] = [
     route: "/(tabs)/More",
     icon: Settings,
   },
-  // {
-  //   id: "11",
-  //   name: "Plans & Billings",
-  //   route: "/protected/PlansBillings",
-  //   icon: Receipt,
-  // },
 ];
 
 export const useDrawerStore = create<DrawerState>(() => ({

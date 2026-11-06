@@ -26,7 +26,7 @@ import {
   Ruler,
   Trash2,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -149,11 +149,6 @@ const OrderDetailScreen = () => {
     order?.status ?? "pending",
   );
 
-  // const clients = useClientStore((state) => state.clients);
-  // const foundClient = clients.find(
-  //   (prev) => prev.id === order?.clientId?.toString(),
-  // );
-
   const measurementList = FormatMeasurementsForUI(
     (order?.measurements as ClientMeasurements) ?? {
       neck: "",
@@ -175,8 +170,6 @@ const OrderDetailScreen = () => {
       length: "",
     },
   );
-
-  // console.log("measurement list", order);
 
   const ORDER_FLOW: OrderStatus[] = [
     "pending",

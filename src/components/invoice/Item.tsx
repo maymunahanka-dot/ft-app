@@ -6,7 +6,6 @@ import MoneyAmount from "@/src/components/shared/MoneyAmount";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { Eye, FileText, Pencil, Trash2 } from "lucide-react-native";
-import React from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
 import { HapticTab } from "../haptic-tab";
 

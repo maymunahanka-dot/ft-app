@@ -3,7 +3,7 @@ import { useTheme } from "@/src/context/ThemeContext";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { useNavigation } from "expo-router";
 import { Menu } from "lucide-react-native";
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 import {
   ColorValue,
   StyleProp,

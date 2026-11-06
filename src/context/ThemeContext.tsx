@@ -2,10 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Appearance } from "react-native";
 
-export type ThemeMode = "light" | "dark" | "system";
-export type ActualTheme = "light" | "dark";
+type ThemeMode = "light" | "dark" | "system";
+type ActualTheme = "light" | "dark";
 
-export const THEME_STORAGE_KEY = "app-theme";
+const THEME_STORAGE_KEY = "app-theme";
 
 interface ThemeContextValue {
   theme: ThemeMode;

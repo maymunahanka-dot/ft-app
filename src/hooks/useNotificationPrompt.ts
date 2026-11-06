@@ -25,7 +25,7 @@ import {
 
 const isExpoGo = Constants.appOwnership === "expo";
 
-export type NotificationPromptState =
+type NotificationPromptState =
   | "idle"     // nothing to show
   | "ask"      // permission undetermined — show soft pre-prompt
   | "denied";  // permission denied — show "open settings" prompt

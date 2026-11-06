@@ -270,7 +270,6 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
   }, [incomes, expenses, selectedFilter]);
 
   const {
-    yAxisMax,
     yAxisLabels,
     incomePath,
     expensePath,

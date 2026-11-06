@@ -25,7 +25,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Calendar, ChevronDown, ChevronLeft } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -130,7 +130,6 @@ const CreateOrderScreen = () => {
   const summaryTitleColor = isDark ? "rgba(255,190,80,1)" : "rgba(123, 51, 6, 1)";
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  // console.log("foundClient", JSON.stringify(selectedClient, null, 2));
   const [clientModal, setClientModal] = useState(false);
   const toggleClientModal = () => setClientModal((prev) => !prev);
 
@@ -912,7 +911,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    // paddingVertical: spacing(20),
     paddingHorizontal: 16,
     gap: spacing(14),
   },

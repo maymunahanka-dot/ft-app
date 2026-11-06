@@ -1,8 +1,6 @@
 import { Styles } from "@/src/constants/styles";
-import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
 import { spacing } from "@/src/utils/random";
-import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 
 const categories = [
@@ -61,7 +59,6 @@ const CategoryList = ({ selectedCategory, onSelect }: Props) => {
     >
       {categories.map((category, index) => {
         const isSelected = category.value === selectedCategory;
-        // console.log("isSelected", category.value, selectedCategory);
         return (
           <Pressable
             key={index}

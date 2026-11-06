@@ -332,33 +332,6 @@ export const FormatMeasurementsForUI = (measurements?: ClientMeasurements) => {
     });
 };
 
-/**
- * Formats a value into a currency string with the Naira symbol and commas.
- * @param value - The number or string to format (e.g., 25000 or "25000")
- * @returns A formatted string (e.g., ₦25,000)
- */
-export const FormatCurrency = (value: string | number): string => {
-  // 1. If it's a string, remove any non-numeric characters (like existing commas)
-  const numericValue =
-    typeof value === "string"
-      ? parseFloat(value.replace(/[^0-9.]/g, ""))
-      : value;
-
-  // 2. Handle invalid numbers
-  if (isNaN(numericValue)) {
-    return "₦0";
-  }
-
-  // 3. Use the Intl formatter for Nigeria
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    minimumFractionDigits: 0, // Set to 0 if you don't want kobo (.00)
-    maximumFractionDigits: 0,
-  })
-    .format(numericValue)
-    .replace("NGN", "₦"); // Replace the currency code with the symbol if necessary
-};
 
 /**
  * Returns the current date in "Month Year" format.
@@ -466,30 +439,6 @@ export const ConvertToISO = (
   }
 };
 
-export const normalizeToISODateTime = (
-  dateISO: string,
-  timeOrISO: string,
-): string => {
-  if (!timeOrISO) return new Date(dateISO).toISOString();
-
-  // NEW FORMAT → already ISO
-  if (timeOrISO.includes("T")) {
-    const d = new Date(timeOrISO);
-    if (!isNaN(d.getTime())) return d.toISOString();
-  }
-
-  // LEGACY FORMAT → "HH:mm"
-  const [hours, minutes] = timeOrISO.split(":").map(Number);
-
-  const base = new Date(dateISO);
-
-  base.setHours(hours || 0);
-  base.setMinutes(minutes || 0);
-  base.setSeconds(0);
-  base.setMilliseconds(0);
-
-  return base.toISOString();
-};
 
 export const GetDetailedTime = (date: Date | string | any): string => {
   const now = convertToDate(date);
@@ -503,7 +452,7 @@ export const GetDetailedTime = (date: Date | string | any): string => {
     .toLowerCase(); // makes AM/PM → am/pm
 };
 
-export const convertToDate = (date: Date | string | any): Date => {
+const convertToDate = (date: Date | string | any): Date => {
   if (
     typeof date === "object" &&
     date !== null &&
@@ -559,27 +508,6 @@ export const formatInvoiceDate = (dateString: string): string => {
   });
 };
 
-/**
- * Formats Firebase error strings into human-readable text.
- * @param error - The raw error string or object from Firebase
- * @returns A clean string like "User not found"
- */
-export const FormatFirebaseError = (error: any): string => {
-  const errorString = error?.toString() || "";
-
-  // 1. Extract the code inside the brackets: (auth/user-not-found)
-  const match = errorString.match(/\((.*?)\)/);
-  if (!match) return "An unexpected error occurred.";
-
-  const fullCode = match[1]; // e.g., "auth/user-not-found"
-
-  // 2. Remove the "auth/" or "storage/" prefix and clean up
-  const cleanCode = fullCode.split("/")[1] || fullCode;
-
-  // 3. Replace dashes with spaces and capitalize the first letter
-  const formatted = cleanCode.replace(/-/g, " ");
-  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
-};
 
 export const ShowToastMessage = (option: ToastOptions) => {
   Burnt.toast({

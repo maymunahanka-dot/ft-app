@@ -17,20 +17,6 @@ export interface LoyaltyMember {
   updatedAt?: string;
 }
 
-export interface Reward {
-  id: string;
-  title: string;
-  description: string;
-  pointsCost: number;
-  icon: string;
-  category: "discount" | "service" | "access" | "gift";
-  isActive: boolean;
-  usageLimit?: number;
-  usageCount: number;
-  validUntil?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface EmailCampaign {
   id: string;
@@ -48,17 +34,6 @@ export interface EmailCampaign {
   updatedAt: string;
 }
 
-export interface CommunicationTemplate {
-  id: string;
-  name: string;
-  type: "email" | "sms" | "push";
-  content: string;
-  lastUsed?: string;
-  usageCount: number;
-  tags?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface ClientFeedback {
   id?: string;
@@ -85,13 +60,3 @@ export const getAverageRating = (feedbacks: ClientFeedback[]): number => {
   return Math.round((total / feedbacks.length) * 10) / 10; // 1 decimal place
 };
 
-export interface CRMStats {
-  totalClients: number;
-  monthlyGrowth: number;
-  loyaltyMembers: number;
-  loyaltyPercentage: number;
-  totalCampaigns: number;
-  lastCampaignDate?: string;
-  averageRating: number;
-  totalReviews: number;
-}

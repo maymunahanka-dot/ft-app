@@ -8,7 +8,7 @@ import { useAuthStore } from "@/src/stores/authSlice";
 import { scale, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { Eye, EyeOff, MoveLeft } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   ImageBackground,

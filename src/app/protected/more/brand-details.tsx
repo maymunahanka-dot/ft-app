@@ -20,7 +20,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
 import { ChevronDown, ChevronLeft, Pencil } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,

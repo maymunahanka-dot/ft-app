@@ -6,7 +6,7 @@ import { useAuth } from "@/src/hooks/auth";
 import { scale, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   ImageBackground,

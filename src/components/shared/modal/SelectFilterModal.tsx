@@ -3,7 +3,7 @@ import { Colors } from "@/src/constants/theme";
 import { scale, spacing } from "@/src/utils/random";
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Check } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Pressable, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 type OptionType = {

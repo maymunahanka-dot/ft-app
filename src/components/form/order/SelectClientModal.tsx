@@ -5,7 +5,7 @@ import { Client } from "@/src/types/client";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { BottomSheetFlatList, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { User } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -117,7 +117,6 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    // gap: spacing(15),
     padding: spacing(22),
   },
   badge: {

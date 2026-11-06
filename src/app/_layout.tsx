@@ -1,45 +1,23 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { useFonts } from "expo-font";
-import { Stack, usePathname, useRouter, useSegments } from "expo-router";
+import { type Href, Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as Updates from "expo-updates";
-import { useEffect } from "react";
-import { View } from "react-native";
+import { useEffect, useState } from "react";
+import { AppState, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { ForceUpdateScreen } from "../components/shared/ForceUpdateScreen";
 import { NoNetworkBanner } from "../components/shared/NoNetworkBanner";
 import { useAuth } from "../hooks/auth";
+import "../lib/webAlert";
 import { useForceUpdate } from "../hooks/useForceUpdate";
 import { useSubscriptionGuard } from "../hooks/useSubscriptionGuard";
+import { expireSession, getStoredToken, getTokenExpiryMs } from "../lib/apiClient";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
+import { routeForNotification } from "../lib/notificationRoutes";
+import { listenForNotificationTaps } from "../services/notification.service";
 import { useUserStore } from "../stores/userSlice";
-
-// import { useColorScheme } from '@/hooks/use-color-scheme';
-
-// export const unstable_settings = {
-//   anchor: "(tabs)",
-// };
-
-// const WIDTH = Dimensions.get("window").width;
-
-// const drawerOptions = {
-//   headerShown: false,
-//   drawerPosition: "left",
-//   drawerStyle: {
-//     backgroundColor: "black",
-//     width: Math.max(WIDTH * 0.7, 270),
-//   },
-//   drawerActiveTintColor: "#000",
-//   drawerInactiveTintColor: "#666",
-//   drawerLabelStyle: {
-//     fontSize: 16,
-//     fontWeight: "500",
-//   },
-//   overlayColor: "rgba(0, 0, 0, 0.5)",
-//   swipeEnabled: true,
-//   swipeEdgeWidth: DrawerContentWidth,
-// } as const;
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -67,7 +45,6 @@ export default function RootLayout() {
 
     const inForgetPassword =
       pathname.split("?")[0] === "/screen/forget-password";
-    // const inSubModal = pathname.split("?")[0] === "subscription-modal";
 
     const isInsideAuthArea = inTab || inProtected;
 
@@ -83,6 +60,44 @@ export default function RootLayout() {
       }
     }
   }, [loading, router, segments, user, loaded, pathname]);
+
+  // Sign out the moment the session token expires, even if no request is made.
+  // Timers pause while the app is in the background, so re-check on return.
+  useEffect(() => {
+    if (!user) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const check = async () => {
+      clearTimeout(timer);
+      const token = await getStoredToken();
+      const expiry = token ? getTokenExpiryMs(token) : null;
+      if (!expiry) return;
+      const msLeft = expiry - Date.now();
+      if (msLeft <= 0) return expireSession();
+      timer = setTimeout(expireSession, Math.min(msLeft, 2 ** 31 - 1));
+    };
+    check();
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") check();
+    });
+    return () => {
+      clearTimeout(timer);
+      sub.remove();
+    };
+  }, [user]);
+
+  // Tapping a push opens the screen it's about. Wait until the session is
+  // restored and the redirect above has landed inside the app.
+  const [pendingRoute, setPendingRoute] = useState<Href | null>(null);
+  useEffect(
+    () => listenForNotificationTaps((data) => setPendingRoute(routeForNotification(data))),
+    [],
+  );
+  useEffect(() => {
+    if (!pendingRoute || loading || !loaded || !user) return;
+    if (segments[0] !== "(tabs)" && segments[0] !== "protected") return;
+    router.push(pendingRoute);
+    setPendingRoute(null);
+  }, [pendingRoute, loading, loaded, user, segments, router]);
 
   // Expo OTA Updates once app starts
   useEffect(() => {
@@ -111,23 +126,11 @@ export default function RootLayout() {
     console.log(`Current route: ${currentRoute}`);
   }, [pathname]);
 
-  const { loading: isLoading, isSubscribed } = useSubscriptionGuard({
+  useSubscriptionGuard({
     email: user?.email ?? getCurrentUserEmail(),
     uuid: user?.uid ?? getCurrentUserId(),
     paymentUrl: "https://www.fashiontally.com/login",
   });
-
-  // if (isLoading) {
-  //   return (
-  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-  //       <ActivityIndicator size="large" />
-  //     </View>
-  //   );
-  // }
-
-  // if (!isSubscribed) {
-  //   return null;
-  // }
 
   if (!loaded) {
     return null;

@@ -25,7 +25,7 @@ import { blockedMessage } from "@/src/utils/blockedDays";
 import { useBlockedDays } from "@/src/hooks/useBlockedDays";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { Calendar, ChevronDown, ChevronLeft } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,

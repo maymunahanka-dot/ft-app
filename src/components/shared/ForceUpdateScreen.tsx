@@ -9,7 +9,6 @@
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { ArrowUpCircle } from 'lucide-react-native';
-import React from 'react';
 import {
   Platform,
   Pressable,
@@ -32,7 +31,6 @@ export function ForceUpdateScreen({ message, storeUrl }: Props) {
   const { isDark } = useTheme();
   const insets     = useSafeAreaInsets();
 
-  const bg      = isDark ? '#0f172a' : '#f0fdf9';
   const cardBg  = isDark ? '#1e293b' : '#ffffff';
   const textPri = isDark ? '#f1f5f9' : '#0f172a';
   const textSec = isDark ? '#94a3b8' : '#64748b';
@@ -111,7 +109,11 @@ export function ForceUpdateScreen({ message, storeUrl }: Props) {
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    position:       'absolute',
+    top:            0,
+    left:           0,
+    right:          0,
+    bottom:         0,
     justifyContent: 'center',
     alignItems:     'center',
     zIndex:         9999,

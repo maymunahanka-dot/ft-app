@@ -10,7 +10,7 @@ import {
 import { create } from "zustand";
 import { db } from "../context/firebase";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
-import { apiFetch, API_BASE_URL } from "../lib/apiClient";
+import { API_BASE_URL } from "../lib/apiClient";
 import { setEffectiveEmail } from "../lib/effectiveEmail";
 import { BrandSettings, RegisterUserData } from "../types/auth";
 import { sanitizeBrandSettings, ShowToastMessage } from "../utils/random";

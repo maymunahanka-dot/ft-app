@@ -12,7 +12,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Eye } from "lucide-react-native";
-import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = {

@@ -15,7 +15,7 @@ import { formatPrice, scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ChevronDown, ChevronLeft, Upload } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -46,7 +46,6 @@ const EditDesignScreen = () => {
   const { symbol, toNaira, blockUntilRate, currency, usdToNgn } = useDisplayCurrency();
   const priceTouched = useRef(false);
   const converted = useRef(false);
-  const deleteDesign = useDesignStore((state) => state.deleteDesign);
   const loading = useDesignStore((state) => state.loading);
 
   const clients = useClientStore((state) => state.clients);

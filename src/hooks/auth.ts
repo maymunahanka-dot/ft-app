@@ -1,32 +1,21 @@
 import {
   confirmPasswordReset,
 } from "firebase/auth";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
-import { auth, db } from "../context/firebase";
+import { auth } from "../context/firebase";
 import { apiFetch, clearSession, getStoredToken, getStoredUser, isTokenExpired, saveSession, setUnauthorizedHandler } from "../lib/apiClient";
-import { getCurrentUserEmail } from "../lib/auth-utils";
-import { sendWhatsAppWelcome } from "../lib/whatsappService";
 import { registerFCMToken, removeFCMToken } from "../services/notification.service";
 import { useUserStore } from "../stores/userSlice";
 import { RegisterUserData } from "../types/auth";
-import { FormatFirebaseError, ShowToastMessage } from "../utils/random";
+import { ShowToastMessage } from "../utils/random";
 
 export function useAuth() {
   const [loading, setLoading] = useState(true);
   const setUserData = useUserStore.getState().updateUser;
 
   const fetchBrandSettings = useUserStore.getState().fetchBrandSettings;
-
 
   // ─── Session restore on app startup ──────────────────────────────────────
   useEffect(() => {
@@ -54,77 +43,6 @@ export function useAuth() {
 
     restoreSession();
   }, []);
-
-  const fetchUserProfile = async (
-    uid: string,
-    options?: { showErrors?: boolean },
-  ): Promise<RegisterUserData | null> => {
-    const showErrors = options?.showErrors ?? true;
-    try {
-      if (uid) {
-        // 1️⃣ Check fashiontally_admins first (sub-admin login)
-        const email = getCurrentUserEmail();
-        if (email) {
-          const adminRef = doc(db, "fashiontally_admins", email);
-          const adminSnap = await getDoc(adminRef);
-          if (adminSnap.exists()) {
-            const adminData = adminSnap.data();
-            return {
-              uid,
-              ...(adminData as RegisterUserData),
-              isAdmin: true,
-              invitedBy: adminData.invitedBy ?? null,
-              permissions: adminData.permissions ?? null,
-            };
-          }
-        }
-
-        // 2️⃣ Regular user by uid
-        const ref = doc(db, "fashiontally_users", uid);
-        const docSnap = await getDoc(ref);
-        if (docSnap.exists()) {
-          return { uid, ...docSnap.data() } as RegisterUserData;
-        }
-      }
-
-      // 3️⃣ Email fallback
-      const email = getCurrentUserEmail();
-      if (email) {
-        const q = query(
-          collection(db, "fashiontally_users"),
-          where("email", "==", email),
-        );
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-          return { uid, ...snap.docs[0].data() } as RegisterUserData;
-        }
-      }
-
-      console.warn("[FETCH_USER_PROFILE] No profile found", { uid, email });
-      if (showErrors) {
-        ShowToastMessage({
-          title: "User profile not found",
-          preset: "error",
-          haptic: "error",
-        });
-      }
-      return null;
-    } catch (error: any) {
-      console.error("[FETCH_USER_PROFILE] Failed to fetch user profile", {
-        uid,
-        error,
-      });
-      if (showErrors) {
-        ShowToastMessage({
-          title: "Error fetching user",
-          message: FormatFirebaseError(error),
-          preset: "error",
-          haptic: "error",
-        });
-      }
-      return null;
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
@@ -244,6 +162,7 @@ export function useAuth() {
             businessName: userDataInput.businessName.trim(),
             category: (userDataInput.role ?? "Designer").trim(),
             logoUrl,
+            emailVerificationToken: userDataInput.emailVerificationToken,
           }),
         });
       } catch (fetchErr: any) {
@@ -267,12 +186,6 @@ export function useAuth() {
       await saveSession(loginData.token, loginData.user);
       setUserData(loginData.user);
       await fetchBrandSettings();
-
-      // Send WhatsApp welcome (non-blocking — backend also does this)
-      const fullPhone = `+234${userDataInput.phone}`;
-      sendWhatsAppWelcome(fullPhone, userDataInput.name).catch((err) =>
-        console.warn("Welcome message failed:", err),
-      );
 
       return true;
     } catch (error: any) {
@@ -340,7 +253,6 @@ export function useAuth() {
       await confirmPasswordReset(auth, otp, newPassword);
     } catch (error) {
       console.error("Error sending reset password:", error);
-      //   throw error;
     } finally {
       setLoading(false);
     }

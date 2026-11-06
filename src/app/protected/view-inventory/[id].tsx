@@ -27,7 +27,6 @@ import {
   Trash2,
   UserIcon,
 } from "lucide-react-native";
-import React from "react";
 import { PhotoPlaceholder } from "@/src/components/shared/ImageUploadField";
 import {
   ActivityIndicator,
@@ -360,7 +359,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    // paddingVertical: spacing(20),
     paddingHorizontal: 16,
     gap: spacing(14),
   },

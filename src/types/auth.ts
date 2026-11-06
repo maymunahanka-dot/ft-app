@@ -12,6 +12,8 @@ export type RegisterUserData = {
   createdAt: string;
   logo?: string;
   metadata?: any;
+  // proof from /auth/verify-email-otp, sent with sign-up
+  emailVerificationToken?: string;
   // sub-admin fields
   isAdmin?: boolean;
   invitedBy?: string | null;
@@ -29,8 +31,6 @@ export type RegisterUserData = {
 };
 
 export const emptyUserData: RegisterUserData = {
-  // firstName: "",
-  // lastName: "",
   name: "",
   email: "",
   phone: "",

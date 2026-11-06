@@ -4,12 +4,11 @@ import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
 import { apiFetch } from "@/src/lib/apiClient";
-import { useUserStore } from "@/src/stores/userSlice";
 import { scale, scaleFontSize, ShowToastMessage, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { AlertCircle, ChevronLeft, Eye, EyeOff } from "lucide-react-native";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -23,7 +22,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const SecurityDetailsScreen = () => {
-  const user = useUserStore((state) => state.user);
   const { isDark } = useTheme();
 
   const bg = isDark ? "#0f0f0f" : "white";

@@ -5,7 +5,6 @@ import { Client } from "@/src/types/client";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { ChevronRight, Mail, Phone } from "lucide-react-native";
-import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = { item: Client };

@@ -15,14 +15,7 @@ import { useInvoiceStore } from "@/src/stores/invoiceSlice";
 import { Measurement, useMeasurementStore } from "@/src/stores/measurementSlice";
 import { useOrderStore } from "@/src/stores/orderSlice";
 import { Client } from "@/src/types/client";
-import {
-  CapitalizeFirstName,
-  FormatOrderDate,
-  scale,
-  scaleFontSize,
-  ShowToastMessage,
-  spacing,
-} from "@/src/utils/random";
+import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {

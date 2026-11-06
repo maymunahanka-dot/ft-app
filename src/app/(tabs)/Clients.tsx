@@ -11,7 +11,7 @@ import { StatusBar } from "expo-status-bar";
 import SortByButton, { useSavedSort } from "@/src/components/shared/SortByButton";
 import { sortItems } from "@/src/utils/sortBy";
 import { Plus, Search } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,

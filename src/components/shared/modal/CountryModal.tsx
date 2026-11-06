@@ -1,4 +1,3 @@
-import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import countries, { Country } from "@/src/constants/countries";
 import { scaleFontSize, spacing } from "@/src/utils/random";

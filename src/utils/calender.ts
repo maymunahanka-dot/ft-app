@@ -177,34 +177,5 @@ export async function deleteCalendarEvent(eventId: string): Promise<void> {
 }
 
 // Helper function to check if calendar permissions are granted
-export async function hasCalendarPermission(): Promise<boolean> {
-  if (Platform.OS === "ios") return false;
-  try {
-    const { status } = await Calendar.getCalendarPermissionsAsync();
-    return status === "granted";
-  } catch (error) {
-    console.error("Error checking calendar permission:", error);
-    return false;
-  }
-}
 
 // Helper function to get all available calendars
-export async function getAvailableCalendars(): Promise<Calendar.Calendar[]> {
-  if (Platform.OS === "ios") return [];
-  try {
-    const { status } = await Calendar.requestCalendarPermissionsAsync();
-
-    if (status !== "granted") {
-      return [];
-    }
-
-    const calendars = await Calendar.getCalendarsAsync(
-      Calendar.EntityTypes.EVENT,
-    );
-
-    return calendars.filter((c) => c.allowsModifications);
-  } catch (error) {
-    console.error("Error getting available calendars:", error);
-    return [];
-  }
-}

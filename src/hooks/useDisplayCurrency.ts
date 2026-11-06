@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useUserStore } from "../stores/userSlice";
 import { getUsdToNgnRate } from "../utils/exchangeRate";
 
-export type DisplayCurrency = "NGN" | "USD";
+type DisplayCurrency = "NGN" | "USD";
 
 export function useDisplayCurrency() {
   const inventoryCurrency = useUserStore((state) => state.brandSetting?.inventoryCurrency);

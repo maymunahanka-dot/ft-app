@@ -4,7 +4,6 @@ import { useInvoiceStore } from "@/src/stores/invoiceSlice";
 import { scale, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
 import { MoveLeft } from "lucide-react-native";
-import React from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

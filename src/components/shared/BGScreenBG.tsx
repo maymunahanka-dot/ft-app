@@ -50,7 +50,6 @@ const BGScreenBG: React.FC<Props> = ({
     <View style={styles.container}>
       <ImageBackground
         source={require("@/assets/images/screen_bg.png")}
-        // style={styles.bgContainer}
         style={[styles.headerView, { height, paddingVertical }]}
       >
         <View style={styles.row}>
@@ -65,7 +64,6 @@ const BGScreenBG: React.FC<Props> = ({
                 <HapticTab
                   hitSlop={20}
                   onPress={() => (navigation as any).toggleDrawer()}
-                  // style={{ marginRight: spacing(20) }}
                 >
                   <Menu size={scale(24)} color={"white"} />
                 </HapticTab>
@@ -128,8 +126,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 40,
     borderTopLeftRadius: 40,
     paddingHorizontal: spacing(16),
-    // paddingVertical: spacing(26),
-    // paddingBottom: spacing(40),
     marginTop: spacing(-40),
     zIndex: 10,
   },

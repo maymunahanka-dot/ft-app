@@ -327,4 +327,3 @@ const styles = StyleSheet.create({
   xAxisLabel: { fontFamily: "medium", fontSize: scaleFontSize(10), flex: 1, textAlign: "center" },
 });
 
-export default OverallSalesChart;

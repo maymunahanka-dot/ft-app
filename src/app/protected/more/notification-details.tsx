@@ -13,7 +13,7 @@ import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Bell, BellOff, ChevronLeft, Settings, Smartphone } from "lucide-react-native";
-import React, { useCallback, useEffect, useState } from "react";import {
+import { useCallback, useEffect, useState } from "react";import {
   ActivityIndicator,
   AppState,
   ScrollView,

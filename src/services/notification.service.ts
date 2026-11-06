@@ -352,14 +352,64 @@ export const openNotificationSettings = async (): Promise<void> => {
   }
 };
 
-/**
- * Read the locally stored FCM token (no API calls).
- */
-export const getStoredFCMToken = async (): Promise<string | null> => {
-  return AsyncStorage.getItem(FCM_TOKEN_KEY);
-};
 
 /**
  * Returns true if push notifications are available in this runtime.
  */
 export const isPushAvailable = (): boolean => !isExpoGo && !!Notifications;
+
+type NotificationData = Record<string, unknown>;
+
+/** Custom data of a tapped notification, wherever this platform put it. */
+function dataFromNotification(notification: any): NotificationData {
+  const request = notification?.request ?? {};
+  const fromContent = request.content?.data;
+  if (fromContent && Object.keys(fromContent).length > 0) return fromContent;
+  // iOS raw APNs pushes keep custom keys on the payload; Android FCM on remoteMessage.data
+  return request.trigger?.payload ?? request.trigger?.remoteMessage?.data ?? {};
+}
+
+/**
+ * Calls `onOpen` with the notification's data whenever the user taps a push —
+ * while the app is running, in the background, or when the tap launched it.
+ * Returns a function that stops listening.
+ */
+export const listenForNotificationTaps = (onOpen: (data: NotificationData) => void): (() => void) => {
+  if (isExpoGo || Platform.OS === "web") return () => {};
+
+  // The same tap can arrive through both expo-notifications and Firebase
+  let last = { key: "", at: 0 };
+  const handle = (data: NotificationData | undefined | null) => {
+    if (!data || Object.keys(data).length === 0) return;
+    const key = JSON.stringify(data);
+    if (key === last.key && Date.now() - last.at < 3000) return;
+    last = { key, at: Date.now() };
+    onOpen(data);
+  };
+
+  const cleanups: (() => void)[] = [];
+  try {
+    if (Notifications) {
+      const sub = Notifications.addNotificationResponseReceivedListener((response) =>
+        handle(dataFromNotification(response.notification)));
+      cleanups.push(() => sub.remove());
+      Notifications.getLastNotificationResponseAsync()
+        .then((response) => response && handle(dataFromNotification(response.notification)))
+        .catch(() => {});
+    }
+
+    // Android shows FCM notifications itself when the app is in the background
+    const messaging = Platform.OS === "android" ? loadMessaging() : null;
+    if (messaging) {
+      const instance = messaging.getMessaging();
+      cleanups.push(messaging.onNotificationOpenedApp(instance, (message) => handle(message?.data)));
+      messaging.getInitialNotification(instance)
+        .then((message) => message && handle(message.data))
+        .catch(() => {});
+    }
+  } catch (err: any) {
+    console.warn("[FCM] Could not listen for notification taps:", err.message);
+  }
+
+  return () => cleanups.forEach((stop) => stop());
+};

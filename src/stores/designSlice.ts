@@ -54,7 +54,7 @@ const uploadDesignImageToCloudinary = (uri: string): Promise<string> => {
   });
 };
 
-export const useDesignStore = create<DesignState>((set, get) => ({
+export const useDesignStore = create<DesignState>((set) => ({
   designs: [],
   loading: false,
 

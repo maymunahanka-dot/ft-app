@@ -7,7 +7,6 @@ import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ChevronLeft, Pencil, Trash2 } from "lucide-react-native";
-import React from "react";
 import {
   ActivityIndicator,
   Dimensions,

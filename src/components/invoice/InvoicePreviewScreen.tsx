@@ -3,7 +3,6 @@ import { Colors } from "@/src/constants/theme";
 import { InvoiceData } from "@/src/types/Invoice";
 import { scale } from "@/src/utils/random";
 import { Download } from "lucide-react-native";
-import React from "react";
 import { StyleSheet, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { HapticTab } from "../haptic-tab";

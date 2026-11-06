@@ -3,6 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useUserStore } from "../stores/userSlice";
 import { checkSubscriptionStatus } from "../utils/subscription";
 
+/** Free trial length — keep in step with the backend's config/trial.js. */
+const TRIAL_DAYS = 2;
+
 const resolveCreatedAt = (createdAt: any): Date | null => {
   if (!createdAt) return null;
   if (typeof createdAt?.toDate === "function") return createdAt.toDate();
@@ -73,14 +76,14 @@ export const useSubscriptionGuard = ({
           return;
         }
 
-        // Not subscribed — check 3-day creation grace period
+        // Not subscribed — new accounts still get in for the length of the free trial
         const createdAt = resolveCreatedAt(user?.createdAt);
         const daysSinceCreation = createdAt
           ? (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
           : Infinity;
 
-        if (daysSinceCreation <= 3) {
-          console.log("Within 3-day trial grace period, allowing access");
+        if (daysSinceCreation <= TRIAL_DAYS) {
+          console.log("Within free trial period, allowing access");
           setState({ loading: false, isSubscribed: true });
           return;
         }

@@ -22,7 +22,7 @@ interface MeasurementState {
   deleteMeasurement: (id: string) => Promise<boolean>;
 }
 
-export const useMeasurementStore = create<MeasurementState>((set, get) => ({
+export const useMeasurementStore = create<MeasurementState>((set) => ({
   measurements: [],
   loading: false,
 
