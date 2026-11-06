@@ -11,6 +11,7 @@ import { ForceUpdateScreen } from "../components/shared/ForceUpdateScreen";
 import { NoNetworkBanner } from "../components/shared/NoNetworkBanner";
 import { useAuth } from "../hooks/auth";
 import "../lib/webAlert";
+import "../lib/webFontTimeout";
 import { useForceUpdate } from "../hooks/useForceUpdate";
 import { useSubscriptionGuard } from "../hooks/useSubscriptionGuard";
 import { expireSession, getStoredToken, getTokenExpiryMs } from "../lib/apiClient";
@@ -20,7 +21,7 @@ import { listenForNotificationTaps } from "../services/notification.service";
 import { useUserStore } from "../stores/userSlice";
 
 export default function RootLayout() {
-  const [loaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     regular: require("@/assets/fonts/Baloo2-Regular.ttf"),
     medium: require("@/assets/fonts/Baloo2-Medium.ttf"),
     semibold: require("@/assets/fonts/Baloo2-SemiBold.ttf"),
@@ -28,6 +29,8 @@ export default function RootLayout() {
     black: require("@/assets/fonts/Baloo2-ExtraBold.ttf"),
     balo: require("@/assets/fonts/Baloo-Regular.ttf"),
   });
+  // A font that fails or times out (web) must not leave the app stuck on a blank screen.
+  const loaded = fontsLoaded || !!fontError;
 
   const user = useUserStore((state) => state.user);
   const { loading } = useAuth();

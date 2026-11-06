@@ -28,13 +28,19 @@ const BurgerIcon = ({ title, textStyle, iconColor, viewStyle, right }: Props) =>
   const { isDark } = useTheme();
   const color = iconColor ?? (isDark ? "white" : Colors.text.black);
 
+  // Baloo is a tall font: a line height smaller than ~1.4× the font size cuts off
+  // the top/bottom of the letters on iOS. Size the line to whatever font size the screen passes.
+  const flat: TextStyle = StyleSheet.flatten([styles.title, textStyle]);
+  const fontSize = typeof flat.fontSize === "number" ? flat.fontSize : scaleFontSize(16);
+  const lineHeight = Math.max(flat.lineHeight ?? 0, Math.ceil(fontSize * 1.4));
+
   return (
     <View style={[styles.row, viewStyle]}>
       <HapticTab hitSlop={20} onPress={() => (navigation as any).toggleDrawer()}>
         <Menu size={scale(24)} color={color} />
       </HapticTab>
       <View style={styles.titleRow}>
-        <Text style={[styles.title, textStyle]}>{title}</Text>
+        <Text style={[styles.title, textStyle, { lineHeight }]}>{title}</Text>
         {right}
       </View>
     </View>
@@ -60,6 +66,5 @@ const styles = StyleSheet.create({
     fontFamily: "regular",
     fontSize: scaleFontSize(16),
     color: "black",
-    lineHeight: 20,
   },
 });

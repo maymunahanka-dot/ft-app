@@ -19,7 +19,7 @@ import ImagePlaceholder from "../shared/ImagePlaceholder";
 import { DrawerListItem } from "./drawer-list-item";
 
 const keyExtractor = (item: DrawerItem) => item?.id || "";
-const LIST_ITEM_HEIGHT = 56;
+const LIST_ITEM_HEIGHT = 44;
 export const DrawerContentWidth = Dimensions.get("window").width * 0.35;
 
 export function DrawerContent(props: DrawerContentComponentProps) {
@@ -79,21 +79,25 @@ export function DrawerContent(props: DrawerContentComponentProps) {
 
       {/* User/brand card */}
       <View style={[styles.userCard, { borderColor, backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(22,152,141,0.05)" }]}>
-        {brandSetting?.logoUrl ? (
-          <Image source={{ uri: getImageUri(brandSetting.logoUrl) }} style={styles.avatar} />
-        ) : (
-          <ImagePlaceholder name={name} size={44} fontSize={16} />
-        )}
+        <View style={styles.avatarRing}>
+          {brandSetting?.logoUrl ? (
+            <Image source={{ uri: getImageUri(brandSetting.logoUrl) }} style={styles.avatar} />
+          ) : (
+            <ImagePlaceholder name={name} size={40} fontSize={15} />
+          )}
+        </View>
         <View style={styles.userInfo}>
           <Text style={[styles.userName, { color: textColor }]} numberOfLines={1}>{name}</Text>
-          <Text style={[styles.userRole, { color: subTextColor }]} numberOfLines={1}>
-            {user?.role ?? "Designer"}
-          </Text>
+          <View style={[styles.rolePill, { backgroundColor: isDark ? "rgba(22,152,141,0.18)" : "rgba(22,152,141,0.12)" }]}>
+            <Text style={[styles.userRole, { color: isDark ? "#5fd3c8" : Colors.primary }]} numberOfLines={1}>
+              {user?.role ?? "Designer"}
+            </Text>
+          </View>
         </View>
       </View>
 
       {/* Nav items */}
-      <View style={[styles.divider, { backgroundColor: borderColor }]} />
+      <Text style={[styles.sectionLabel, { color: subTextColor }]}>MENU</Text>
 
       <View style={styles.listContainer}>
         <PressablesGroup>
@@ -188,22 +192,44 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: spacing(16),
   },
+  avatarRing: {
+    padding: 2,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+  },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   userInfo: {
     flex: 1,
-    gap: spacing(2),
+    gap: spacing(4),
+    alignItems: "flex-start",
   },
   userName: {
-    fontFamily: "medium",
-    fontSize: scaleFontSize(14),
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(15),
+    lineHeight: Math.ceil(scaleFontSize(15) * 1.4),
+  },
+  rolePill: {
+    paddingHorizontal: spacing(8),
+    paddingVertical: 1,
+    borderRadius: 999,
   },
   userRole: {
-    fontFamily: "regular",
-    fontSize: scaleFontSize(12),
+    fontFamily: "medium",
+    fontSize: scaleFontSize(11),
+    lineHeight: Math.ceil(scaleFontSize(11) * 1.5),
+    textTransform: "capitalize",
+  },
+  sectionLabel: {
+    fontFamily: "medium",
+    fontSize: scaleFontSize(11),
+    letterSpacing: 1.2,
+    marginBottom: spacing(6),
+    marginLeft: spacing(4),
   },
   divider: {
     height: 1,
@@ -216,10 +242,10 @@ const styles = StyleSheet.create({
   },
   listItem: {
     height: LIST_ITEM_HEIGHT,
-    paddingHorizontal: spacing(12),
+    paddingHorizontal: spacing(10),
   },
   contentContainer: {
-    gap: spacing(4),
+    gap: spacing(2),
   },
   bottomRow: {
     flexDirection: "row",
