@@ -40,6 +40,8 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
     } catch (error: any) {
       console.error("Error creating invoice:", error);
       ShowToastMessage({ title: error.message ?? "Failed to create invoice", preset: "error", haptic: "error" });
+      // Let the form know it failed so it stays open (e.g. free-plan limit of 10 invoices)
+      throw error;
     } finally {
       set({ loading: false });
     }

@@ -133,6 +133,7 @@ export default function RootLayout() {
     email: user?.email ?? getCurrentUserEmail(),
     uuid: user?.uid ?? getCurrentUserId(),
     paymentUrl: "https://www.fashiontally.com/login",
+    pathname,
   });
 
   if (!loaded) {

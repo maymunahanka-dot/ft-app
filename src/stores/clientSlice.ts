@@ -44,6 +44,8 @@ export const useClientStore = create<ClientState>((set, get) => ({
     } catch (error: any) {
       console.error("Error saving client:", error);
       ShowToastMessage({ title: error.message ?? "Failed to save client", preset: "error", haptic: "error" });
+      // Let the form know it failed so it stays open (e.g. free-plan limit of 10 clients)
+      throw error;
     } finally {
       set({ loading: false });
     }

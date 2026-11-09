@@ -4,7 +4,34 @@ import { useUserStore } from "../stores/userSlice";
 import { checkSubscriptionStatus } from "../utils/subscription";
 
 /** Free trial length — keep in step with the backend's config/trial.js. */
-const TRIAL_DAYS = 2;
+const TRIAL_DAYS = 3;
+
+/**
+ * Screens that stay open on the free plan (no active trial or subscription).
+ * Keep in step with the web app's FREE_PLAN_FEATURES. The backend caps
+ * clients and invoices at 10 each for free accounts.
+ */
+const FREE_ROUTES: (string | RegExp)[] = [
+  "/Dashboard",
+  "/Clients",
+  "/Invoices",
+  "/More", // account, settings, sign out
+  /^\/protected\/client\//,
+  /^\/protected\/invoice\//,
+  "/protected/invoice-preview",
+  "/protected/form/create-client",
+  "/protected/form/create-invoice",
+  /^\/protected\/more\//, // profile, security, subscription details
+  "/protected/subscription-modal",
+  "/protected/ticketing", // support
+  "/protected/notifications",
+];
+
+export const isFreeRoute = (pathname: string) => {
+  const path = pathname.split("?")[0];
+  if (path === "/" || !path.startsWith("/") || path.startsWith("/sign") || path.startsWith("/screen")) return true;
+  return FREE_ROUTES.some((r) => (typeof r === "string" ? path === r : r.test(path)));
+};
 
 const resolveCreatedAt = (createdAt: any): Date | null => {
   if (!createdAt) return null;
@@ -20,8 +47,10 @@ type UseSubscriptionGuardProps = {
   email?: string;
   uuid?: string;
   paymentUrl: string;
+  /** Current route; locked routes send free users to the subscribe screen. */
+  pathname?: string;
   /**
-   * If true, automatically redirect to subscription modal when not subscribed
+   * If true, redirect to the subscribe screen when a free user opens a locked screen
    * @default true
    */
   autoRedirect?: boolean;
@@ -31,6 +60,7 @@ export const useSubscriptionGuard = ({
   email,
   uuid,
   paymentUrl,
+  pathname = "",
   autoRedirect = true,
 }: UseSubscriptionGuardProps) => {
   const lastCheckedKeyRef = useRef("");
@@ -43,20 +73,6 @@ export const useSubscriptionGuard = ({
 
   const hasUser = useUserStore((state) => !!state.user);
   const user = useUserStore((state) => state.user);
-
-  const redirectToSubscriptionModal = useCallback(
-    (resolvedEmail?: string, resolvedUuid?: string) => {
-      router.replace({
-        pathname: "/protected/subscription-modal",
-        params: {
-          email: resolvedEmail || "",
-          uuid: resolvedUuid || "",
-          paymentUrl,
-        },
-      });
-    },
-    [paymentUrl],
-  );
 
   const runCheck = useCallback(
     async (resolvedEmail: string, resolvedUuid: string) => {
@@ -76,35 +92,21 @@ export const useSubscriptionGuard = ({
           return;
         }
 
-        // Not subscribed — new accounts still get in for the length of the free trial
+        // Not subscribed — brand-new accounts still get in for the length of the free trial
         const createdAt = resolveCreatedAt(user?.createdAt);
         const daysSinceCreation = createdAt
           ? (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
           : Infinity;
 
-        if (daysSinceCreation <= TRIAL_DAYS) {
-          console.log("Within free trial period, allowing access");
-          setState({ loading: false, isSubscribed: true });
-          return;
-        }
-
-        setState({ loading: false, isSubscribed: false });
-
-        if (autoRedirect) {
-          redirectToSubscriptionModal(resolvedEmail, resolvedUuid);
-        }
+        setState({ loading: false, isSubscribed: daysSinceCreation <= TRIAL_DAYS });
       } catch (err) {
         console.error("Subscription check failed:", err);
         setState({ loading: false, isSubscribed: false });
-
-        if (autoRedirect) {
-          redirectToSubscriptionModal(resolvedEmail, resolvedUuid);
-        }
       } finally {
         isCheckingRef.current = false;
       }
     },
-    [autoRedirect, redirectToSubscriptionModal, user?.createdAt],
+    [user?.createdAt],
   );
 
   useEffect(() => {
@@ -128,6 +130,16 @@ export const useSubscriptionGuard = ({
     lastCheckedKeyRef.current = checkKey;
     runCheck(resolvedEmail, resolvedUuid);
   }, [email, hasUser, runCheck, user?.email, user?.uid, uuid]);
+
+  // Free plan: only locked screens send the user to the subscribe screen.
+  useEffect(() => {
+    if (!autoRedirect || !hasUser || state.loading || state.isSubscribed) return;
+    if (!pathname || isFreeRoute(pathname)) return;
+    router.push({
+      pathname: "/protected/subscription-modal",
+      params: { email: email || user?.email || "", uuid: uuid || user?.uid || "", paymentUrl },
+    });
+  }, [autoRedirect, hasUser, state.loading, state.isSubscribed, pathname, email, uuid, paymentUrl, user?.email, user?.uid]);
 
   return state;
 };

@@ -69,9 +69,10 @@ export default function SubscriptionModal() {
           </View>
 
           {/* Text */}
-          <Text style={styles.title}>Subscription Expired</Text>
+          <Text style={styles.title}>Subscribe to unlock</Text>
           <Text style={styles.subtitle}>
-            Your subscription has expired. Log in to the web to renew, upgrade, or manage your plan.
+            Your plan has ended. You can still use the Dashboard, Clients and Invoices (up to 10 of each).
+            Log in on the web to subscribe and unlock everything.
           </Text>
 
           {/* Manage button */}
@@ -83,6 +84,15 @@ export default function SubscriptionModal() {
           <TouchableOpacity style={styles.refreshRow} onPress={verify}>
             <RefreshCw size={scale(14)} color={Colors.text.gray} />
             <Text style={styles.refreshText}>Already renewed? Tap to refresh</Text>
+          </TouchableOpacity>
+
+          {/* Back to the free screens */}
+          <TouchableOpacity
+            style={styles.refreshRow}
+            // Not router.back(): that would return to the locked screen and bounce here again
+            onPress={() => router.replace("/(tabs)/Dashboard")}
+          >
+            <Text style={[styles.refreshText, { color: Colors.primary }]}>Back to Dashboard, Clients & Invoices</Text>
           </TouchableOpacity>
 
           {/* Logout */}
