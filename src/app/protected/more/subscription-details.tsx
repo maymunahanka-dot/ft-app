@@ -1,37 +1,38 @@
 import { HapticTab } from "@/src/components/haptic-tab";
-import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
 import { apiFetch } from "@/src/lib/apiClient";
+import { openPayPage } from "@/src/lib/payLink";
 import { useUserStore } from "@/src/stores/userSlice";
 import { getSubscriptionSummary, type SubscriptionSummary, type UserDocData } from "@/src/utils/subscription";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import * as WebBrowser from "expo-web-browser";
-import { ChevronLeft, RefreshCw, Zap } from "lucide-react-native";
-import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+  CalendarCheck,
+  CalendarClock,
+  Check,
+  ChevronLeft,
+  Lock,
+  RefreshCw,
+  Repeat,
+  Sparkles,
+  Zap,
+} from "lucide-react-native";
+import { useEffect, useState, type ReactNode } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const PAYMENT_URL = "https://www.fashiontally.com/login";
-
-const STATUS_COLORS: Record<string, string> = {
-  active: Colors.primary,
-  trial: "rgba(82, 135, 61, 1)",
-  inactive: "rgba(153, 161, 175, 1)",
-};
+/** Brand greens (same as the website). */
+const BRAND = Colors.primary; // rgba(22, 152, 141, 1)
+const BRAND_DARK = "#0B4F49";
+const BRAND_LIGHT = "#2BC4B4";
+const DANGER = "#E5484D";
 
 /** Same date format as the web subscription panel, e.g. "6 Nov 2026". */
 const formatDate = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
+  iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "N/A";
 
 const INACTIVE_TITLE: Record<string, string> = {
   trial_ended: "Your free trial has ended",
@@ -39,27 +40,31 @@ const INACTIVE_TITLE: Record<string, string> = {
   cancelled: "You don't have an active plan",
 };
 
+/** What stays open without a plan, and what a plan unlocks (matches the subscription guard). */
+const FREE_FEATURES = ["Dashboard", "Up to 10 clients", "Up to 10 invoices"];
+const PAID_FEATURES = ["Unlimited clients & invoices", "Orders & custom designs", "Inventory & finance", "Appointments & CRM"];
+
 export default function SubscriptionDetailsScreen() {
   const user = useUserStore((state) => state.user);
   const [info, setInfo] = useState<SubscriptionSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [opening, setOpening] = useState(false);
+  const [payError, setPayError] = useState("");
   const { isDark } = useTheme();
 
-  const bg = isDark ? "#0f0f0f" : "white";
-  const textColor = isDark ? Colors.text.white : "rgba(54, 65, 83, 1)";
-  const subTextColor = isDark ? "rgba(160,160,160,1)" : "rgba(54, 65, 83, 1)";
-  const cardBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(249, 250, 251, 1)";
-  const dividerColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(229, 231, 235, 1)";
-  const progressTrackBg = isDark ? "rgba(255,255,255,0.1)" : "rgba(229, 231, 235, 1)";
-  const progressLabelColor = isDark ? "rgba(160,160,160,1)" : "rgba(108, 114, 120, 1)";
-  const progressSubColor = isDark ? "rgba(120,120,120,1)" : "rgba(153, 161, 175, 1)";
-  const upgradeCardBorder = isDark ? "rgba(255,255,255,0.1)" : "rgba(229, 231, 235, 1)";
-  const upgradeHintColor = isDark ? "rgba(160,160,160,1)" : "rgba(108, 114, 120, 1)";
+  const c = {
+    bg: isDark ? "#0b0d0d" : "#F6F8F8",
+    card: isDark ? "rgba(255,255,255,0.05)" : "#FFFFFF",
+    border: isDark ? "rgba(255,255,255,0.08)" : "rgba(15, 23, 42, 0.07)",
+    text: isDark ? "#F3F3F1" : "#0F1A1A",
+    sub: isDark ? "rgba(243,243,241,0.6)" : "rgba(15, 26, 26, 0.6)",
+    tint: isDark ? "rgba(43,196,180,0.12)" : "rgba(22,152,141,0.09)",
+  };
 
   const fetchStatus = async () => {
     setLoading(true);
     try {
-      // The backend sends a ready-made summary — exactly what the web panel shows.
+      // The backend sends a ready-made summary: exactly what the web panel shows.
       const res = await apiFetch<{ success: boolean; data: UserDocData }>("/user/get");
       setInfo(getSubscriptionSummary(res.data));
     } catch (err: any) {
@@ -75,132 +80,202 @@ export default function SubscriptionDetailsScreen() {
     fetchStatus();
   }, []);
 
+  /** Opens the web pay page already signed in as this user, then refreshes when it closes. */
   const handleManage = async () => {
+    setPayError("");
+    setOpening(true);
     try {
-      const result = await WebBrowser.openBrowserAsync(PAYMENT_URL, {
-        presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
-        showTitle: true,
-      });
-      if (result.type === "dismiss" || result.type === "cancel") {
-        fetchStatus();
-      }
-    } catch {
-      // fallback handled silently
+      await openPayPage();
+    } catch (err: any) {
+      setPayError(err?.message ?? "Couldn't open the payment page. Please try again.");
+    } finally {
+      setOpening(false);
+      fetchStatus();
     }
   };
 
-  const statusColor =
-    STATUS_COLORS[info?.status === "trial" ? "trial" : info?.isActive ? "active" : "inactive"];
-  // Share of the period still left (the bar shrinks as days pass) — same as the web panel.
-  const leftShare = info?.totalDays ? info.daysLeft / info.totalDays : 0;
+  const isTrial = info?.status === "trial";
+  // Share of the period still left (the bar shrinks as days pass), same as the web panel.
+  const leftShare = info?.totalDays ? Math.max(0, Math.min(1, info.daysLeft / info.totalDays)) : 0;
+  const lowOnDays = !!info?.isActive && info.daysLeft <= 3;
+
+  const renderPayButton = (label: string) => (
+    <>
+      <TouchableOpacity activeOpacity={0.85} onPress={handleManage} disabled={opening} style={styles.payBtnWrap}>
+        <LinearGradient
+          colors={[BRAND_LIGHT, BRAND]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.payBtn, opening && { opacity: 0.7 }]}
+        >
+          {opening ? <ActivityIndicator color="white" /> : <Zap size={scale(16)} color="white" fill="white" />}
+          <Text style={styles.payBtnText}>{opening ? "Opening checkout…" : label}</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+      {!!payError && <Text style={styles.errorText}>{payError}</Text>}
+      <View style={styles.secureRow}>
+        <Lock size={scale(11)} color={c.sub} />
+        <Text style={[styles.secureText, { color: c.sub }]}>Secure payment with Flutterwave · no auto-renew</Text>
+      </View>
+    </>
+  );
 
   return (
-    <SafeAreaView edges={["left","right","bottom"]} style={{ flex: 1, paddingTop: spacing(20), backgroundColor: bg }}>
+    <SafeAreaView edges={["top", "left", "right", "bottom"]} style={{ flex: 1, paddingTop: spacing(10), backgroundColor: c.bg }}>
       <StatusBar style={isDark ? "light" : "dark"} />
+
       {/* Header */}
       <View style={styles.header}>
-        <HapticTab style={styles.backBtn} onPress={() => router.replace("/(tabs)/More")}>
-          <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
+        <HapticTab
+          style={[styles.backBtn, { backgroundColor: c.card, borderColor: c.border }]}
+          onPress={() => router.replace("/(tabs)/More")}
+        >
+          <ChevronLeft size={scale(20)} color={c.text} strokeWidth={1.8} />
         </HapticTab>
-        <View style={styles.col}>
-          <Text style={[styles.title, { color: textColor }]}>Subscription</Text>
-          <Text style={[Styles.reg14, { color: subTextColor }]}>
-            Manage your subscription plan
-          </Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.title, { color: c.text }]}>Subscription</Text>
+          <Text style={[styles.subtitle, { color: c.sub }]}>Your plan and billing</Text>
         </View>
+        <TouchableOpacity
+          onPress={fetchStatus}
+          style={[styles.backBtn, { backgroundColor: c.card, borderColor: c.border }]}
+          accessibilityLabel="Refresh status"
+        >
+          <RefreshCw size={scale(16)} color={BRAND} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        bounces={false}
-        contentContainerStyle={{ flexGrow: 1, paddingVertical: spacing(30) }}
+        contentContainerStyle={{ flexGrow: 1, paddingTop: spacing(20), paddingBottom: spacing(40) }}
       >
         <View style={styles.content}>
           {loading ? (
-            <ActivityIndicator size="large" color={Colors.primary} />
-          ) : !info?.isActive ? (
-            <View style={styles.expiredBox}>
-              <View style={styles.expiredIconWrap}>
-                <Zap size={scale(32)} color={Colors.primary} fill={Colors.primary} />
-              </View>
-              <Text style={[styles.expiredTitle, { color: textColor }]}>
-                {info?.status === "expired"
-                  ? `Your ${info.plan} plan has expired`
-                  : INACTIVE_TITLE[info?.status ?? "cancelled"]}
-              </Text>
-              <Text style={[styles.expiredSub, { color: upgradeHintColor }]}>
-                {info?.endDate && info.status !== "cancelled" ? `It ended on ${formatDate(info.endDate)}. ` : ""}
-                Log in on the web to choose a plan and keep using FashionTally.
-              </Text>
-              <TouchableOpacity style={[styles.upgradeBtn, { backgroundColor: Colors.primary, width: "100%" }]} onPress={handleManage}>
-                <Zap size={scale(15)} color="white" fill="white" />
-                <Text style={styles.upgradeBtnText}>Renew Subscription</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.refreshRow} onPress={fetchStatus}>
-                <RefreshCw size={scale(13)} color={Colors.text.gray} />
-                <Text style={[Styles.reg12, { color: Colors.text.gray }]}>Refresh status</Text>
-              </TouchableOpacity>
+            <View style={styles.loadingBox}>
+              <ActivityIndicator size="large" color={BRAND} />
             </View>
+          ) : !info?.isActive ? (
+            <>
+              {/* No active plan */}
+              <View style={[styles.card, styles.centerCard, { backgroundColor: c.card, borderColor: c.border }]}>
+                <View style={[styles.bigIcon, { backgroundColor: c.tint }]}>
+                  <Sparkles size={scale(30)} color={BRAND} />
+                </View>
+                <Text style={[styles.inactiveTitle, { color: c.text }]}>
+                  {info?.status === "expired" ? `Your ${info.plan} plan has expired` : INACTIVE_TITLE[info?.status ?? "cancelled"]}
+                </Text>
+                <Text style={[styles.inactiveSub, { color: c.sub }]}>
+                  {info?.endDate && info.status !== "cancelled" ? `It ended on ${formatDate(info.endDate)}. ` : ""}
+                  Pick a plan to unlock everything again.
+                </Text>
+                {renderPayButton("Choose a plan & pay")}
+              </View>
+
+              <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+                <Text style={[styles.sectionLabel, { color: c.sub }]}>STILL FREE</Text>
+                {FREE_FEATURES.map((f) => (
+                  <View key={f} style={styles.featureRow}>
+                    <View style={[styles.featureDot, { backgroundColor: c.tint }]}>
+                      <Check size={scale(12)} color={BRAND} strokeWidth={3} />
+                    </View>
+                    <Text style={[styles.featureText, { color: c.text }]}>{f}</Text>
+                  </View>
+                ))}
+                <View style={[styles.divider, { backgroundColor: c.border }]} />
+                <Text style={[styles.sectionLabel, { color: c.sub }]}>UNLOCK WITH A PLAN</Text>
+                {PAID_FEATURES.map((f) => (
+                  <View key={f} style={styles.featureRow}>
+                    <View style={[styles.featureDot, { backgroundColor: c.tint }]}>
+                      <Lock size={scale(11)} color={BRAND} />
+                    </View>
+                    <Text style={[styles.featureText, { color: c.text }]}>{f}</Text>
+                  </View>
+                ))}
+              </View>
+            </>
           ) : (
             <>
-              {/* Plan card */}
-              <View style={[styles.card, { backgroundColor: cardBg }]}>
-                <View style={styles.planRow}>
-                  <View style={[styles.planIconBg, { backgroundColor: statusColor + "18" }]}>
-                    <Zap size={scale(18)} color="#fff" fill={statusColor} />
+              {/* Plan hero card in brand green */}
+              <LinearGradient
+                colors={[BRAND_LIGHT, BRAND, BRAND_DARK]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.hero}
+              >
+                <View style={styles.heroGlow} />
+                <View style={styles.heroTop}>
+                  <View style={styles.heroIcon}>
+                    <Zap size={scale(18)} color="white" fill="white" />
                   </View>
-                  <View style={styles.col}>
-                    <Text style={[styles.planName, { color: textColor }]}>
-                      {info?.plan ?? "Free"}
+                  <View style={styles.heroPill}>
+                    <Text style={styles.heroPillText}>
+                      {isTrial ? "Free trial" : info.billingCycle === "yearly" ? "Yearly" : "Monthly"}
                     </Text>
-                    <View style={[styles.badge, { backgroundColor: statusColor + "18" }]}>
-                      <Text style={[styles.badgeText, { color: statusColor }]}>
-                        {info?.status === "trial"
-                          ? "Trial"
-                          : info?.billingCycle === "yearly"
-                          ? "Yearly"
-                          : "Monthly"}
-                      </Text>
-                    </View>
                   </View>
                 </View>
 
-                <View style={[styles.divider, { backgroundColor: dividerColor }]} />
+                <Text style={styles.heroLabel}>{isTrial ? "Trying" : "Current plan"}</Text>
+                <Text style={styles.heroPlan}>{info.plan ?? "Free"}</Text>
 
-                <View style={styles.progressSection}>
-                  <View style={styles.progressLabelRow}>
-                    <Text style={[styles.progressLabel, { color: progressLabelColor }]}>Days remaining</Text>
-                    <Text style={[styles.progressCount, { color: statusColor }]}>
-                      {info?.daysLeft ?? 0} of {info?.totalDays ?? 0} days
-                    </Text>
-                  </View>
-
-                  <View style={[styles.progressTrack, { backgroundColor: progressTrackBg }]}>
-                    <View
-                      style={[styles.progressFill, { width: `${leftShare * 100}%` as any, backgroundColor: statusColor }]}
-                    />
-                  </View>
-
-                  <Text style={[styles.progressSub, { color: progressSubColor }]}>
-                    {info?.status === "trial" ? "Trial ends on" : "Ends on"} {formatDate(info?.endDate ?? null)}
-                    {info?.status === "trial" ? "" : " · doesn't renew automatically"}
+                <View style={styles.heroDaysRow}>
+                  <Text style={styles.heroDays}>{info.daysLeft}</Text>
+                  <Text style={styles.heroDaysUnit}>
+                    day{info.daysLeft === 1 ? "" : "s"} left of {info.totalDays}
                   </Text>
                 </View>
+
+                <View style={styles.heroTrack}>
+                  <View style={[styles.heroFill, { width: `${leftShare * 100}%` as any }]} />
+                </View>
+                <Text style={styles.heroEnds}>
+                  {isTrial ? "Trial ends" : "Ends"} {formatDate(info.endDate)}
+                </Text>
+              </LinearGradient>
+
+              {lowOnDays && (
+                <View style={[styles.notice, { backgroundColor: c.tint }]}>
+                  <CalendarClock size={scale(16)} color={BRAND} />
+                  <Text style={[styles.noticeText, { color: c.text }]}>
+                    Only {info.daysLeft} day{info.daysLeft === 1 ? "" : "s"} left. Renew now to avoid losing access.
+                  </Text>
+                </View>
+              )}
+
+              {/* Details */}
+              <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+                <DetailRow
+                  icon={<CalendarCheck size={scale(16)} color={BRAND} />}
+                  label="Started"
+                  value={formatDate(info.startDate)}
+                  colors={c}
+                />
+                <View style={[styles.divider, { backgroundColor: c.border }]} />
+                <DetailRow
+                  icon={<CalendarClock size={scale(16)} color={BRAND} />}
+                  label={isTrial ? "Trial ends" : "Ends"}
+                  value={formatDate(info.endDate)}
+                  colors={c}
+                />
+                <View style={[styles.divider, { backgroundColor: c.border }]} />
+                <DetailRow
+                  icon={<Repeat size={scale(16)} color={BRAND} />}
+                  label="Auto-renew"
+                  value="Off"
+                  colors={c}
+                />
               </View>
 
-              <TouchableOpacity style={styles.refreshRow} onPress={fetchStatus}>
-                <RefreshCw size={scale(13)} color={Colors.text.gray} />
-                <Text style={[Styles.reg12, { color: Colors.text.gray }]}>Refresh status</Text>
-              </TouchableOpacity>
-
-              <View style={[styles.upgradeCard, { borderColor: upgradeCardBorder }]}>
-                <Text style={[styles.upgradeHint, { color: upgradeHintColor }]}>
-                  Log in to the web to upgrade, downgrade, or cancel your subscription.
+              {/* Pay */}
+              <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+                <Text style={[styles.payTitle, { color: c.text }]}>
+                  {isTrial ? "Ready to keep going?" : "Renew or switch plan"}
                 </Text>
-                <TouchableOpacity style={[styles.upgradeBtn, { backgroundColor: statusColor }]} onPress={handleManage}>
-                  <Zap size={scale(15)} color="white" fill="white" />
-                  <Text style={styles.upgradeBtnText}>Manage on Web</Text>
-                </TouchableOpacity>
+                <Text style={[styles.paySub, { color: c.sub }]}>
+                  {isTrial
+                    ? "Choose a plan before your trial ends to keep everything unlocked."
+                    : "Add more time to your plan or move to a different one."}
+                </Text>
+                {renderPayButton(isTrial ? "Choose a plan & pay" : "Change or renew plan")}
               </View>
             </>
           )}
@@ -210,156 +285,284 @@ export default function SubscriptionDetailsScreen() {
   );
 }
 
+function DetailRow({
+  icon,
+  label,
+  value,
+  colors,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  colors: { text: string; sub: string; tint: string };
+}) {
+  return (
+    <View style={styles.detailRow}>
+      <View style={[styles.detailIcon, { backgroundColor: colors.tint }]}>{icon}</View>
+      <Text style={[styles.detailLabel, { color: colors.sub }]}>{label}</Text>
+      <Text style={[styles.detailValue, { color: colors.text }]}>{value}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
-    gap: spacing(8),
+    alignItems: "center",
+    gap: spacing(12),
     paddingHorizontal: spacing(16),
-    paddingVertical: spacing(6),
   },
   backBtn: {
-    width: 32,
-    aspectRatio: 1,
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(14),
+    borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  col: {
-    gap: spacing(4),
-  },
   title: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(22),
+    lineHeight: scaleFontSize(28),
+  },
+  subtitle: {
     fontFamily: "regular",
-    fontSize: scaleFontSize(24),
-    lineHeight: 32,
+    fontSize: scaleFontSize(13),
   },
   content: {
     flex: 1,
     paddingHorizontal: spacing(16),
-    gap: spacing(16),
+    gap: spacing(14),
+  },
+  loadingBox: {
+    flex: 1,
+    paddingTop: spacing(80),
+    alignItems: "center",
   },
   card: {
-    borderRadius: 20,
-    padding: spacing(20),
-    gap: spacing(16),
-  },
-  planRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: spacing(18),
     gap: spacing(12),
   },
-  planIconBg: {
-    width: scale(44),
-    height: scale(44),
-    borderRadius: scale(12),
-    justifyContent: "center",
+  centerCard: {
     alignItems: "center",
-  },
-  planName: {
-    fontFamily: "semibold",
-    fontSize: scaleFontSize(18),
-  },
-  badge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: spacing(10),
-    paddingVertical: spacing(3),
-    borderRadius: 20,
-  },
-  badgeText: {
-    fontFamily: "medium",
-    fontSize: scaleFontSize(11),
+    paddingVertical: spacing(26),
   },
   divider: {
     height: 1,
   },
-  progressSection: {
-    gap: spacing(8),
+
+  // Hero
+  hero: {
+    borderRadius: 26,
+    padding: spacing(20),
+    overflow: "hidden",
+    gap: spacing(4),
   },
-  progressLabelRow: {
+  heroGlow: {
+    position: "absolute",
+    right: -scale(60),
+    top: -scale(60),
+    width: scale(180),
+    height: scale(180),
+    borderRadius: scale(90),
+    backgroundColor: "rgba(255,255,255,0.12)",
+  },
+  heroTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: spacing(14),
   },
-  progressLabel: {
+  heroIcon: {
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(13),
+    backgroundColor: "rgba(255,255,255,0.18)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  heroPill: {
+    paddingHorizontal: spacing(12),
+    paddingVertical: spacing(5),
+    borderRadius: 99,
+    backgroundColor: "rgba(255,255,255,0.2)",
+  },
+  heroPillText: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(12),
+    color: "white",
+  },
+  heroLabel: {
     fontFamily: "medium",
     fontSize: scaleFontSize(13),
+    color: "rgba(255,255,255,0.8)",
   },
-  progressCount: {
+  heroPlan: {
     fontFamily: "semibold",
-    fontSize: scaleFontSize(13),
+    fontSize: scaleFontSize(30),
+    lineHeight: scaleFontSize(38),
+    color: "white",
   },
-  progressTrack: {
+  heroDaysRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: spacing(6),
+    marginTop: spacing(14),
+  },
+  heroDays: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(34),
+    lineHeight: scaleFontSize(40),
+    color: "white",
+  },
+  heroDaysUnit: {
+    fontFamily: "medium",
+    fontSize: scaleFontSize(14),
+    color: "rgba(255,255,255,0.85)",
+  },
+  heroTrack: {
     height: 8,
     borderRadius: 99,
+    backgroundColor: "rgba(255,255,255,0.22)",
     overflow: "hidden",
+    marginTop: spacing(8),
   },
-  progressFill: {
+  heroFill: {
     height: "100%",
     borderRadius: 99,
+    backgroundColor: "white",
   },
-  progressSub: {
+  heroEnds: {
     fontFamily: "regular",
     fontSize: scaleFontSize(12),
+    color: "rgba(255,255,255,0.85)",
+    marginTop: spacing(8),
   },
-  refreshRow: {
+
+  notice: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing(5),
-    alignSelf: "flex-end",
+    gap: spacing(10),
+    padding: spacing(14),
+    borderRadius: 16,
   },
-  expiredBox: {
+  noticeText: {
     flex: 1,
+    fontFamily: "medium",
+    fontSize: scaleFontSize(13),
+    lineHeight: 19,
+  },
+
+  // Details
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing(12),
+  },
+  detailIcon: {
+    width: scale(32),
+    height: scale(32),
+    borderRadius: scale(10),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  detailLabel: {
+    flex: 1,
+    fontFamily: "regular",
+    fontSize: scaleFontSize(14),
+  },
+  detailValue: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(14),
+  },
+
+  // Pay
+  payTitle: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(17),
+  },
+  paySub: {
+    fontFamily: "regular",
+    fontSize: scaleFontSize(13),
+    lineHeight: 20,
+    marginTop: -spacing(6),
+  },
+  payBtnWrap: {
+    alignSelf: "stretch",
+    marginTop: spacing(4),
+  },
+  payBtn: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: spacing(12),
-    paddingHorizontal: spacing(16),
-    paddingTop: spacing(40),
+    gap: spacing(8),
+    borderRadius: 16,
+    paddingVertical: spacing(15),
   },
-  expiredIconWrap: {
-    width: scale(72),
-    height: scale(72),
-    borderRadius: scale(20),
-    backgroundColor: Colors.plight,
+  payBtnText: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(15),
+    color: "white",
+  },
+  errorText: {
+    fontFamily: "medium",
+    fontSize: scaleFontSize(12),
+    color: DANGER,
+    textAlign: "center",
+  },
+  secureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing(5),
+  },
+  secureText: {
+    fontFamily: "regular",
+    fontSize: scaleFontSize(11),
+  },
+
+  // No plan
+  bigIcon: {
+    width: scale(68),
+    height: scale(68),
+    borderRadius: scale(22),
     justifyContent: "center",
     alignItems: "center",
     marginBottom: spacing(4),
   },
-  expiredTitle: {
+  inactiveTitle: {
     fontFamily: "semibold",
-    fontSize: scaleFontSize(22),
+    fontSize: scaleFontSize(20),
     textAlign: "center",
   },
-  expiredSub: {
+  inactiveSub: {
     fontFamily: "regular",
     fontSize: scaleFontSize(14),
+    lineHeight: 21,
     textAlign: "center",
-    lineHeight: 22,
-    marginBottom: spacing(8),
+    marginBottom: spacing(6),
   },
-  upgradeCard: {
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: spacing(20),
-    gap: spacing(14),
-    marginTop: spacing(4),
+  sectionLabel: {
+    fontFamily: "semibold",
+    fontSize: scaleFontSize(11),
+    letterSpacing: 1,
   },
-  upgradeHint: {
-    fontFamily: "regular",
-    fontSize: scaleFontSize(13),
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  upgradeBtn: {
+  featureRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: spacing(8),
-    borderRadius: 14,
-    paddingVertical: spacing(14),
+    gap: spacing(10),
   },
-  upgradeBtnText: {
-    fontFamily: "semibold",
-    fontSize: scaleFontSize(15),
-    color: "white",
+  featureDot: {
+    width: scale(24),
+    height: scale(24),
+    borderRadius: scale(8),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  featureText: {
+    fontFamily: "regular",
+    fontSize: scaleFontSize(14),
   },
 });

@@ -23,6 +23,7 @@ const FREE_ROUTES: (string | RegExp)[] = [
   "/protected/form/create-invoice",
   /^\/protected\/more\//, // profile, security, subscription details
   "/protected/subscription-modal",
+  "/payment-complete", // back from the web pay page
   "/protected/ticketing", // support
   "/protected/notifications",
 ];

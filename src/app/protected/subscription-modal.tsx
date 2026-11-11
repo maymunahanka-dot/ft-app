@@ -3,6 +3,7 @@ import { Colors } from "@/src/constants/theme";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+import { openPayPage } from "@/src/lib/payLink";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -16,8 +17,6 @@ import { checkSubscriptionStatus } from "../../utils/subscription";
 import { Zap, LogOut, RefreshCw } from "lucide-react-native";
 
 WebBrowser.maybeCompleteAuthSession();
-
-const PAYMENT_URL = "https://www.fashiontally.com/login";
 
 export default function SubscriptionModal() {
   const router = useRouter();
@@ -38,18 +37,17 @@ export default function SubscriptionModal() {
     verify();
   }, []);
 
+  const [payError, setPayError] = useState("");
+
+  /** Opens the web pay page already signed in as this user; re-checks the plan when it closes. */
   const handleManage = async () => {
+    setPayError("");
     try {
-      const result = await WebBrowser.openBrowserAsync(PAYMENT_URL, {
-        presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
-        showTitle: true,
-      });
-      if (result.type === "dismiss" || result.type === "cancel") {
-        await verify();
-      }
-    } catch {
-      // silent
+      await openPayPage();
+    } catch (err: any) {
+      setPayError(err?.message ?? "Couldn't open the payment page. Please try again.");
     }
+    await verify();
   };
 
   const handleLogout = async () => {
@@ -72,13 +70,14 @@ export default function SubscriptionModal() {
           <Text style={styles.title}>Subscribe to unlock</Text>
           <Text style={styles.subtitle}>
             Your plan has ended. You can still use the Dashboard, Clients and Invoices (up to 10 of each).
-            Log in on the web to subscribe and unlock everything.
+            Choose a plan and pay to unlock everything.
           </Text>
 
           {/* Manage button */}
           <TouchableOpacity style={styles.manageBtn} onPress={handleManage}>
-            <Text style={styles.manageBtnText}>Renew Subscription</Text>
+            <Text style={styles.manageBtnText}>Choose a plan & pay</Text>
           </TouchableOpacity>
+          {!!payError && <Text style={{ color: "#e5484d", textAlign: "center", marginTop: spacing(8) }}>{payError}</Text>}
 
           {/* Refresh */}
           <TouchableOpacity style={styles.refreshRow} onPress={verify}>

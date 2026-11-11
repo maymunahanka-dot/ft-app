@@ -120,8 +120,8 @@ const SecurityDetailsScreen = () => {
 
   return (
     <SafeAreaView
-      edges={["left", "right", "bottom"]}
-      style={{ flex: 1, paddingTop: spacing(20), backgroundColor: bg }}
+      edges={["top", "left", "right", "bottom"]}
+      style={{ flex: 1, paddingTop: spacing(10), backgroundColor: bg }}
     >
       <StatusBar style={isDark ? "light" : "dark"} />
 
