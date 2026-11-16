@@ -9,9 +9,13 @@ import { Eye, FileText, Pencil, Trash2 } from "lucide-react-native";
 import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
 import { HapticTab } from "../haptic-tab";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = { invoice: Invoice };
 
 const InvoiceItem = ({ invoice }: Props) => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const deleteInvoice = useInvoiceStore((state) => state.deleteInvoice);
   const loading = useInvoiceStore((state) => state.loading);
@@ -27,11 +31,11 @@ const InvoiceItem = ({ invoice }: Props) => {
 
   const handleDelete = () => {
     Alert.alert(
-      `Delete invoice #${invoice.id.slice(0, 6)}?`,
-      "This action cannot be undone.",
+      tx("tpl.deleteInvoice", { id: invoice.id.slice(0, 6) }),
+      tx("auto.thisActionCannotBeUndone_951f"),
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: async () => { try { await deleteInvoice(invoice.id); } catch (e) { console.error(e); } } },
+        { text: tx("auto.cancel_77df"), style: "cancel" },
+        { text: tx("auto.delete_f6fd"), style: "destructive", onPress: async () => { try { await deleteInvoice(invoice.id); } catch (e) { console.error(e); } } },
       ],
       { cancelable: true },
     );
@@ -58,11 +62,11 @@ const InvoiceItem = ({ invoice }: Props) => {
       <View style={styles.buttons}>
         <HapticTab hitSlop={20} style={[styles.btn, { backgroundColor: editBg }]} onPress={() => router.push({ pathname: "/protected/invoice/[id]", params: { id: invoice.id } })}>
           <Pencil size={scale(12)} color={isDark ? "rgba(200,200,200,1)" : "rgba(74, 85, 101, 1)"} />
-          <Text style={[styles.reg14, { color: isDark ? "rgba(200,200,200,1)" : "black" }]}>Edit</Text>
+          <Text style={[styles.reg14, { color: isDark ? "rgba(200,200,200,1)" : "black" }]}>{tx("auto.edit_5301")}</Text>
         </HapticTab>
         <HapticTab style={[styles.btn, { backgroundColor: Colors.primary }]} onPress={() => { if (!invoice.id) return; router.push({ pathname: "/protected/invoice-preview", params: { invoiceId: invoice.id } }); }}>
           <Eye size={scale(14)} color="white" />
-          <Text style={[styles.reg14, { color: "white" }]}>View</Text>
+          <Text style={[styles.reg14, { color: "white" }]}>{tx("auto.view_69bd")}</Text>
         </HapticTab>
         <HapticTab style={[styles.btn, { backgroundColor: "#FFE2E2", height: 30, borderRadius: 10 }]} onPress={handleDelete}>
           {loading ? <ActivityIndicator size={scale(20)} color="#E7000B" /> : <Trash2 size={scale(14)} color="#E7000B" strokeWidth={2} />}

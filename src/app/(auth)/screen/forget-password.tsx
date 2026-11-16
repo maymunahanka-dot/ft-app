@@ -18,7 +18,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const ForgetPasswordScreen = () => {
+  const { t: tx } = useTranslation();
   const { top: statusBarHeight } = useSafeAreaInsets();
   const { loading, sendResetEmail } = useAuth();
   const { isDark } = useTheme();
@@ -37,9 +41,9 @@ const ForgetPasswordScreen = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setEmail(text);
     if (!text) {
-      setError((prev) => ({ ...prev, email: "Email is required" }));
+      setError((prev) => ({ ...prev, email: tx("auto.emailIsRequired_4da1") }));
     } else if (!emailRegex.test(text)) {
-      setError((prev) => ({ ...prev, email: "Email address is invalid" }));
+      setError((prev) => ({ ...prev, email: tx("auto.emailAddressIsInvalid_85f8") }));
     } else {
       setError((prev) => ({ ...prev, email: "" }));
     }
@@ -48,10 +52,10 @@ const ForgetPasswordScreen = () => {
   const validateForm = (): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email?.trim()) {
-      setError({ email: "Email is required" });
+      setError({ email: tx("auto.emailIsRequired_4da1") });
       return false;
     } else if (!emailRegex.test(email.trim())) {
-      setError({ email: "Please enter a valid email address" });
+      setError({ email: tx("auto.pleaseEnterAValidEmail_0802") });
       return false;
     }
     setError({ email: "" });
@@ -76,14 +80,14 @@ const ForgetPasswordScreen = () => {
       >
         <View style={styles.headerContent}>
           <View style={styles.col}>
-            <Text style={Styles.bold32}>Recreate Your Password</Text>
+            <Text style={Styles.bold32}>{tx("auto.recreateYourPassword_8133")}</Text>
             <Text style={Styles.reg14}>
-              A reset link will be sent to your email.
+              {tx("auto.aResetLinkWillBe_6305")}
             </Text>
           </View>
 
           <Text style={Styles.bold12}>
-            Remember your password?{"  "}
+            {tx("auto.rememberYourPassword_0eb2")}{"  "}
             <Text
               style={[
                 Styles.med16,
@@ -91,7 +95,7 @@ const ForgetPasswordScreen = () => {
               ]}
               onPress={() => router.replace("/sign-in")}
             >
-              Sign in
+              {tx("auto.signIn_ada2")}
             </Text>
           </Text>
         </View>
@@ -119,11 +123,11 @@ const ForgetPasswordScreen = () => {
           <View style={styles.content}>
             <View style={styles.inputsWrapper}>
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Email</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.email_84ad")}</Text>
                 <TextInput
                   value={email}
                   onChangeText={handleEmailChange}
-                  placeholder="Email"
+                  placeholder={tx("auto.email_84ad")}
                   placeholderTextColor={placeholderColor}
                   textContentType="emailAddress"
                   returnKeyType="done"
@@ -149,7 +153,7 @@ const ForgetPasswordScreen = () => {
 
             <View style={styles.footer}>
               <PrimaryButton
-                title="Send Email"
+                title={tx("auto.sendEmail_be4e")}
                 onPress={handleContinue}
                 loading={loading}
               />

@@ -26,7 +26,12 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
 const StoreDetailsScreen = () => {
+  const { t: tx } = useTranslation();
   const { top: statusBarHeight } = useSafeAreaInsets();
   const { isDark } = useTheme();
 
@@ -71,11 +76,11 @@ const StoreDetailsScreen = () => {
     const newErrors = { businessName: "", country: "", logo: "" };
     let isValid = true;
     if (!userData.businessName?.trim() && userData.businessName.length < 5) {
-      newErrors.businessName = "Store name is required";
+      newErrors.businessName = tx("auto.storeNameIsRequired_3b68");
       isValid = false;
     }
     if (!userData.logo) {
-      newErrors.logo = "Logo image is required";
+      newErrors.logo = tx("auto.logoImageIsRequired_f940");
       isValid = false;
     }
     setError(newErrors);
@@ -86,7 +91,7 @@ const StoreDetailsScreen = () => {
     if (validateForm()) {
       router.push("/(auth)/screen/create-password");
     } else {
-      Alert.alert("Validation Error", "Please fix the errors in the form before continuing.", [{ text: "OK" }]);
+      Alert.alert(tx("auto.validationError_a997"), tx("auto.pleaseFixTheErrorsIn_1e16"), [{ text: "OK" }]);
     }
   };
 
@@ -111,18 +116,18 @@ const StoreDetailsScreen = () => {
               <HapticTab onPress={() => router.back()} hitSlop={20} style={{ paddingVertical: spacing(8) }}>
                 <MoveLeft size={scale(20)} color={"white"} />
               </HapticTab>
-              <Text style={[Styles.sm15, { color: Colors.secondary }]}>Step 3 Of 4</Text>
+              <Text style={[Styles.sm15, { color: Colors.secondary }]}>{tx("auto.step3Of4_a2f6")}</Text>
               <View style={styles.col}>
-                <Text style={Styles.bold32}>One Platform.{"\n"}Powering Business Growth</Text>
-                <Text style={Styles.reg14}>Time to set up your Store.</Text>
+                <Text style={Styles.bold32}>{tx("auto.onePlatform_909a")}{"\n"}{tx("auto.poweringBusinessGrowth_02eb")}</Text>
+                <Text style={Styles.reg14}>{tx("auto.timeToSetUpYour_ef70")}</Text>
               </View>
               <Text style={Styles.bold12}>
-                Already have an account?{"  "}
+                {tx("auto.alreadyHaveAnAccount_8559")}{"  "}
                 <Text
                   style={[Styles.med16, { color: Colors.secondary, textDecorationLine: "underline" }]}
                   onPress={() => router.push("/sign-in")}
                 >
-                  Sign in
+                  {tx("auto.signIn_ada2")}
                 </Text>
               </Text>
             </View>
@@ -141,7 +146,7 @@ const StoreDetailsScreen = () => {
             <View style={styles.content}>
               <View style={styles.inputsWrapper}>
                 <View style={Styles.inputContainer}>
-                  <Text style={[Styles.label, { color: labelColor }]}>I am a:</Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.iAmA_8311")}</Text>
                   <View style={[styles.row, { gap: spacing(15) }]}>
                     {Roles.map((role, index) => (
                       <HapticTab
@@ -160,7 +165,7 @@ const StoreDetailsScreen = () => {
                             { color: selectedRole === role.value ? Colors.text.white : textColor },
                           ]}
                         >
-                          {role.label}
+                          {tl(role.label)}
                         </Text>
                       </HapticTab>
                     ))}
@@ -169,12 +174,12 @@ const StoreDetailsScreen = () => {
 
                 <View style={Styles.inputContainer}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Store Name<Text style={styles.red}> *</Text>
+                    {tx("auto.storeName_110e")}<Text style={styles.red}> *</Text>
                   </Text>
                   <TextInput
                     value={userData.businessName}
                     onChangeText={(value) => handleDataChange("businessName", value)}
-                    placeholder="Enter your store name"
+                    placeholder={tx("auto.enterYourStoreName_4711")}
                     placeholderTextColor={placeholderColor}
                     textContentType="name"
                     returnKeyType="next"
@@ -187,7 +192,7 @@ const StoreDetailsScreen = () => {
 
                 <View style={[Styles.inputContainer, { gap: spacing(12) }]}>
                   <Text style={[styles.reg14, { color: labelColor }]}>
-                    Logo<Text style={styles.red}> *</Text>
+                    {tx("auto.logo_83fc")}<Text style={styles.red}> *</Text>
                   </Text>
                   <HapticTab
                     style={[styles.imagePicker, { backgroundColor: imagePickerBg, borderColor: imagePickerBorder }]}
@@ -202,7 +207,7 @@ const StoreDetailsScreen = () => {
                       <>
                         <Upload size={scale(20)} color={isDark ? "rgba(150,150,150,1)" : "#99A1AF"} />
                         <Text style={[styles.reg14, { color: isDark ? "rgba(150,150,150,1)" : "#4A5565" }]}>
-                          Click to Select Favicon
+                          {tx("auto.clickToSelectFavicon_9035")}
                         </Text>
                       </>
                     )}
@@ -213,7 +218,7 @@ const StoreDetailsScreen = () => {
                 </View>
 
                 <View style={Styles.inputContainer}>
-                  <Text style={[Styles.label, { color: labelColor }]}>Country</Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.country_d523")}</Text>
                   <TouchableOpacity
                     onPress={() => setShowCountry(true)}
                     style={[
@@ -228,7 +233,7 @@ const StoreDetailsScreen = () => {
               </View>
 
               <View style={styles.footer}>
-                <PrimaryButton title="Continue" onPress={handleContinue} />
+                <PrimaryButton title={tx("auto.continue_2e02")} onPress={handleContinue} />
               </View>
             </View>
           </View>

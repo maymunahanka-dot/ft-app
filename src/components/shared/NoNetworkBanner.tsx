@@ -2,6 +2,9 @@ import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text } from "react-native";
 import { useNetworkStatus } from "../../hooks/useNetworkStatus";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 /**
  * Renders as a normal flow element at the bottom of the screen.
  * When offline it animates in (pushes content up).
@@ -9,6 +12,7 @@ import { useNetworkStatus } from "../../hooks/useNetworkStatus";
  * NOT fixed or absolute — it lives in the document flow.
  */
 export function NoNetworkBanner() {
+  const { t: tx } = useTranslation();
   const { isConnected } = useNetworkStatus();
   const heightAnim = useRef(new Animated.Value(0)).current;
 
@@ -22,7 +26,7 @@ export function NoNetworkBanner() {
 
   return (
     <Animated.View style={[styles.banner, { height: heightAnim }]}>
-      <Text style={styles.text}>⚠ No internet connection</Text>
+      <Text style={styles.text}>{tx("auto.noInternetConnection_c8e0")}</Text>
     </Animated.View>
   );
 }

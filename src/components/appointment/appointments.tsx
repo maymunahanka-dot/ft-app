@@ -9,7 +9,11 @@ import { useEffect } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import AppoinmentListItem from "./appoinmentListItem";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const AppointmentsList = () => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const user = useUserStore((state) => state.user);
   const appointments = useAppointmentStore((state) => state.appointments);
@@ -29,7 +33,7 @@ const AppointmentsList = () => {
   if (!todaysAppointments || todaysAppointments.length === 0) {
     return (
       <View style={[styles.emptyContainer, { backgroundColor: emptyBg }]}>
-        <Text style={[Styles.reg14, { color: emptyTextColor }]}>No appointments today</Text>
+        <Text style={[Styles.reg14, { color: emptyTextColor }]}>{tx("auto.noAppointmentsToday_0f4f")}</Text>
       </View>
     );
   }

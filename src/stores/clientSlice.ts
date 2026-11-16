@@ -4,6 +4,8 @@ import { Client, ClientMeasurements } from "../types/client";
 import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
 
+import { t as tx } from "@/src/i18n";
+
 const CACHE_KEY = "store_clients";
 
 interface ClientState {
@@ -43,7 +45,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
       }));
     } catch (error: any) {
       console.error("Error saving client:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to save client", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToSaveClient_9177"), preset: "error", haptic: "error" });
       // Let the form know it failed so it stays open (e.g. free-plan limit of 10 clients)
       throw error;
     } finally {
@@ -70,7 +72,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
       }));
     } catch (error: any) {
       console.error("Error editing client:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to update client", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToUpdateClient_cd4b"), preset: "error", haptic: "error" });
       throw new Error("Failed to edit client");
     } finally {
       set({ loading: false });
@@ -87,7 +89,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
       await get().editClient(updatedClient, client.phone);
     } catch (error: any) {
       console.error("Error editing measurements:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to update measurements", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToUpdateMeasurements_cbaa"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -107,7 +109,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
       return res.data ?? null;
     } catch (error: any) {
       console.error("Error getting client:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to fetch client", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchClient_0639"), preset: "error", haptic: "error" });
       return null;
     } finally {
       set({ loading: false });
@@ -149,7 +151,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
       console.error("[clientSlice] ❌ Error fetching clients:", error.message);
       // Only show error toast if we have nothing to display
       if (!cached) {
-        ShowToastMessage({ title: error.message ?? "Failed to fetch clients", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchClients_261b"), preset: "error", haptic: "error" });
       }
     } finally {
       set({ loading: false });
@@ -168,7 +170,7 @@ export const useClientStore = create<ClientState>((set, get) => ({
       }));
     } catch (error: any) {
       console.error("Error deleting client:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to delete client", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToDeleteClient_3989"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

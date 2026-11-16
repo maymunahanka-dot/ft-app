@@ -19,9 +19,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const ViewDesignItemScreen = () => {
+  const { t: tx } = useTranslation();
   const { id } = useLocalSearchParams();
   const { isDark } = useTheme();
   const { top } = useSafeAreaInsets();
@@ -70,7 +74,7 @@ const ViewDesignItemScreen = () => {
           <ChevronLeft size={scale(20)} color={chevronColor} strokeWidth={1.5} />
         </HapticTab>
         <Text style={[styles.reg16, { color: headerTitleColor, flex: 1, textAlign: "center" }]}>
-          Design Details
+          {tx("auto.designDetails_583c")}
         </Text>
         {/* spacer to keep title centered */}
         <View style={styles.backBtn} />
@@ -100,7 +104,7 @@ const ViewDesignItemScreen = () => {
           ) : (
             <View style={{ paddingVertical: spacing(30) }}>
               <Text style={[styles.reg24, { textAlign: "center", color: subTextColor }]}>
-                No Image
+                {tx("auto.noImage_33cf")}
               </Text>
             </View>
           )}
@@ -109,22 +113,22 @@ const ViewDesignItemScreen = () => {
           <View style={[styles.col, { gap: spacing(8) }]}>
             <Text style={[styles.reg24, { color: textColor }]}>{foundDesign?.name}</Text>
             <View style={[styles.badge, { backgroundColor: badgeBg }]}>
-              <Text style={[styles.reg12, { color: badgeText }]}>Available</Text>
+              <Text style={[styles.reg12, { color: badgeText }]}>{tx("auto.available_7c62")}</Text>
             </View>
           </View>
 
           {/* price */}
           <View style={styles.col}>
-            <Text style={[styles.reg12, { color: subTextColor }]}>Starting Price</Text>
+            <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.startingPrice_6190")}</Text>
             <MoneyAmount amount={Number(foundDesign?.price) || 0} color={textColor} primarySize={scaleFontSize(16)} />
           </View>
 
           {/* notes */}
           <View style={[styles.col, { gap: spacing(12) }]}>
-            <Text style={[styles.reg14, { color: labelColor }]}>Notes</Text>
+            <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.notes_7044")}</Text>
             <View style={[styles.notebox, { backgroundColor: noteBoxBg }]}>
               <Text style={[styles.reg14, { color: noteBoxText }]}>
-                {foundDesign?.notes?.trim() ? foundDesign.notes : "No notes"}
+                {foundDesign?.notes?.trim() ? foundDesign.notes : tx("auto.noNotes_f03e")}
               </Text>
             </View>
           </View>
@@ -141,7 +145,7 @@ const ViewDesignItemScreen = () => {
               }
             >
               <Pencil size={scale(18)} color="white" />
-              <Text style={styles.btnText}>Edit Design</Text>
+              <Text style={styles.btnText}>{tx("auto.editDesign_1317")}</Text>
             </HapticTab>
 
             <Pressable

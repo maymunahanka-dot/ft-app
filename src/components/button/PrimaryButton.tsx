@@ -9,6 +9,8 @@ import {
   View,
 } from "react-native";
 
+import { tl } from "@/src/i18n";
+import { useTranslation } from "react-i18next";
 type Props = {
   title: string;
   onPress: () => void;
@@ -17,13 +19,14 @@ type Props = {
 };
 
 const PrimaryButton = ({ title, onPress, loading = false, props }: Props) => {
+  useTranslation(); // re-render when the language changes
   return (
     <TouchableOpacity onPress={onPress} {...props} disabled={loading}>
       <View style={styles.button}>
         {loading ? (
           <ActivityIndicator size={"small"} color={"white"} />
         ) : (
-          <Text style={[Styles.med14]}>{title}</Text>
+          <Text style={[Styles.med14]}>{tl(title)}</Text>
         )}
       </View>
     </TouchableOpacity>

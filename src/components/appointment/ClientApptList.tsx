@@ -5,11 +5,15 @@ import { spacing } from "@/src/utils/random";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import ClientApptItem from "./ClientApptItem";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = {
   apptList: Appointment[];
 };
 
 const ClientApptList = ({ apptList }: Props) => {
+  const { t: tx } = useTranslation();
   return (
     <FlatList
       data={apptList}
@@ -26,7 +30,7 @@ const ClientApptList = ({ apptList }: Props) => {
         <View style={styles.emptyContainer}>
           <Text
             style={[Styles.med12, { color: Colors.text.gray }]}
-          >{`No appointment found for this client.`}</Text>
+          >{tx("auto.noAppointmentFoundForThis_0a1b")}</Text>
         </View>
       )}
     />

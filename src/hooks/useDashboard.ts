@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { apiFetch, isAuthError } from "../lib/apiClient";
 import { useUserStore } from "../stores/userSlice";
 
+import { t as tx } from "@/src/i18n";
+
 interface DashboardAppointment {
   id: string;
   title: string;
@@ -85,7 +87,7 @@ export function useDashboard(): UseDashboardReturn {
         console.error("[useDashboard] Failed to fetch stats:", err);
         // Only surface the error if we have nothing to show
         setError((prev) => {
-          if (stats === null) return err.message ?? "Failed to load dashboard";
+          if (stats === null) return err.message ?? tx("auto.failedToLoadDashboard_c249");
           return prev;
         });
       } finally {

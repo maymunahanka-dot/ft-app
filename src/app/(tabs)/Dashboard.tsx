@@ -32,6 +32,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const GraphValue = SCREEN_WIDTH / 3 - 25;
 
@@ -39,6 +42,7 @@ const GraphValue = SCREEN_WIDTH / 3 - 25;
 const HEADER_SCROLL_DISTANCE = 160;
 
 const DashboardScreen = () => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const { top } = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -147,7 +151,7 @@ const DashboardScreen = () => {
               <ImagePlaceholder name={name} size={40} fontSize={15} />
             )}
             <View style={styles.col}>
-              <Text style={styles.reg16}>Welcome back,</Text>
+              <Text style={styles.reg16}>{tx("auto.welcomeBack_8c8b")}</Text>
               <Text style={styles.bold16} numberOfLines={1}>{name}</Text>
             </View>
           </View>
@@ -158,20 +162,20 @@ const DashboardScreen = () => {
           <View style={{ flex: 1, paddingBottom: spacing(30) }}>
             {/* Quick Actions */}
             <View style={styles.section}>
-              <Text style={[Styles.med16, { color: textColor }]}>Quick Actions</Text>
+              <Text style={[Styles.med16, { color: textColor }]}>{tx("auto.quickActions_c408")}</Text>
               <View style={styles.actions}>
                 <ActionItem
-                  label="New Order"
+                  label={tx("auto.newOrder_c59c")}
                   onPress={() => router.push("/protected/form/create-order")}
                   icon={FileText}
                 />
                 <ActionItem
-                  label="New Client"
+                  label={tx("auto.newClient_9029")}
                   onPress={() => router.push("/protected/form/create-client")}
                   icon={UserRoundPlus}
                 />
                 <ActionItem
-                  label="Add Inventory"
+                  label={tx("auto.addInventory_224f")}
                   onPress={() => router.push("/protected/form/create-stock")}
                   icon={Plus}
                 />
@@ -180,7 +184,7 @@ const DashboardScreen = () => {
 
             {/* Today's Schedule */}
             <View style={styles.section}>
-              <Text style={[Styles.med14, { color: textColor }]}>Today&apos;s Schedule</Text>
+              <Text style={[Styles.med14, { color: textColor }]}>{tx("auto.todaySSchedule_7ed2")}</Text>
               <View style={{ height: 120 }}>
                 <AppointmentsList />
               </View>
@@ -215,18 +219,18 @@ const DashboardScreen = () => {
 
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                   <StatCircle
-                    title="Completion Rate"
+                    title={tx("auto.completionRate_e902")}
                     value={stats?.completionRate ?? 0}
                     size={GraphValue}
                   />
                   <StatCircle
-                    title="Monthly Revenue"
+                    title={tx("auto.monthlyRevenue_762e")}
                     value={stats?.revenueGrowth ?? 0}
                     size={GraphValue}
                     colorText={(stats?.revenueGrowth ?? 0) < 0 ? "red" : "green"}
                   />
                   <StatCircle
-                    title="Ave. Order Value"
+                    title={tx("auto.aveOrderValue_a25e")}
                     value={stats?.averageOrderValue ?? 0}
                     size={GraphValue}
                     isCurrency
@@ -276,7 +280,7 @@ const DashboardScreen = () => {
                 <Menu size={scale(24)} color={themeIconColor} />
               </Animated.View>
             </HapticTab>
-            <Animated.Text style={[styles.title, { color: headerIconColor }]}>Dashboard</Animated.Text>
+            <Animated.Text style={[styles.title, { color: headerIconColor }]}>{tx("auto.dashboard_d87f")}</Animated.Text>
           </View>
           <HapticTab
             hitSlop={20}

@@ -13,6 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Eye } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   item: InventoryItem;
@@ -29,6 +30,7 @@ const Icons = {
 } as const;
 
 const StockItem = ({ item }: Props) => {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
 
   const cardBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(253, 254, 254, 1)";
@@ -45,10 +47,10 @@ const StockItem = ({ item }: Props) => {
     item.status === "out-of-stock" ||
     item.quantity <= (item.minStockLevel ?? 1);
   const alert = outOfStock
-    ? "Out of Stock"
+    ? t("inventory.outOfStock")
     : lowStock
-      ? "Low Stock"
-      : "Sufficient";
+      ? t("inventory.lowStock")
+      : t("inventory.sufficient");
 
   const bgColor = lowStock
     ? "rgba(254, 249, 194, 1)"
@@ -81,7 +83,7 @@ const StockItem = ({ item }: Props) => {
             <View style={[styles.gapRow, { gap: spacing(8) }]}>
               <View style={[styles.typeView, { backgroundColor: tagBg }]}>
                 <Text style={[Styles.reg12, { color: tagText }]}>
-                  {CapitalizeFirstName(item.category)}
+                  {t(`inventory.categories.${String(item.category || "").toLowerCase()}`, { defaultValue: CapitalizeFirstName(item.category) })}
                 </Text>
               </View>
               <Text style={[Styles.reg12, { color: subTextColor }]}>{"•"}</Text>
@@ -90,7 +92,7 @@ const StockItem = ({ item }: Props) => {
               </Text>
             </View>
             <Text style={[Styles.reg12, { color: subTextColor }]}>
-              {item.notes ? item.notes : "No notes"}
+              {item.notes ? item.notes : t("inventory.noNotes")}
             </Text>
           </View>
         </View>
@@ -113,19 +115,19 @@ const StockItem = ({ item }: Props) => {
 
       <View style={styles.row}>
         <View style={[styles.col, { justifyContent: "center", alignItems: "center" }]}>
-          <Text style={[Styles.reg12, { color: subTextColor }]}>Quantity</Text>
+          <Text style={[Styles.reg12, { color: subTextColor }]}>{t("inventory.quantity")}</Text>
           <Text style={[Styles.reg14, { color: textColor }]}>
-            {item.quantity} {item.unit}
+            {item.quantity} {t(`inventory.units.${item.unit}`, { defaultValue: item.unit ?? "" })}
           </Text>
         </View>
 
         <View style={[styles.col, { justifyContent: "center", alignItems: "center" }]}>
-          <Text style={[Styles.reg12, { color: subTextColor }]}>Price per Unit</Text>
+          <Text style={[Styles.reg12, { color: subTextColor }]}>{t("inventory.pricePerUnit")}</Text>
           <MoneyAmount amount={storedUnitPrice(item)} color={textColor} align="center" />
         </View>
 
         <View style={[styles.col, { justifyContent: "center", alignItems: "center" }]}>
-          <Text style={[Styles.reg12, { color: subTextColor }]}>Alert</Text>
+          <Text style={[Styles.reg12, { color: subTextColor }]}>{t("inventory.alert")}</Text>
           <View
             style={[
               styles.badgeView,
@@ -141,15 +143,15 @@ const StockItem = ({ item }: Props) => {
 
       <View style={[styles.box, { backgroundColor: boxBg }]}>
         <View style={styles.row}>
-          <Text style={[Styles.reg12, { color: subTextColor }]}>Stock Value</Text>
+          <Text style={[Styles.reg12, { color: subTextColor }]}>{t("inventory.stockValue")}</Text>
           <MoneyAmount amount={item.quantity * storedUnitPrice(item)} color={Colors.primary} align="end" primarySize={16} />
         </View>
         <View style={styles.row}>
           <Text style={[Styles.reg12, { color: subTextColor }]} numberOfLines={1}>
-            Supplier: {item.supplierName || item.suppliers?.find((entry) => entry.name)?.name || item.supplier || "—"}
+            {t("inventory.supplier", { name: item.supplierName || item.suppliers?.find((entry) => entry.name)?.name || item.supplier || "N/A" })}
           </Text>
           <Text style={[Styles.reg12, { color: subTextColor }]} numberOfLines={1}>
-            Min: {item.minStockLevel} {item.unit}
+            {t("inventory.min", { value: `${item.minStockLevel ?? ""} ${t(`inventory.units.${item.unit}`, { defaultValue: item.unit ?? "" })}` })}
           </Text>
         </View>
       </View>

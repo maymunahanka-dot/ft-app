@@ -6,7 +6,9 @@ import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { SortOption } from "@/src/utils/sortBy";
+import { useTranslation } from "react-i18next";
 
+import { tl } from "@/src/i18n";
 export function useSavedSort(storageKey: string, fallback = "newest") {
   const [sortBy, setSortBy] = useState(fallback);
 
@@ -38,6 +40,7 @@ type Props = {
 };
 
 export default function SortByButton({ value, onChange, options, borderColor }: Props) {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const [open, setOpen] = useState(false);
   const textColor = isDark ? Colors.text.white : Colors.text.black;
@@ -47,18 +50,18 @@ export default function SortByButton({ value, onChange, options, borderColor }: 
   return (
     <>
       <Pressable
-        accessibilityLabel="Sort by"
+        accessibilityLabel={t("common.sortBy")}
         onPress={() => setOpen(true)}
         style={[styles.button, { borderColor: line, backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "white" }]}
       >
         <ArrowUpDown size={scale(16)} color={textColor} />
-        <Text style={[styles.label, { color: textColor }]}>Sort</Text>
+        <Text style={[styles.label, { color: textColor }]}>{t("common.sort")}</Text>
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <Pressable style={[styles.sheet, { backgroundColor: sheetBg }]} onPress={() => {}}>
-            <Text style={[styles.title, { color: textColor }]}>Sort by</Text>
+            <Text style={[styles.title, { color: textColor }]}>{t("common.sortBy")}</Text>
             {options.map((option) => {
               const selected = option.value === value;
               return (
@@ -71,7 +74,7 @@ export default function SortByButton({ value, onChange, options, borderColor }: 
                   }}
                 >
                   <Text style={[styles.optionText, { color: textColor, fontFamily: selected ? "medium" : "regular" }]}>
-                    {option.label}
+                    {tl(option.label)}
                   </Text>
                   {selected ? <Check size={scale(16)} color={Colors.primary} /> : <View style={{ width: scale(16) }} />}
                 </Pressable>

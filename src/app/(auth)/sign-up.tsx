@@ -20,7 +20,12 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import LanguageSwitch from "@/src/components/shared/LanguageSwitch";
 const SignUpScreen = () => {
+  const { t: tx } = useTranslation();
   const { top: statusBarHeight } = useSafeAreaInsets();
   const { isDark } = useTheme();
 
@@ -55,26 +60,26 @@ const SignUpScreen = () => {
     let isValid = true;
 
     if (!userData.name?.trim() && userData.name.length < 5) {
-      newErrors.name = "First name is required";
+      newErrors.name = tx("auto.firstNameIsRequired_df38");
       isValid = false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!userData.email?.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = tx("auto.emailIsRequired_4da1");
       isValid = false;
     } else if (!emailRegex.test(userData.email.trim())) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = tx("auto.pleaseEnterAValidEmail_0802");
       isValid = false;
     }
 
     if (!userData.phone?.trim()) {
-      newErrors.phone = "Phone number is required";
+      newErrors.phone = tx("auto.phoneNumberIsRequired_f845");
       isValid = false;
     } else {
       const cleanedPhone = userData.phone.replace(/\D/g, "");
       if (cleanedPhone.length !== 10) {
-        newErrors.phone = "Phone number must be exactly 10 digits";
+        newErrors.phone = tx("auto.phoneNumberMustBeExactly_f69a");
         isValid = false;
       }
     }
@@ -95,7 +100,7 @@ const SignUpScreen = () => {
     setLoading(true);
     if (!validateForm()) {
       focusFirstErrorField();
-      Alert.alert("Validation Error", "Please fix the errors in the form before continuing.", [{ text: "OK" }]);
+      Alert.alert(tx("auto.validationError_a997"), tx("auto.pleaseFixTheErrorsIn_1e16"), [{ text: "OK" }]);
       setLoading(false);
       return;
     }
@@ -105,10 +110,10 @@ const SignUpScreen = () => {
       updateUserData({ email, emailVerificationToken: undefined });
       await sendEmailOtp(email);
       router.push("/(auth)/verify-otp");
-      ShowToastMessage({ title: "OTP sent to your email", from: "top", preset: "done" });
+      ShowToastMessage({ title: tx("auto.otpSentToYourEmail_7c07"), from: "top", preset: "done" });
     } catch (err: any) {
       console.error("error sending email OTP", err);
-      ShowToastMessage({ title: err?.message || "Network error. Please try again.", from: "top", preset: "error" });
+      ShowToastMessage({ title: err?.message || tx("auto.networkErrorPleaseTryAgain_1e3d"), from: "top", preset: "error" });
     } finally {
       setLoading(false);
     }
@@ -130,23 +135,24 @@ const SignUpScreen = () => {
           source={require("@/assets/images/screen_bg.png")}
           style={[styles.headerBg, { paddingTop: statusBarHeight + spacing(20) }]}
         >
+          <LanguageSwitch style={{ marginTop: -spacing(8), marginBottom: spacing(10) }} />
           <View style={styles.headerContent}>
             <Text style={[Styles.sm15, { color: Colors.secondary }]}>
-              Step 1 Of 4
+              {tx("auto.step1Of4_dc5a")}
             </Text>
             <View style={styles.col}>
-              <Text style={Styles.bold32}>Welcome Back To Business</Text>
+              <Text style={Styles.bold32}>{tx("auto.welcomeBackToBusiness_4147")}</Text>
               <Text style={Styles.reg14}>
-                Set up your Fashion Tally account today!
+                {tx("auto.setUpYourFashionTally_894b")}
               </Text>
             </View>
             <Text style={Styles.bold12}>
-              Already have an account?{"  "}
+              {tx("auto.alreadyHaveAnAccount_8559")}{"  "}
               <Text
                 style={[Styles.med16, { color: Colors.secondary, textDecorationLine: "underline" }]}
                 onPress={() => router.replace("/sign-in")}
               >
-                Sign in
+                {tx("auto.signIn_ada2")}
               </Text>
             </Text>
           </View>
@@ -165,12 +171,12 @@ const SignUpScreen = () => {
           <View style={styles.content}>
             <View style={styles.inputsWrapper}>
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Name</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.name_709a")}</Text>
                 <TextInput
                   ref={nameRef}
                   value={userData.name}
                   onChangeText={(text) => handleDataChange("name", text)}
-                  placeholder="Name"
+                  placeholder={tx("auto.name_709a")}
                   placeholderTextColor={placeholderColor}
                   textContentType="name"
                   returnKeyType="next"
@@ -184,12 +190,12 @@ const SignUpScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Email</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.email_84ad")}</Text>
                 <TextInput
                   ref={emailRef}
                   value={userData.email}
                   onChangeText={(text) => handleDataChange("email", text)}
-                  placeholder="Email"
+                  placeholder={tx("auto.email_84ad")}
                   placeholderTextColor={placeholderColor}
                   textContentType="emailAddress"
                   returnKeyType="next"
@@ -204,7 +210,7 @@ const SignUpScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Phone Number</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.phoneNumber_ab25")}</Text>
                 <View style={[Styles.input2, { backgroundColor: inputBg, borderColor: inputBorder }]}>
                   <View style={Styles.pickerBtn}>
                     <Text style={[Styles.countryFlag, { color: textColor }]}>{country.dialCode}</Text>
@@ -218,7 +224,7 @@ const SignUpScreen = () => {
                       rawPhone = rawPhone.replace(/\D/g, "");
                       handleDataChange("phone", rawPhone);
                     }}
-                    placeholder="Enter your Phone number"
+                    placeholder={tx("auto.enterYourPhoneNumber_2ec2")}
                     keyboardType="number-pad"
                     textContentType="telephoneNumber"
                     maxLength={10}
@@ -233,7 +239,7 @@ const SignUpScreen = () => {
             </View>
 
             <View style={styles.footer}>
-              <PrimaryButton title="Continue" onPress={handleContinue} loading={loading} />
+              <PrimaryButton title={tx("auto.continue_2e02")} onPress={handleContinue} loading={loading} />
             </View>
           </View>
         </View>

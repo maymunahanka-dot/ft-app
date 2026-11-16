@@ -32,6 +32,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "expo-router";
+import { useTranslation } from "react-i18next";
+
+import { t as tx } from "@/src/i18n";
 
 const HEADER_SCROLL_DISTANCE = 100;
 
@@ -97,6 +100,8 @@ const ProfileCard = () => {
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 const MoreScreen = () => {
+  const { t: tx } = useTranslation();
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const { top, bottom } = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -105,21 +110,21 @@ const MoreScreen = () => {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      "Delete Account",
-      "This will permanently delete your account and all associated data — clients, orders, invoices, designs, and more. This action cannot be undone.\n\nAre you sure?",
+      tx("auto.deleteAccount_ee1b"),
+      tx("auto.thisWillPermanentlyDeleteYour_d2a0"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: tx("auto.cancel_77df"), style: "cancel" },
         {
-          text: "Delete Account",
+          text: tx("auto.deleteAccount_ee1b"),
           style: "destructive",
           onPress: async () => {
             setDeletingAccount(true);
             try {
               await apiFetch("/user/delete", { method: "DELETE" });
-              ShowToastMessage({ title: "Account deleted", preset: "done", from: "top" });
+              ShowToastMessage({ title: tx("auto.accountDeleted_98f1"), preset: "done", from: "top" });
               await signOut();
             } catch (err: any) {
-              Alert.alert("Error", err.message || "Failed to delete account. Please try again.");
+              Alert.alert(tx("auto.error_7f2f"), err.message || tx("auto.failedToDeleteAccountPlease_6435"));
             } finally {
               setDeletingAccount(false);
             }
@@ -178,7 +183,7 @@ const MoreScreen = () => {
         >
           <View style={{ paddingHorizontal: 16, paddingBottom: spacing(24), gap: spacing(16) }}>
             <View style={{ gap: spacing(4) }}>
-              <Text style={styles.heroTitle}>More</Text>
+              <Text style={styles.heroTitle}>{tx("auto.more_4bab")}</Text>
             </View>
             <ProfileCard />
           </View>
@@ -210,8 +215,8 @@ const MoreScreen = () => {
                       <Icon size={scale(20)} color={"white"} />
                     </LinearGradient>
                     <View style={styles.col}>
-                      <Text style={[Styles.reg14, { color: textColor }]}>{section.title}</Text>
-                      <Text style={[Styles.reg12, { color: subColor }]}>{section.details}</Text>
+                      <Text style={[Styles.reg14, { color: textColor }]}>{t(`more.${section.title}`, { defaultValue: section.title })}</Text>
+                      <Text style={[Styles.reg12, { color: subColor }]}>{t(`moreDetails.${section.title}`, { defaultValue: section.details })}</Text>
                     </View>
                   </View>
                   <ChevronRight size={scale(16)} color={"rgba(153, 161, 175, 1)"} />
@@ -231,10 +236,10 @@ const MoreScreen = () => {
                 </View>
                 <View style={styles.col}>
                   <Text style={[Styles.reg14, { color: "#ef4444" }]}>
-                    {deletingAccount ? "Deleting…" : "Delete Account"}
+                    {deletingAccount ? tx("auto.deleting_c7ac") : tx("auto.deleteAccount_ee1b")}
                   </Text>
                   <Text style={[Styles.reg12, { color: isDark ? "rgba(239,68,68,0.6)" : "rgba(185,28,28,0.7)" }]}>
-                    Permanently remove your account
+                    {tx("auto.permanentlyRemoveYourAccount_cbc8")}
                   </Text>
                 </View>
               </View>
@@ -269,7 +274,7 @@ const MoreScreen = () => {
           </HapticTab>
 
           <Animated.Text style={[styles.headerTitle, { opacity: titleOpacity, color: headerIconColor }]}>
-            More
+            {tx("auto.more_4bab")}
           </Animated.Text>
 
           <View style={{ width: scale(24) }} />

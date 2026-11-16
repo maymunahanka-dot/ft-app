@@ -4,6 +4,8 @@ import { Expense, Income, TransactionType } from "../types/finance";
 import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
 
+import { t as tx } from "@/src/i18n";
+
 // Backend stores all transactions in one collection with a `type` field.
 // We split them into income[] and expenses[] on the client for the existing
 // utility functions (CalculateMonthlyIncrement, etc.) to keep working.
@@ -60,7 +62,7 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
     } catch (error: any) {
       console.error("Error fetching transactions:", error);
       if (!cached) {
-        ShowToastMessage({ title: "Failed to fetch transactions", preset: "error" });
+        ShowToastMessage({ title: tx("auto.failedToFetchTransactions_c64f"), preset: "error" });
       }
     } finally {
       set({ loading: false });
@@ -116,7 +118,7 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
       }
     } catch (error: any) {
       console.error("Error saving transaction:", error);
-      ShowToastMessage({ title: error.message ?? "Save failed", preset: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.saveFailed_0a44"), preset: "error" });
     } finally {
       set({ loading: false });
     }
@@ -146,10 +148,10 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
           ),
         }));
       }
-      ShowToastMessage({ title: "Transaction updated successfully", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.transactionUpdatedSuccessfully_1fce"), preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error editing transaction:", error);
-      ShowToastMessage({ title: error.message ?? "Update failed", preset: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.updateFailed_4de0"), preset: "error" });
     } finally {
       set({ loading: false });
     }
@@ -168,7 +170,7 @@ export const useFinanceStore = create<FinancialState>((set, get) => ({
       }));
     } catch (error: any) {
       console.error("Error deleting transaction:", error);
-      ShowToastMessage({ title: error.message ?? "Delete failed", preset: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.deleteFailed_6451"), preset: "error" });
     } finally {
       set({ loading: false });
     }

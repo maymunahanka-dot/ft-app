@@ -16,9 +16,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { checkSubscriptionStatus } from "../../utils/subscription";
 import { Zap, LogOut, RefreshCw } from "lucide-react-native";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SubscriptionModal() {
+  const { t: tx } = useTranslation();
   const router = useRouter();
   const { email, uuid } = useLocalSearchParams();
   const { signOut } = useAuth();
@@ -45,7 +49,7 @@ export default function SubscriptionModal() {
     try {
       await openPayPage();
     } catch (err: any) {
-      setPayError(err?.message ?? "Couldn't open the payment page. Please try again.");
+      setPayError(err?.message ?? tx("auto.couldnTOpenThePayment_4b8a"));
     }
     await verify();
   };
@@ -67,22 +71,21 @@ export default function SubscriptionModal() {
           </View>
 
           {/* Text */}
-          <Text style={styles.title}>Subscribe to unlock</Text>
+          <Text style={styles.title}>{tx("auto.subscribeToUnlock_300e")}</Text>
           <Text style={styles.subtitle}>
-            Your plan has ended. You can still use the Dashboard, Clients and Invoices (up to 10 of each).
-            Choose a plan and pay to unlock everything.
+            {tx("auto.yourPlanHasEndedYou_0276")}
           </Text>
 
           {/* Manage button */}
           <TouchableOpacity style={styles.manageBtn} onPress={handleManage}>
-            <Text style={styles.manageBtnText}>Choose a plan & pay</Text>
+            <Text style={styles.manageBtnText}>{tx("auto.chooseAPlanPay_0070")}</Text>
           </TouchableOpacity>
           {!!payError && <Text style={{ color: "#e5484d", textAlign: "center", marginTop: spacing(8) }}>{payError}</Text>}
 
           {/* Refresh */}
           <TouchableOpacity style={styles.refreshRow} onPress={verify}>
             <RefreshCw size={scale(14)} color={Colors.text.gray} />
-            <Text style={styles.refreshText}>Already renewed? Tap to refresh</Text>
+            <Text style={styles.refreshText}>{tx("auto.alreadyRenewedTapToRefresh_0817")}</Text>
           </TouchableOpacity>
 
           {/* Back to the free screens */}
@@ -91,13 +94,13 @@ export default function SubscriptionModal() {
             // Not router.back(): that would return to the locked screen and bounce here again
             onPress={() => router.replace("/(tabs)/Dashboard")}
           >
-            <Text style={[styles.refreshText, { color: Colors.primary }]}>Back to Dashboard, Clients & Invoices</Text>
+            <Text style={[styles.refreshText, { color: Colors.primary }]}>{tx("auto.backToDashboardClientsInvoices_eec1")}</Text>
           </TouchableOpacity>
 
           {/* Logout */}
           <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
             <LogOut size={scale(14)} color="rgba(220, 38, 38, 1)" />
-            <Text style={styles.logoutText}>Sign out</Text>
+            <Text style={styles.logoutText}>{tx("auto.signOut_dc16")}</Text>
           </TouchableOpacity>
         </View>
       )}

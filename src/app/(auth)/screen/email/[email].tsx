@@ -30,9 +30,13 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const { width } = Dimensions.get("window");
 
 const OtpVerificationScreen = () => {
+  const { t: tx } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const { email: param, password: passwordParam } = useLocalSearchParams();
@@ -114,14 +118,14 @@ const OtpVerificationScreen = () => {
               <MoveLeft size={scale(20)} color={"white"} />
             </HapticTab>
             <View style={[styles.col, {}]}>
-              <Text style={[Styles.bold32]}>Enter Code.</Text>
+              <Text style={[Styles.bold32]}>{tx("auto.enterCode_6b53")}</Text>
               <Text style={[Styles.reg14]}>
-                We just sent a 6-digit activation code to {EMAIL}.
+                {tx("auto.weJustSentA6_203c")}{" "}{EMAIL}.
               </Text>
             </View>
 
             <Text style={[Styles.bold12]}>
-              Already have an account?{"  "}
+              {tx("auto.alreadyHaveAnAccount_8559")}{"  "}
               <Text
                 style={[
                   Styles.med16,
@@ -132,7 +136,7 @@ const OtpVerificationScreen = () => {
                 ]}
                 onPress={() => router.push("/sign-in")}
               >
-                Sign in
+                {tx("auto.signIn_ada2")}
               </Text>
             </Text>
           </View>
@@ -189,16 +193,16 @@ const OtpVerificationScreen = () => {
                 >
                   {time > 0 && time < 30 && (
                     <Text style={styles.textBtn}>
-                      Resend code in{" "}
+                      {tx("auto.resendCodeIn_cc4c")}{" "}
                       <Text style={{ color: Colors.secondary }}>
-                        {time} Seconds
+                        {time}{" "}{tx("auto.seconds_5fb1")}
                       </Text>
                     </Text>
                   )}
 
                   {time < 1 && (
                     <TouchableOpacity hitSlop={20} onPress={resendOtp}>
-                      <Text style={styles.textBtn}>Resend Code?</Text>
+                      <Text style={styles.textBtn}>{tx("auto.resendCode_2b79")}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -206,7 +210,7 @@ const OtpVerificationScreen = () => {
 
               <View style={[styles.footer]}>
                 <PrimaryButton
-                  title="Confirm"
+                  title={tx("auto.confirm_04a2")}
                   onPress={handleContinue}
                   props={{ disabled: loading }}
                   loading={loading}

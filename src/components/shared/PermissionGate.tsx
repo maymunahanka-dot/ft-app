@@ -22,6 +22,9 @@ import { HapticTab } from "../haptic-tab";
 import ImagePlaceholder from "./ImagePlaceholder";
 import { DrawerListItem } from "../drawer/drawer-list-item";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const DRAWER_WIDTH = Math.max(SCREEN_WIDTH * 0.7, 270);
 
@@ -96,6 +99,7 @@ const InlineSidebar = ({
   onClose: () => void;
   isDark: boolean;
 }) => {
+  const { t: tx } = useTranslation();
   const slideX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
@@ -199,7 +203,7 @@ const InlineSidebar = ({
                 {name}
               </Text>
               <Text style={[styles.userRole, { color: subColor }]} numberOfLines={1}>
-                Team Member
+                {tx("auto.teamMember_7b91")}
               </Text>
             </View>
           </View>
@@ -239,7 +243,7 @@ const InlineSidebar = ({
             ) : (
               <>
                 <LogOut size={scale(16)} color="#ef4444" />
-                <Text style={styles.logOutText}>Log Out</Text>
+                <Text style={styles.logOutText}>{tx("auto.logOut_4e81")}</Text>
               </>
             )}
           </HapticTab>
@@ -257,6 +261,7 @@ interface PermissionGateProps {
 }
 
 export function PermissionGate({ children }: PermissionGateProps) {
+  const { t: tx } = useTranslation();
   const user    = useUserStore((s) => s.user);
   const pathname = usePathname();
   const { isDark } = useTheme();
@@ -317,14 +322,14 @@ export function PermissionGate({ children }: PermissionGateProps) {
 
             <View style={styles.headGroup}>
               <Text style={[styles.title, { color: headColor }]}>
-                Access Restricted
+                {tx("auto.accessRestricted_13a4")}
               </Text>
               <Text style={[styles.subtitle, { color: subColor }]}>
-                You don't have permission to view{" "}
+                {tx("auto.youDonTHavePermission_deca")}{" "}
                 <Text style={[styles.featureLabel, { color: Colors.primary }]}>
                   {featureLabel}
                 </Text>
-                .{"\n"}Contact the account owner to request access.
+                .{"\n"}{tx("auto.contactTheAccountOwnerTo_fa41")}
               </Text>
             </View>
 
@@ -335,7 +340,7 @@ export function PermissionGate({ children }: PermissionGateProps) {
                   <Mail size={scale(16)} color={Colors.primary} />
                 </View>
                 <View style={styles.cardBody}>
-                  <Text style={[styles.cardLabel, { color: subColor }]}>Account Owner</Text>
+                  <Text style={[styles.cardLabel, { color: subColor }]}>{tx("auto.accountOwner_7593")}</Text>
                   <Text style={[styles.cardValue, { color: headColor }]} numberOfLines={1}>
                     {user.invitedBy}
                   </Text>
@@ -349,7 +354,7 @@ export function PermissionGate({ children }: PermissionGateProps) {
                 <View style={styles.cardHeaderRow}>
                   <Lock size={scale(14)} color={Colors.primary} />
                   <Text style={[styles.sectionTitle, { color: Colors.primary }]}>
-                    Your Permissions
+                    {tx("auto.yourPermissions_c04c")}
                   </Text>
                 </View>
                 <View style={styles.grid}>
@@ -361,11 +366,11 @@ export function PermissionGate({ children }: PermissionGateProps) {
             )}
 
             <Text style={[styles.hint, { color: subColor }]}>
-              Reach out to{" "}
+              {tx("auto.reachOutTo_c3e5")}{" "}
               <Text style={{ color: Colors.primary, fontFamily: "medium" }}>
                 {user.invitedBy}
               </Text>{" "}
-              to update your access.
+              {tx("auto.toUpdateYourAccess_2ca2")}
             </Text>
           </ScrollView>
 

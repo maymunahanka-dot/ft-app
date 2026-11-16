@@ -6,6 +6,7 @@ import { memo, type FC } from "react";
 import { ImageBackground, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { createAnimatedPressable } from "pressto";
 import { interpolate } from "react-native-reanimated";
+import { useTranslation } from "react-i18next";
 
 type DrawerListItemProps = {
   item: DrawerItem;
@@ -26,6 +27,7 @@ const DrawerListItem: FC<DrawerListItemProps> = memo(
   ({ item, onPress, style, isDark = false }) => {
     const IconComponent = item.icon;
     const pathname = usePathname();
+  const { t } = useTranslation();
     const currentSegment = pathname.split("/").pop();
     const itemSegment = item.route.toString().split("/").pop();
     const isSelected = currentSegment === itemSegment;
@@ -55,7 +57,7 @@ const DrawerListItem: FC<DrawerListItemProps> = memo(
               isSelected ? { color: "white", fontFamily: "semibold" } : { color: textColor },
             ]}
           >
-            {item.name}
+            {t(`nav.${itemSegment}`, { defaultValue: item.name })}
           </Text>
         </PressableScaleItem>
       </ImageBackground>

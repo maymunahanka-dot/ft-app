@@ -29,9 +29,13 @@ import {
 import { formatFirestoreTimestamp } from "../invoice/util";
 
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = { item: Appointment };
 
 const ClientApptItem = ({ item }: Props) => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
 
   const isCompleted = item.status === "completed";
@@ -53,12 +57,12 @@ const ClientApptItem = ({ item }: Props) => {
 
   const handleDeleteAppt = () => {
     Alert.alert(
-      "Delete Appointment",
-      "Are you sure you want to delete this appointment? This action cannot be undone.",
+      tx("auto.deleteAppointment_b625"),
+      tx("auto.areYouSureYouWant_e7ea"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: tx("auto.cancel_77df"), style: "cancel" },
         {
-          text: "Delete",
+          text: tx("auto.delete_f6fd"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -117,9 +121,9 @@ const ClientApptItem = ({ item }: Props) => {
         </View>
 
         <View style={[styles.startRow, { gap: spacing(8) }]}>
-          <Text style={[Styles.med14, { color: textColor }]}>To-do:</Text>
+          <Text style={[Styles.med14, { color: textColor }]}>{tx("auto.toDo_1976")}</Text>
           <Text style={[Styles.reg14, { color: textColor, flexShrink: 1 }]}>
-            {item.notes ? item.notes : "N/A"}
+            {item.notes ? item.notes : tx("auto.nA_08d2")}
           </Text>
         </View>
       </View>
@@ -128,12 +132,12 @@ const ClientApptItem = ({ item }: Props) => {
         <View style={[styles.gapRow, { gap: spacing(12) }]}>
           <View style={[styles.gapRow, { gap: spacing(4) }]}>
             <Info size={scale(12)} color={subTextColor} />
-            <Text style={[Styles.reg12, { color: subTextColor }]}>24hr reminder</Text>
+            <Text style={[Styles.reg12, { color: subTextColor }]}>{tx("auto.24hrReminder_4e66")}</Text>
           </View>
 
           <View style={styles.duration}>
             <Text style={[Styles.reg12, { color: "white" }]}>
-              Duration: {item.duration} hours
+              {tx("auto.duration_9693")}{" "}{item.duration}{" "}{tx("auto.hours_5aed")}
             </Text>
           </View>
         </View>

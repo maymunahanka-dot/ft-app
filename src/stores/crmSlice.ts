@@ -5,6 +5,8 @@ import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
 import { resolveImageUrl } from "../utils/uploadImage";
 
+import { t as tx } from "@/src/i18n";
+
 const CACHE_LOYALTY   = "store_loyalty_members";
 const CACHE_FEEDBACKS = "store_feedbacks";
 
@@ -53,7 +55,7 @@ export const useCrmStore = create<CrmState>((set, get) => ({
     } catch (error: any) {
       console.error("Error fetching loyalty members:", error);
       if (!cached) {
-        ShowToastMessage({ title: error.message ?? "Failed to fetch members", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchMembers_38b5"), preset: "error", haptic: "error" });
       }
     } finally {
       set({ loading: false });
@@ -78,7 +80,7 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       return true;
     } catch (error: any) {
       console.error("Error adding loyalty member:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to add member", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToAddMember_7168"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
@@ -105,7 +107,7 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       return true;
     } catch (error: any) {
       console.error("Error editing loyalty member:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to update member", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToUpdateMember_4dfe"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
@@ -122,11 +124,11 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       set((state) => ({
         loyaltyMembers: state.loyaltyMembers.filter((m) => m.id !== id),
       }));
-      ShowToastMessage({ title: "Member deleted", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.memberDeleted_1c31"), preset: "done", haptic: "success" });
       return true;
     } catch (error: any) {
       console.error("Error deleting loyalty member:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to delete member", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToDeleteMember_4e78"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
@@ -153,7 +155,7 @@ export const useCrmStore = create<CrmState>((set, get) => ({
     } catch (error: any) {
       console.error("Error fetching feedback:", error);
       if (!cached) {
-        ShowToastMessage({ title: error.message ?? "Failed to fetch feedback", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchFeedback_3d85"), preset: "error", haptic: "error" });
       }
     } finally {
       set({ loading: false });
@@ -179,7 +181,7 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       return true;
     } catch (error: any) {
       console.error("Error adding feedback:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to add feedback", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToAddFeedback_3485"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
@@ -212,7 +214,7 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       return true;
     } catch (error: any) {
       console.error("Error editing feedback:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to update feedback", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToUpdateFeedback_a7eb"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
@@ -239,7 +241,7 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       return true;
     } catch (error: any) {
       console.error("Error replying to feedback:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to send reply", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToSendReply_326b"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
@@ -261,11 +263,11 @@ export const useCrmStore = create<CrmState>((set, get) => ({
       set((state) => ({
         clientFeedbacks: state.clientFeedbacks.filter((f) => f.id !== id),
       }));
-      ShowToastMessage({ title: "Feedback deleted", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.feedbackDeleted_066f"), preset: "done", haptic: "success" });
       return true;
     } catch (error: any) {
       console.error("Error deleting feedback:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to delete feedback", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToDeleteFeedback_0eb1"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });

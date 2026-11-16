@@ -8,6 +8,7 @@ import { getCurrentUserEmail } from "../lib/auth-utils";
 import { BrandSettings } from "../types/auth";
 import { Client, ClientMeasurements } from "../types/client";
 
+import { dateLocale } from "@/src/i18n/dateLocale";
 // Extend dayjs with the parsing plugin
 dayjs.extend(customParseFormat);
 
@@ -199,7 +200,7 @@ export const GetFormattedDate = (): string => {
     year: "numeric",
   };
 
-  return date.toLocaleDateString("en-US", options);
+  return date.toLocaleDateString(dateLocale("en-US"), options);
 };
 
 /**
@@ -267,7 +268,7 @@ export const FormatOrderDate = (
       month: "short",
       ...(showYear && { year: "numeric" }),
     };
-    return new Intl.DateTimeFormat("en-GB", options).format(date);
+    return new Intl.DateTimeFormat(dateLocale("en-GB"), options).format(date);
   }
 
   // Ensure it's a string before calling .replace
@@ -291,7 +292,7 @@ export const FormatOrderDate = (
   };
 
   // 3. Format to "10 Jan 2026"
-  return new Intl.DateTimeFormat("en-GB", options).format(date);
+  return new Intl.DateTimeFormat(dateLocale("en-GB"), options).format(date);
 };
 
 /**
@@ -341,7 +342,7 @@ export const GetCurrentMonthYear = (): string => {
   const now = new Date();
 
   // We use 'en-GB' or 'en-US' for English month names
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(dateLocale("en-GB"), {
     month: "long",
     year: "numeric",
   }).format(now);
@@ -353,7 +354,7 @@ export const GetDetailedDate = (date: Date | string | any): string => {
   console.log("date detailed date", date);
 
   // We use 'en-GB' or 'en-US' for English month names
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(dateLocale("en-GB"), {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -377,7 +378,7 @@ export const formatFintechDate = (dateString: string | Date): string => {
     day: "numeric",
     year: "numeric",
   };
-  const datePart = new Intl.DateTimeFormat("en-US", dateOptions).format(date);
+  const datePart = new Intl.DateTimeFormat(dateLocale("en-US"), dateOptions).format(date);
 
   // 2. Format the Time part (07:00 PM)
   const timeOptions: Intl.DateTimeFormatOptions = {
@@ -385,7 +386,7 @@ export const formatFintechDate = (dateString: string | Date): string => {
     minute: "2-digit",
     hour12: true,
   };
-  const timePart = new Intl.DateTimeFormat("en-US", timeOptions).format(date);
+  const timePart = new Intl.DateTimeFormat(dateLocale("en-US"), timeOptions).format(date);
 
   // 3. Combine with "at"
   return `${datePart} at ${timePart}`;
@@ -443,7 +444,7 @@ export const ConvertToISO = (
 export const GetDetailedTime = (date: Date | string | any): string => {
   const now = convertToDate(date);
 
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(dateLocale("en-GB"), {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -501,7 +502,7 @@ export const formatInvoiceDate = (dateString: string): string => {
 
   if (isNaN(date.getTime())) return dateString; // fallback if invalid
 
-  return date.toLocaleDateString("en-GB", {
+  return date.toLocaleDateString(dateLocale("en-GB"), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -611,7 +612,9 @@ export const sanitizeBrandSettings = (
     logoUrl: payload.logoUrl ?? "",
     footerText: payload.footerText ?? "",
     termsAndConditions: payload.termsAndConditions ?? "",
-    inventoryCurrency: payload.inventoryCurrency === "USD" ? "USD" : "NGN",
+    inventoryCurrency: /^[A-Z]{3}$/.test(String(payload.inventoryCurrency || "").toUpperCase())
+      ? String(payload.inventoryCurrency).toUpperCase()
+      : "NGN",
     updatedAt: payload.updatedAt ?? "",
     userEmail: email,
   };

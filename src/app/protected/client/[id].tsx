@@ -40,10 +40,15 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
 type TabProps = { client: Client | undefined; isDark: boolean };
 
 // ─── Overview Tab ────────────────────────────────────────────────────────────
 const OverViewTab = ({ client, isDark }: TabProps) => {
+  const { t: tx } = useTranslation();
   const invoices = useInvoiceStore((state) => state.invoices);
   const clientInvoices = invoices.filter(
     (inv) => inv.clientEmail === client?.email,
@@ -118,7 +123,7 @@ const OverViewTab = ({ client, isDark }: TabProps) => {
                   { color: subText, lineHeight: 16, textAlign: "center" },
                 ]}
               >
-                {stat.label}
+                {tl(stat.label)}
               </Text>
             </View>
           ))}
@@ -134,7 +139,7 @@ const OverViewTab = ({ client, isDark }: TabProps) => {
           <View style={styles.row}>
             <View style={[styles.gapRow, { gap: spacing(10) }]}>
               <FileText size={scale(16)} color={Colors.primary} />
-              <Text style={[styles.reg16, { color: textColor }]}>Notes</Text>
+              <Text style={[styles.reg16, { color: textColor }]}>{tx("auto.notes_7044")}</Text>
             </View>
             <HapticTab hitSlop={20} onPress={() => setEditNoteModal(true)}>
               <Pencil
@@ -152,14 +157,14 @@ const OverViewTab = ({ client, isDark }: TabProps) => {
               },
             ]}
           >
-            {client?.notes ? client.notes : "Add note"}
+            {client?.notes ? client.notes : tx("auto.addNote_7570")}
           </Text>
         </View>
 
         {/* Recent activity — capped at 3 most recent, matching web */}
         <View style={[styles.col, { gap: spacing(12) }]}>
           <Text style={[Styles.reg16, { color: textColor }]}>
-            Recent Activity
+            {tx("auto.recentActivity_8aeb")}
           </Text>
           <View style={styles.orders}>
             {clientOrders.slice(0, 3).map((order, index) => (
@@ -172,7 +177,7 @@ const OverViewTab = ({ client, isDark }: TabProps) => {
                   { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray },
                 ]}
               >
-                No recent orders
+                {tx("auto.noRecentOrders_ace8")}
               </Text>
             )}
           </View>
@@ -192,6 +197,7 @@ const OverViewTab = ({ client, isDark }: TabProps) => {
 
 // ─── Measurements Tab ────────────────────────────────────────────────────────
 const MeasurementsTab = ({ client, isDark }: TabProps) => {
+  const { t: tx } = useTranslation();
   const measurements = useMeasurementStore((s) => s.measurements);
   const deleteMeasurement = useMeasurementStore((s) => s.deleteMeasurement);
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -209,17 +215,17 @@ const MeasurementsTab = ({ client, isDark }: TabProps) => {
   const handleDelete = (m: Measurement) => {
     if (Platform.OS === "web") {
       // Alert.alert is a no-op on web — use window.confirm instead
-      const confirmed = window.confirm(`Delete "${m.name}"?`);
+      const confirmed = window.confirm(tx("tpl.deleteNamed", { name: m.name }));
       if (confirmed) deleteMeasurement(m.id);
       return;
     }
     Alert.alert(
-      "Delete Measurement",
-      `Delete "${m.name}"?`,
+      tx("auto.deleteMeasurement_df2c"),
+      tx("tpl.deleteNamed", { name: m.name }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: tx("auto.cancel_77df"), style: "cancel" },
         {
-          text: "Delete",
+          text: tx("auto.delete_f6fd"),
           style: "destructive",
           onPress: () => deleteMeasurement(m.id),
         },
@@ -233,7 +239,7 @@ const MeasurementsTab = ({ client, isDark }: TabProps) => {
         <View style={styles.rowHeader}>
           <View style={[styles.col, { gap: spacing(2) }]}>
             <Text style={[Styles.reg16, { color: textColor }]}>
-              Body Measurements
+              {tx("auto.bodyMeasurements_f6eb")}
             </Text>
             <Text
               style={[
@@ -244,8 +250,8 @@ const MeasurementsTab = ({ client, isDark }: TabProps) => {
               ]}
             >
               {measurements.length > 0
-                ? `${measurements.length} measurement${measurements.length > 1 ? "s" : ""} recorded`
-                : "Standard measurements in inches"}
+                ? tx("tpl.measurements", { count: measurements.length })
+                : tx("auto.standardMeasurementsInInches_6d58")}
             </Text>
           </View>
           <HapticTab
@@ -269,7 +275,7 @@ const MeasurementsTab = ({ client, isDark }: TabProps) => {
               { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray },
             ]}
           >
-            No measurements recorded for this client.
+            {tx("auto.noMeasurementsRecordedForThis_7341")}
           </Text>
         ) : (
           <View style={styles.measurements}>
@@ -320,7 +326,7 @@ const MeasurementsTab = ({ client, isDark }: TabProps) => {
                       strokeWidth={1}
                     />
                     <Text style={[Styles.reg12, { color: subText }]}>
-                      {m.unit}
+                      {tl(m.unit)}
                     </Text>
                   </View>
                 </View>
@@ -348,6 +354,7 @@ const MeasurementsTab = ({ client, isDark }: TabProps) => {
 
 // ─── Designs Tab ─────────────────────────────────────────────────────────────
 const DesignsTab = ({ client, isDark }: TabProps) => {
+  const { t: tx } = useTranslation();
   const designs = useDesignStore((state) => state.designs);
   const clientDesigns = designs.filter(
     (prev) => prev.clientId === client?.id,
@@ -358,7 +365,7 @@ const DesignsTab = ({ client, isDark }: TabProps) => {
     <View style={[styles.tabContainer, { paddingTop: 20 }]}>
       <View style={styles.row}>
         <Text style={[styles.reg16, { color: textColor }]}>
-          {clientDesigns.length} Designs
+          {clientDesigns.length}{" "}{tx("auto.designs_fdea")}
         </Text>
         <HapticTab
           style={styles.rowBtn}
@@ -370,7 +377,7 @@ const DesignsTab = ({ client, isDark }: TabProps) => {
           }
         >
           <Plus size={scale(15)} color="white" />
-          <Text style={[styles.reg14g, { color: "white" }]}>New Design</Text>
+          <Text style={[styles.reg14g, { color: "white" }]}>{tx("auto.newDesign_f4bb")}</Text>
         </HapticTab>
       </View>
       <View style={styles.designs}>
@@ -384,6 +391,7 @@ const DesignsTab = ({ client, isDark }: TabProps) => {
 
 // ─── Orders Tab ───────────────────────────────────────────────────────────────
 const OrdersTab = ({ client, isDark }: TabProps) => {
+  const { t: tx } = useTranslation();
   const orders = useOrderStore((state) => state.orders);
   const clientsOrder = orders.filter((o) => {
     if (!client) return false;
@@ -395,7 +403,7 @@ const OrdersTab = ({ client, isDark }: TabProps) => {
     <View style={styles.tabContainer}>
       <View style={styles.row}>
         <Text style={[styles.reg16, { color: textColor }]}>
-          {clientsOrder.length} Total Orders
+          {clientsOrder.length}{" "}{tx("auto.totalOrders_408f")}
         </Text>
         <HapticTab
           style={styles.rowBtn}
@@ -407,7 +415,7 @@ const OrdersTab = ({ client, isDark }: TabProps) => {
           }
         >
           <Plus size={scale(15)} color="white" />
-          <Text style={[styles.reg14g, { color: "white" }]}>New Order</Text>
+          <Text style={[styles.reg14g, { color: "white" }]}>{tx("auto.newOrder_c59c")}</Text>
         </HapticTab>
       </View>
       <View style={styles.orders}>
@@ -421,6 +429,7 @@ const OrdersTab = ({ client, isDark }: TabProps) => {
 
 // ─── Invoices Tab ─────────────────────────────────────────────────────────────
 const InvoicesTab = ({ client, isDark }: TabProps) => {
+  const { t: tx } = useTranslation();
   const invoices = useInvoiceStore((state) => state.invoices);
   const clientInvoices = invoices.filter(
     (inv) => inv.clientEmail === client?.email,
@@ -456,7 +465,7 @@ const InvoicesTab = ({ client, isDark }: TabProps) => {
       <View style={[styles.recBox, { backgroundColor: recBg }]}>
         <View style={styles.row}>
           <Text style={[styles.reg14g, { color: textColor }]}>
-            Total Invoiced
+            {tx("auto.totalInvoiced_7ee2")}
           </Text>
           <MoneyAmount amount={totalInvoiceAmount} color={Colors.primary} align="end" primarySize={scaleFontSize(20)} />
         </View>
@@ -469,7 +478,7 @@ const InvoicesTab = ({ client, isDark }: TabProps) => {
             ]}
           >
             <Text style={[Styles.reg12, { color: "#10b981" }]}>
-              Paid: {paidCount}
+              {tx("auto.paid_06c5")}{" "}{paidCount}
             </Text>
           </View>
           <View
@@ -479,7 +488,7 @@ const InvoicesTab = ({ client, isDark }: TabProps) => {
             ]}
           >
             <Text style={[Styles.reg12, { color: subText }]}>
-              Pending: {pendingCount}
+              {tx("auto.pending_cacc")}{" "}{pendingCount}
             </Text>
           </View>
         </View>
@@ -487,7 +496,7 @@ const InvoicesTab = ({ client, isDark }: TabProps) => {
 
       <View style={styles.row}>
         <Text style={[styles.reg16, { color: textColor }]}>
-          {clientInvoices.length} Invoices
+          {clientInvoices.length}{" "}{tx("auto.invoices_35f8")}
         </Text>
         <HapticTab
           style={styles.rowBtn}
@@ -499,7 +508,7 @@ const InvoicesTab = ({ client, isDark }: TabProps) => {
           }
         >
           <Plus size={scale(15)} color="white" />
-          <Text style={[styles.reg14g, { color: "white" }]}>New Invoice</Text>
+          <Text style={[styles.reg14g, { color: "white" }]}>{tx("auto.newInvoice_878b")}</Text>
         </HapticTab>
       </View>
 
@@ -525,6 +534,7 @@ type TAB = "index" | "measurements" | "design" | "order" | "invoice";
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 const ClientDetailsScreen = () => {
+  const { t: tx } = useTranslation();
   const { id } = useLocalSearchParams();
   // Fix: use raw id without encodeURIComponent — it's already decoded by expo-router
   const clientId = id.toString();
@@ -605,7 +615,7 @@ const ClientDetailsScreen = () => {
               color={isDark ? "rgba(160,160,160,1)" : "black"}
             />
             <Text style={[Styles.reg14, { lineHeight: 20, color: subText }]}>
-              Edit
+              {tx("auto.edit_5301")}
             </Text>
           </HapticTab>
 
@@ -624,7 +634,7 @@ const ClientDetailsScreen = () => {
               color={isDark ? "rgba(160,160,160,1)" : "black"}
             />
             <Text style={[Styles.reg14, { lineHeight: 20, color: subText }]}>
-              Appt.
+              {tx("auto.appt_e94b")}
             </Text>
           </HapticTab>
         </View>
@@ -683,7 +693,7 @@ const ClientDetailsScreen = () => {
                       },
                     ]}
                   >
-                    {tab.label}
+                    {tl(tab.label)}
                   </Text>
                 </Pressable>
               );

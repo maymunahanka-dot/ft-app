@@ -19,9 +19,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const RESEND_SECONDS = 30;
 
 const VerifyOtpScreen = () => {
+  const { t: tx } = useTranslation();
   const { top: statusBarHeight } = useSafeAreaInsets();
   const { isDark } = useTheme();
   const email = useAuthStore((state) => state.userData.email);
@@ -56,7 +60,7 @@ const VerifyOtpScreen = () => {
         router.replace("/(auth)/screen/store-details");
       } catch (err: any) {
         if (!cancelled) {
-          setError(err?.message || "Could not verify the code. Please try again.");
+          setError(err?.message || tx("auto.couldNotVerifyTheCode_d3e0"));
           setOtp("");
         }
       } finally {
@@ -75,9 +79,9 @@ const VerifyOtpScreen = () => {
       await sendEmailOtp(email);
       setOtp("");
       setResendIn(RESEND_SECONDS);
-      ShowToastMessage({ title: "A new code has been sent", from: "top", preset: "done" });
+      ShowToastMessage({ title: tx("auto.aNewCodeHasBeen_5670"), from: "top", preset: "done" });
     } catch (err: any) {
-      setError(err?.message || "Could not resend the code. Please try again.");
+      setError(err?.message || tx("auto.couldNotResendTheCode_cab1"));
     } finally {
       setResending(false);
     }
@@ -101,21 +105,21 @@ const VerifyOtpScreen = () => {
         >
           <View style={styles.headerContent}>
             <Text style={[Styles.sm15, { color: Colors.secondary }]}>
-              Step 2 Of 4
+              {tx("auto.step2Of4_4dd1")}
             </Text>
             <View style={styles.col}>
-              <Text style={Styles.bold32}>Verify Your Account</Text>
+              <Text style={Styles.bold32}>{tx("auto.verifyYourAccount_ddee")}</Text>
               <Text style={Styles.reg14}>
-                Enter the 6-digit code we sent to {email}
+                {tx("auto.enterThe6DigitCode_7084")}{" "}{email}
               </Text>
             </View>
             <Text style={Styles.bold12}>
-              Already have an account?{"  "}
+              {tx("auto.alreadyHaveAnAccount_8559")}{"  "}
               <Text
                 style={[Styles.med16, { color: Colors.secondary, textDecorationLine: "underline" }]}
                 onPress={() => router.replace("/sign-in")}
               >
-                Sign in
+                {tx("auto.signIn_ada2")}
               </Text>
             </Text>
           </View>
@@ -139,14 +143,14 @@ const VerifyOtpScreen = () => {
 
             {resendIn > 0 ? (
               <Text style={[Styles.reg14, styles.center, { color: subTextColor }]}>
-                Didn&apos;t get the code? Resend in {resendIn}s
+                {tx("auto.didnTGetTheCode_ca15")}{" "}{resendIn}s
               </Text>
             ) : (
               <Text
                 style={[Styles.med16, styles.center, { color: Colors.primary }]}
                 onPress={resending || verifying ? undefined : resend}
               >
-                {resending ? "Sending..." : "Resend code"}
+                {resending ? tx("auto.sending_c338") : tx("auto.resendCode_1d3c")}
               </Text>
             )}
           </View>

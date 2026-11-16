@@ -1,5 +1,7 @@
 import { ShowToastMessage } from "./random";
 
+import { t as tx } from "@/src/i18n";
+
 export const uploadImageToCloudinary = async (
   base64: string,
 ): Promise<string | null> => {
@@ -35,8 +37,8 @@ export const uploadImageToCloudinary = async (
     if (!res.ok) {
       console.log("Cloudinary Error Detail:", data);
       ShowToastMessage({
-        title: "Upload failed",
-        message: data?.error?.message || "Check your preset settings",
+        title: tx("auto.uploadFailed_ad0d"),
+        message: data?.error?.message || tx("auto.checkYourPresetSettings_bab7"),
         preset: "error",
         from: "top",
       });

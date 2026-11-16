@@ -5,6 +5,10 @@ import { Image as ImageIcon, Upload } from "lucide-react-native";
 import { useEffect } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
 type Props = {
   uri?: string;
   onChange: (uri: string) => void;
@@ -12,6 +16,7 @@ type Props = {
 };
 
 export default function ImageUploadField({ uri, onChange, label = "Photo (Optional)" }: Props) {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const { image, pickImage } = useUserImage({
     returnBase64: false,
@@ -31,7 +36,7 @@ export default function ImageUploadField({ uri, onChange, label = "Photo (Option
 
   return (
     <View style={{ gap: spacing(8) }}>
-      <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
+      <Text style={[styles.label, { color: labelColor }]}>{tl(label)}</Text>
       <Pressable style={[styles.picker, { borderColor: border }]} onPress={() => pickImage()}>
         {preview ? (
           <Image source={{ uri: preview }} style={styles.preview} />
@@ -40,14 +45,14 @@ export default function ImageUploadField({ uri, onChange, label = "Photo (Option
             <View style={[styles.iconWrap, { backgroundColor: circle }]}>
               <Upload size={scale(24)} color={hintColor} />
             </View>
-            <Text style={[styles.hint, { color: labelColor }]}>Tap to upload a photo</Text>
-            <Text style={[styles.small, { color: hintColor }]}>PNG, JPG up to 10MB</Text>
+            <Text style={[styles.hint, { color: labelColor }]}>{tx("auto.tapToUploadAPhoto_f8aa")}</Text>
+            <Text style={[styles.small, { color: hintColor }]}>{tx("auto.pngJpgUpTo10mb_951d")}</Text>
           </>
         )}
       </Pressable>
       {preview ? (
         <Pressable onPress={() => onChange("")}>
-          <Text style={styles.remove}>Remove photo</Text>
+          <Text style={styles.remove}>{tx("auto.removePhoto_c8f5")}</Text>
         </Pressable>
       ) : null}
     </View>

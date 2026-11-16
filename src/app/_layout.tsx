@@ -10,6 +10,7 @@ import "react-native-reanimated";
 import { ForceUpdateScreen } from "../components/shared/ForceUpdateScreen";
 import { NoNetworkBanner } from "../components/shared/NoNetworkBanner";
 import { useAuth } from "../hooks/auth";
+import "../i18n";
 import "../lib/webAlert";
 import "../lib/webFontTimeout";
 import { useForceUpdate } from "../hooks/useForceUpdate";

@@ -3,6 +3,8 @@ import { BlockedDays } from "@/src/utils/blockedDays";
 import { ShowToastMessage } from "@/src/utils/random";
 import { useCallback, useEffect, useState } from "react";
 
+import { t as tx } from "@/src/i18n";
+
 const empty: BlockedDays = { blockWeekends: false, dates: [] };
 
 export function useBlockedDays() {
@@ -46,7 +48,7 @@ export function useBlockedDays() {
     } catch (error: any) {
       setBlocked(previous);
       ShowToastMessage({
-        title: error.message ?? "Could not update blocked days",
+        title: error.message ?? tx("auto.couldNotUpdateBlockedDays_7ac5"),
         preset: "error",
         haptic: "error",
       });

@@ -20,6 +20,9 @@ import {
 } from "react-native";
 import { HapticTab } from "../../haptic-tab";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = {
   client: Client;
   visible: boolean;
@@ -34,6 +37,7 @@ const AddMeasurements: React.FC<Props> = ({
   client,
   editingMeasurement,
 }) => {
+  const { t: tx } = useTranslation();
   const addMeasurements = useMeasurementStore((s) => s.addMeasurements);
   const editMeasurement = useMeasurementStore((s) => s.editMeasurement);
   const loading = useMeasurementStore((s) => s.loading);
@@ -102,7 +106,7 @@ const AddMeasurements: React.FC<Props> = ({
           {/* Title row */}
           <View style={styles.row}>
             <Text style={[styles.reg14, { color: textColor }]}>
-              {isEditMode ? "Edit Measurement" : "Add Measurement"}
+              {isEditMode ? tx("auto.editMeasurement_b489") : tx("auto.addMeasurement_7891")}
             </Text>
             <HapticTab hitSlop={20} onPress={onClose}>
               <X
@@ -141,12 +145,12 @@ const AddMeasurements: React.FC<Props> = ({
                       },
                     ]}
                   >
-                    Measurement Name
+                    {tx("auto.measurementName_7bf8")}
                   </Text>
                   <TextInput
                     value={field}
                     onChangeText={setField}
-                    placeholder="e.g., Chest"
+                    placeholder={tx("auto.eGChest_d7b9")}
                     placeholderTextColor={placeholderColor}
                     style={[
                       Styles.input,
@@ -172,13 +176,13 @@ const AddMeasurements: React.FC<Props> = ({
                       },
                     ]}
                   >
-                    Value
+                    {tx("auto.value_8dce")}
                   </Text>
                   <View style={[Styles.input2, { backgroundColor: inputBg }]}>
                     <TextInput
                       value={value}
                       onChangeText={setValue}
-                      placeholder="e.g., 36"
+                      placeholder={tx("auto.eG36_d6ea")}
                       placeholderTextColor={placeholderColor}
                       style={[styles.input, { color: inputColor }]}
                       keyboardType="numeric"
@@ -218,7 +222,7 @@ const AddMeasurements: React.FC<Props> = ({
                     },
                   ]}
                 >
-                  Tip
+                  {tx("auto.tip_d19c")}
                 </Text>
                 <Text
                   style={[
@@ -226,8 +230,7 @@ const AddMeasurements: React.FC<Props> = ({
                     { color: isDark ? "#7BAEFF" : "#1447E6" },
                   ]}
                 >
-                  Common: Chest, Waist, Hips, Shoulder Width, Sleeve Length,
-                  Inseam, Neck, Bust, Dress Length
+                  {tx("auto.commonChestWaistHipsShoulder_5264")}
                 </Text>
               </View>
             </View>
@@ -241,7 +244,7 @@ const AddMeasurements: React.FC<Props> = ({
               <>
                 <Save size={scale(18)} color="white" />
                 <Text style={styles.reg16}>
-                  {isEditMode ? "Update" : "Save"}
+                  {isEditMode ? tx("auto.update_fb91") : tx("auto.save_efc0")}
                 </Text>
               </>
             )}

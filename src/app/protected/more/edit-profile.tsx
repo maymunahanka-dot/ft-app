@@ -33,6 +33,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 // ─── Cloudinary upload helper ────────────────────────────────────────────────
 async function uploadToCloudinary(uri: string): Promise<string> {
   const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -56,6 +59,7 @@ async function uploadToCloudinary(uri: string): Promise<string> {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 const EditProfileScreen = () => {
+  const { t: tx } = useTranslation();
   const user = useUserStore((state) => state.user);
   const updateUser = useUserStore((state) => state.updateUser);
 
@@ -150,13 +154,13 @@ const EditProfileScreen = () => {
       const url = await uploadToCloudinary(uri);
       setPhotoURL(url);
       ShowToastMessage({
-        title: "Photo uploaded",
+        title: tx("auto.photoUploaded_8732"),
         preset: "done",
         haptic: "success",
       });
     } catch (err: any) {
       ShowToastMessage({
-        title: "Photo upload failed",
+        title: tx("auto.photoUploadFailed_cbd8"),
         message: err.message,
         preset: "error",
         haptic: "error",
@@ -201,14 +205,14 @@ const EditProfileScreen = () => {
       updateUser(updatedUser);
 
       ShowToastMessage({
-        title: "Profile updated",
+        title: tx("auto.profileUpdated_9713"),
         preset: "done",
         haptic: "success",
       });
       router.replace("/(tabs)/More");
     } catch (err: any) {
       ShowToastMessage({
-        title: "Update failed",
+        title: tx("auto.updateFailed_4de0"),
         message: err.message,
         preset: "error",
         haptic: "error",
@@ -231,7 +235,7 @@ const EditProfileScreen = () => {
       >
         <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={[styles.reg14, { color: subTextColor, marginTop: spacing(12) }]}>
-          Loading profile...
+          {tx("auto.loadingProfile_a9e1")}
         </Text>
       </SafeAreaView>
     );
@@ -257,9 +261,9 @@ const EditProfileScreen = () => {
           />
         </HapticTab>
         <View style={styles.col}>
-          <Text style={[styles.reg24, { color: textColor }]}>Profile</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.profile_ff4f")}</Text>
           <Text style={[Styles.reg14, { color: subTextColor }]}>
-            Update your personal information
+            {tx("auto.updateYourPersonalInformation_e6cd")}
           </Text>
         </View>
       </View>
@@ -304,27 +308,27 @@ const EditProfileScreen = () => {
             </View>
 
             <Text style={[styles.avatarHint, { color: placeholderColor }]}>
-              Tap the camera icon to change your photo
+              {tx("auto.tapTheCameraIconTo_cce0")}
             </Text>
 
             {/* ── Sub-admin badge ── */}
             {user?.isAdmin && user?.invitedBy ? (
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>Team Member</Text>
+                <Text style={styles.badgeText}>{tx("auto.teamMember_7b91")}</Text>
               </View>
             ) : null}
 
             {/* ── Inputs ── */}
             <View style={styles.inputs}>
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>First Name</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.firstName_b6ea")}</Text>
                 <TextInput
                   value={firstName}
                   onChangeText={(t) => {
                     setFirstName(t);
                     setErrors((p) => ({ ...p, firstName: "" }));
                   }}
-                  placeholder="First Name"
+                  placeholder={tx("auto.firstName_b6ea")}
                   placeholderTextColor={placeholderColor}
                   textContentType="givenName"
                   returnKeyType="next"
@@ -339,11 +343,11 @@ const EditProfileScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Last Name</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.lastName_863c")}</Text>
                 <TextInput
                   value={lastName}
                   onChangeText={setLastName}
-                  placeholder="Last Name"
+                  placeholder={tx("auto.lastName_863c")}
                   placeholderTextColor={placeholderColor}
                   textContentType="familyName"
                   returnKeyType="next"
@@ -354,7 +358,7 @@ const EditProfileScreen = () => {
 
               {/* Email — read-only */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Email Address</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.emailAddress_09ba")}</Text>
                 <View
                   style={[
                     Styles.input2,
@@ -366,12 +370,12 @@ const EditProfileScreen = () => {
                   </Text>
                 </View>
                 <Text style={[styles.helperText, { color: placeholderColor }]}>
-                  Email cannot be changed
+                  {tx("auto.emailCannotBeChanged_dfa8")}
                 </Text>
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Phone Number</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.phoneNumber_ab25")}</Text>
                 <TextInput
                   value={phone}
                   onChangeText={(t) => {
@@ -395,11 +399,11 @@ const EditProfileScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>LGA / City</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.lgaCity_b5e5")}</Text>
                 <TextInput
                   value={lga}
                   onChangeText={setLga}
-                  placeholder="Local Government Area"
+                  placeholder={tx("auto.localGovernmentArea_d031")}
                   placeholderTextColor={placeholderColor}
                   textContentType="addressCity"
                   returnKeyType="next"
@@ -409,11 +413,11 @@ const EditProfileScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>State</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.state_a725")}</Text>
                 <TextInput
                   value={state}
                   onChangeText={setState}
-                  placeholder="State"
+                  placeholder={tx("auto.state_a725")}
                   placeholderTextColor={placeholderColor}
                   textContentType="addressState"
                   returnKeyType="next"
@@ -423,11 +427,11 @@ const EditProfileScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Bio</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.bio_b31f")}</Text>
                 <TextInput
                   value={bio}
                   onChangeText={setBio}
-                  placeholder="Tell us about yourself..."
+                  placeholder={tx("auto.tellUsAboutYourself_157a")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="done"
                   multiline
@@ -451,7 +455,7 @@ const EditProfileScreen = () => {
 
             <View style={styles.button}>
               <PrimaryButton
-                title="Save Changes"
+                title={tx("auto.saveChanges_fa29")}
                 onPress={handleSave}
                 loading={saving || imageUploading}
               />

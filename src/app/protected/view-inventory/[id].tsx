@@ -41,7 +41,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const ViewInventoryItemScreen = () => {
+  const { t: tx } = useTranslation();
   const { id } = useLocalSearchParams();
 
   const { isDark } = useTheme();
@@ -69,15 +73,15 @@ const ViewInventoryItemScreen = () => {
   const unitPrice = storedUnitPrice(foundInventory);
   const totalValue = (foundInventory?.quantity ?? 0) * unitPrice;
   const unitInCurrency =
-    currency === "USD" && usdToNgn ? (unitPrice / usdToNgn).toFixed(2) : unitPrice.toLocaleString();
+    currency !== "NGN" && usdToNgn ? (unitPrice / usdToNgn).toFixed(2) : unitPrice.toLocaleString();
 
   const handleDelete = () => {
     Alert.alert(
-      "Delete Item",
-      "Are you sure you want to delete this item?",
+      tx("auto.deleteItem_f39c"),
+      tx("auto.areYouSureYouWant_97a6"),
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", onPress: () => deleteItem(foundInventory?.id ?? "") },
+        { text: tx("auto.cancel_77df"), style: "cancel" },
+        { text: tx("auto.delete_f6fd"), onPress: () => deleteItem(foundInventory?.id ?? "") },
       ],
       { cancelable: true },
     );
@@ -109,7 +113,7 @@ const ViewInventoryItemScreen = () => {
           <View style={styles.col}>
             <Text style={[styles.reg20, { color: textColor }]}>{foundInventory?.name}</Text>
             <Text style={[styles.reg14g, { color: subTextColor }]}>
-              SKU: {foundInventory?.id.slice(0, 6)}
+              {tx("auto.sku_92c9")}{" "}{foundInventory?.id.slice(0, 6)}
             </Text>
           </View>
         </View>
@@ -132,7 +136,7 @@ const ViewInventoryItemScreen = () => {
                   <View style={[styles.gapRow, { gap: spacing(8) }]}>
                     <Info size={scale(14)} color={iconColor} />
                     <Text style={[styles.reg14g, { color: sectionTitleColor }]}>
-                      Item Details
+                      {tx("auto.itemDetails_c209")}
                     </Text>
                   </View>
 
@@ -141,7 +145,7 @@ const ViewInventoryItemScreen = () => {
                       <View style={[styles.gapRow, { gap: spacing(8) }]}>
                         <CheckCircle size={scale(12)} color={iconColor} />
                         <Text style={[styles.reg14g, { color: sectionTitleColor }]}>
-                          Status
+                          {tx("auto.status_bae7")}
                         </Text>
                       </View>
                       <View style={[styles.badge, inStock && { backgroundColor: "rgba(220, 252, 231, 1)" }]}>
@@ -156,7 +160,7 @@ const ViewInventoryItemScreen = () => {
                         <View style={styles.col}>
                           <View style={[styles.gapRow, { gap: spacing(4) }]}>
                             <Tag size={scale(12)} color={subTextColor} />
-                            <Text style={[styles.reg12, { color: subTextColor }]}>CATEGORY</Text>
+                            <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.category_7622")}</Text>
                           </View>
                           <Text style={[styles.reg14g, { color: textColor }]}>
                             {CapitalizeFirstName(foundInventory?.category)}
@@ -166,7 +170,7 @@ const ViewInventoryItemScreen = () => {
                         <View style={styles.col}>
                           <View style={[styles.gapRow, { gap: spacing(4) }]}>
                             <CircleDollarSign size={scale(12)} color={subTextColor} />
-                            <Text style={[styles.reg12, { color: subTextColor }]}>UNIT PRICE</Text>
+                            <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.unitPrice_757c")}</Text>
                           </View>
                           <MoneyAmount amount={unitPrice} color={textColor} />
                         </View>
@@ -176,7 +180,7 @@ const ViewInventoryItemScreen = () => {
                         <View style={[styles.gapRow, { gap: spacing(4) }]}>
                           <UserIcon size={scale(12)} color={subTextColor} />
                           <Text style={[styles.reg12, { color: subTextColor }]}>
-                            {suppliers.length > 1 ? "SUPPLIERS" : "SUPPLIER"}
+                            {suppliers.length > 1 ? tx("auto.suppliers_f4fa") : tx("auto.supplier_5df2")}
                           </Text>
                         </View>
                         {suppliers.length === 0 && (
@@ -188,7 +192,7 @@ const ViewInventoryItemScreen = () => {
                             style={[styles.supplierCard, { borderColor, backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(248, 250, 252, 1)" }]}
                           >
                             <Text style={[styles.reg14g, { color: textColor }]}>
-                              {entry.name || "Unnamed supplier"}
+                              {entry.name || tx("auto.unnamedSupplier_f697")}
                             </Text>
                             {entry.contact ? (
                               <Text style={[styles.reg12, { color: subTextColor }]}>{entry.contact}</Text>
@@ -202,7 +206,7 @@ const ViewInventoryItemScreen = () => {
                           <View style={styles.col}>
                             <View style={[styles.gapRow, { gap: spacing(4) }]}>
                               <SwatchBook size={scale(12)} color={subTextColor} />
-                              <Text style={[styles.reg12, { color: subTextColor }]}>COLOR</Text>
+                              <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.color_3417")}</Text>
                             </View>
                             <Text style={[styles.reg14g, { color: textColor }]}>
                               {CapitalizeFirstName(foundInventory.color)}
@@ -215,7 +219,7 @@ const ViewInventoryItemScreen = () => {
                         <View style={styles.col}>
                           <View style={[styles.gapRow, { gap: spacing(4) }]}>
                             <FileText size={scale(12)} color={subTextColor} />
-                            <Text style={[styles.reg12, { color: subTextColor }]}>Description</Text>
+                            <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.description_55f8")}</Text>
                           </View>
                           <Text
                             style={[styles.reg14g, { color: textColor, flexShrink: 1 }]}
@@ -233,7 +237,7 @@ const ViewInventoryItemScreen = () => {
                     <View style={[styles.gapRow, { gap: spacing(8) }]}>
                       <Box size={scale(14)} color={iconColor} />
                       <Text style={[styles.reg14g, { color: sectionTitleColor }]}>
-                        Stock Information
+                        {tx("auto.stockInformation_ae08")}
                       </Text>
                     </View>
 
@@ -242,19 +246,19 @@ const ViewInventoryItemScreen = () => {
                         <Text style={[styles.reg24, { color: "rgba(22, 152, 141, 1)" }]}>
                           {foundInventory?.quantity}
                         </Text>
-                        <Text style={[styles.reg12, { color: subTextColor }]}>Current Stock</Text>
-                        <Text style={[styles.reg12, { color: subTextColor }]}>pieces</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.currentStock_3609")}</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.pieces_e917")}</Text>
                       </View>
                       <View style={[styles.card, { backgroundColor: isDark ? "rgba(245,73,0,0.12)" : "rgba(255, 247, 237, 1)" }]}>
                         <Text style={[styles.reg24, { color: "rgba(245, 73, 0, 1)" }]}>
                           {foundInventory?.reorderPoint}
                         </Text>
-                        <Text style={[styles.reg12, { color: subTextColor }]}>Reorder Point</Text>
-                        <Text style={[styles.reg12, { color: subTextColor }]}>pieces</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.reorderPoint_4f32")}</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.pieces_e917")}</Text>
                       </View>
                       <View style={[styles.card, { backgroundColor: isDark ? "rgba(22,152,141,0.15)" : "rgba(240, 253, 244, 1)" }]}>
                         <MoneyAmount amount={totalValue} color="rgba(22, 152, 141, 1)" align="center" primarySize={scaleFontSize(20)} />
-                        <Text style={[styles.reg12, { color: subTextColor }]}>Total Value</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.totalValue_4949")}</Text>
                         <Text style={[styles.reg12, { color: subTextColor }]}>
                           {foundInventory?.quantity ?? 0} x {symbol}{unitInCurrency}
                         </Text>
@@ -265,20 +269,20 @@ const ViewInventoryItemScreen = () => {
                   <View style={styles.section}>
                     <View style={[styles.gapRow, { gap: spacing(8) }]}>
                       <Clock size={scale(15)} color={iconColor} />
-                      <Text style={[styles.reg14g, { color: sectionTitleColor }]}>Timeline</Text>
+                      <Text style={[styles.reg14g, { color: sectionTitleColor }]}>{tx("auto.timeline_0185")}</Text>
                     </View>
 
                     <View style={{ gap: spacing(12) }}>
                       <View style={[styles.recBox, { backgroundColor: recBoxBg }]}>
-                        <Text style={[styles.reg12, { color: subTextColor }]}>Created</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.created_accf")}</Text>
                         <Text style={[styles.reg14g, { color: textColor }]}>
-                          {foundInventory?.createdAt ? formatFintechDate(foundInventory.createdAt) : "N/A"}
+                          {foundInventory?.createdAt ? formatFintechDate(foundInventory.createdAt) : tx("auto.nA_08d2")}
                         </Text>
                       </View>
                       <View style={[styles.recBox, { backgroundColor: recBoxBg }]}>
-                        <Text style={[styles.reg12, { color: subTextColor }]}>Last Updated</Text>
+                        <Text style={[styles.reg12, { color: subTextColor }]}>{tx("auto.lastUpdated_66f3")}</Text>
                         <Text style={[styles.reg14g, { color: textColor }]}>
-                          {foundInventory?.updatedAt ? formatFintechDate(foundInventory.updatedAt) : "N/A"}
+                          {foundInventory?.updatedAt ? formatFintechDate(foundInventory.updatedAt) : tx("auto.nA_08d2")}
                         </Text>
                       </View>
                     </View>
@@ -298,7 +302,7 @@ const ViewInventoryItemScreen = () => {
                 }}
               >
                 <Pencil size={scale(18)} color={"white"} />
-                <Text style={styles.btnText}>Edit Item</Text>
+                <Text style={styles.btnText}>{tx("auto.editItem_6ab4")}</Text>
               </HapticTab>
 
               <Pressable style={[styles.deleteBtn, { backgroundColor: isDark ? "rgba(231,0,11,0.15)" : "rgba(254, 242, 242, 1)" }]} onPress={handleDelete} disabled={loading}>

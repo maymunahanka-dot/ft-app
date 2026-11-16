@@ -1,51 +1,71 @@
 import { useEffect, useState } from "react";
 import { useUserStore } from "../stores/userSlice";
-import { getUsdToNgnRate } from "../utils/exchangeRate";
+import { currencySymbol, getNgnPerUnit, peekNgnPerUnit } from "../utils/exchangeRate";
 
-type DisplayCurrency = "NGN" | "USD";
+import { t as tx } from "@/src/i18n";
 
+const normalize = (value?: string) => {
+  const code = String(value || "").toUpperCase();
+  return /^[A-Z]{3}$/.test(code) ? code : "NGN";
+};
+
+/**
+ * The business's display currency (Brand settings) and its rate.
+ * `usdToNgn` (name kept for older code) = Naira per 1 unit of the display currency,
+ * so `naira / usdToNgn` converts to it and `amount * usdToNgn` converts back.
+ * For Naira businesses it's the dollar rate, used for the small "$" hint.
+ */
 export function useDisplayCurrency() {
-  const inventoryCurrency = useUserStore((state) => state.brandSetting?.inventoryCurrency);
-  const currency: DisplayCurrency = inventoryCurrency === "USD" ? "USD" : "NGN";
-  const [usdToNgn, setUsdToNgn] = useState<number | null>(null);
+  const currency = normalize(useUserStore((state) => state.brandSetting?.inventoryCurrency));
+  const isForeign = currency !== "NGN";
+  const rateCurrency = isForeign ? currency : "USD";
+  const [rate, setRate] = useState<number | null>(() => peekNgnPerUnit(rateCurrency));
+  /** True when the rate couldn't be loaded: screens show Naira instead of waiting forever. */
+  const [rateFailed, setRateFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    getUsdToNgnRate()
-      .then((rate) => {
-        if (!cancelled) setUsdToNgn(rate);
+    getNgnPerUnit(rateCurrency)
+      .then((next) => {
+        if (!cancelled) {
+          setRate(next);
+          setRateFailed(false);
+        }
       })
       .catch((error) => {
-        console.error("Error loading exchange rate:", error);
+        if (!cancelled) setRateFailed(true);
+        console.warn("Exchange rate unavailable, showing Naira:", error?.message ?? error);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [rateCurrency]);
 
+  /** Entered amount (display currency) → Naira to save. null while the rate loads. */
   const toNaira = (value: number) => {
     const amount = Number(value);
     const safe = Number.isFinite(amount) ? amount : 0;
-    if (currency !== "USD") return safe;
-    if (!usdToNgn) return null;
-    return Math.round(safe * usdToNgn * 100) / 100;
+    if (!isForeign) return safe;
+    if (!rate) return null;
+    return Math.round(safe * rate * 100) / 100;
   };
 
+  /** Saved Naira → display currency, for editing. */
   const fromNaira = (stored: number) => {
     const naira = Number(stored);
     if (!Number.isFinite(naira)) return "";
-    if (currency === "USD") {
-      if (!usdToNgn) return "";
-      return (naira / usdToNgn).toFixed(2);
+    if (isForeign) {
+      if (!rate) return "";
+      return (naira / rate).toFixed(2);
     }
     return String(naira);
   };
 
   const blockUntilRate = () => {
-    if (currency === "USD" && !usdToNgn) {
+    if (isForeign && !rate) {
       const { ShowToastMessage } = require("../utils/random") as typeof import("../utils/random");
       ShowToastMessage({
-        title: "Exchange rate is still loading. Try again in a moment.",
+        title: tx("auto.exchangeRateIsStillLoading_c838"),
         preset: "error",
         haptic: "error",
       });
@@ -56,9 +76,14 @@ export function useDisplayCurrency() {
 
   return {
     currency,
-    usdToNgn,
-    showDollars: currency === "USD" && !!usdToNgn,
-    symbol: currency === "USD" ? "$" : "₦",
+    isForeign,
+    /** Currency of the small secondary line: the display currency, or $ for Naira businesses. */
+    secondaryCurrency: rateCurrency,
+    usdToNgn: rate,
+    ngnPerUnit: rate,
+    rateFailed,
+    showDollars: isForeign && !!rate, // name kept: true when showing a non-Naira currency
+    symbol: currencySymbol(currency),
     toNaira,
     fromNaira,
     blockUntilRate,

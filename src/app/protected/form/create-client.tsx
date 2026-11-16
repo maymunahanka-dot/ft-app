@@ -22,7 +22,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const CreateClientScreen = () => {
+  const { t: tx } = useTranslation();
   const saveClient = useClientStore((state) => state.saveClient);
   const loading = useClientStore((state) => state.loading);
 
@@ -64,18 +68,18 @@ const CreateClientScreen = () => {
     let isValid = true;
 
     if (!clientData.name.trim()) {
-      newErrors.name = "Client name is required";
+      newErrors.name = tx("auto.clientNameIsRequired_2cf1");
       isValid = false;
     }
     if (!clientData.email.trim()) {
-      newErrors.email = "Email address is required";
+      newErrors.email = tx("auto.emailAddressIsRequired_e7f0");
       isValid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientData.email)) {
-      newErrors.email = "Enter a valid email address";
+      newErrors.email = tx("auto.enterAValidEmailAddress_1577");
       isValid = false;
     }
     if (!clientData.phone.trim() || clientData.phone.length < 11) {
-      newErrors.phone = "Enter a valid 11-digit phone number";
+      newErrors.phone = tx("auto.enterAValid11Digit_a6bb");
       isValid = false;
     }
 
@@ -126,7 +130,7 @@ const CreateClientScreen = () => {
             strokeWidth={1.5}
           />
         </HapticTab>
-        <Text style={[styles.title, { color: textColor }]}>Add New Client</Text>
+        <Text style={[styles.title, { color: textColor }]}>{tx("auto.addNewClient_69d9")}</Text>
       </View>
 
       <View style={[styles.divider, { backgroundColor: dividerColor }]} />
@@ -145,12 +149,12 @@ const CreateClientScreen = () => {
           {/* Name */}
           <View style={Styles.inputContainer}>
             <Text style={[Styles.label, { color: labelColor }]}>
-              Name <Text style={styles.red}>*</Text>
+              {tx("auto.name_709a")}{" "}<Text style={styles.red}>*</Text>
             </Text>
             <TextInput
               value={clientData.name}
               onChangeText={(t) => handleDataChange("name", t)}
-              placeholder="Enter client's full name"
+              placeholder={tx("auto.enterClientSFullName_29f9")}
               placeholderTextColor={placeholderColor}
               returnKeyType="next"
               keyboardType="default"
@@ -163,7 +167,7 @@ const CreateClientScreen = () => {
           {/* Email */}
           <View style={Styles.inputContainer}>
             <Text style={[Styles.label, { color: labelColor }]}>
-              Email Address <Text style={styles.red}>*</Text>
+              {tx("auto.emailAddress_09ba")}{" "}<Text style={styles.red}>*</Text>
             </Text>
             <TextInput
               value={clientData.email}
@@ -182,7 +186,7 @@ const CreateClientScreen = () => {
           {/* Phone */}
           <View style={Styles.inputContainer}>
             <Text style={[Styles.label, { color: labelColor }]}>
-              Phone Number <Text style={styles.red}>*</Text>
+              {tx("auto.phoneNumber_ab25")}{" "}<Text style={styles.red}>*</Text>
             </Text>
             <TextInput
               value={clientData.phone}
@@ -199,11 +203,11 @@ const CreateClientScreen = () => {
 
           {/* Notes */}
           <View style={Styles.inputContainer}>
-            <Text style={[Styles.label, { color: labelColor }]}>Notes</Text>
+            <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.notes_7044")}</Text>
             <TextInput
               value={clientData.notes}
               onChangeText={(t) => handleDataChange("notes", t)}
-              placeholder="Add notes about this client (preferences, special requirements, etc.)"
+              placeholder={tx("auto.addNotesAboutThisClient_e321")}
               placeholderTextColor={placeholderColor}
               multiline
               textAlignVertical="top"
@@ -222,7 +226,7 @@ const CreateClientScreen = () => {
           </View>
 
           <View style={styles.btnWrapper}>
-            <PrimaryButton title="Save Client" onPress={handleSaveClient} loading={loading} />
+            <PrimaryButton title={tx("auto.saveClient_1958")} onPress={handleSaveClient} loading={loading} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

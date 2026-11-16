@@ -34,6 +34,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const HEADER_SCROLL_DISTANCE = 100;
 
 // ─── Financial calculations ──────────────────────────────────────────────────
@@ -77,6 +80,7 @@ export function calculateFinancialSummary(income: Income[], expenses: Expense[])
 
 // ─── Summary boxes ──────────────────────────────────────────────────────────
 const RowBoxes = () => {
+  const { t: tx } = useTranslation();
   const finance = useFinanceStore();
   const summary = calculateFinancialSummary(finance.income, finance.expenses);
 
@@ -84,21 +88,21 @@ const RowBoxes = () => {
     <View style={{ gap: spacing(10) }}>
       <View style={styles.row}>
         <GlassCard style={styles.box}>
-          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>Net Profit</Text>
+          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>{tx("auto.netProfit_8beb")}</Text>
           <MoneyAmount amount={summary.netProfit} color="white" secondaryColor="rgba(255,255,255,0.8)" primarySize={scaleFontSize(20)} />
         </GlassCard>
         <GlassCard style={styles.box}>
-          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>Total Income</Text>
+          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>{tx("auto.totalIncome_7c29")}</Text>
           <MoneyAmount amount={summary.totalIncome} color="white" secondaryColor="rgba(255,255,255,0.8)" primarySize={scaleFontSize(20)} />
         </GlassCard>
       </View>
       <View style={styles.row}>
         <GlassCard style={styles.box}>
-          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>Total Expenses</Text>
+          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>{tx("auto.totalExpenses_7501")}</Text>
           <MoneyAmount amount={summary.totalExpenses} color="white" secondaryColor="rgba(255,255,255,0.8)" primarySize={scaleFontSize(20)} />
         </GlassCard>
         <GlassCard style={styles.box}>
-          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>Monthly Profit</Text>
+          <Text style={[Styles.reg14, { color: "white", lineHeight: 18 }]}>{tx("auto.monthlyProfit_e9bb")}</Text>
           <MoneyAmount amount={summary.monthlyProfit} color="white" secondaryColor="rgba(255,255,255,0.8)" primarySize={scaleFontSize(20)} />
         </GlassCard>
       </View>
@@ -108,6 +112,7 @@ const RowBoxes = () => {
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 const FinanceScreen = () => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const { top, bottom } = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -191,7 +196,7 @@ const FinanceScreen = () => {
         >
           <View style={{ paddingHorizontal: 16, paddingBottom: spacing(24), gap: spacing(16) }}>
             <View style={{ gap: spacing(4) }}>
-              <Text style={styles.heroTitle}>Financial Dashboard</Text>
+              <Text style={styles.heroTitle}>{tx("auto.financialDashboard_5232")}</Text>
               <Text style={[Styles.reg14, { color: "rgba(255,255,255,0.8)", lineHeight: 18 }]}>
                 {GetCurrentMonthYear()}
               </Text>
@@ -209,7 +214,7 @@ const FinanceScreen = () => {
               style={styles.addBtn}
             >
               <Plus size={scale(16)} color="white" />
-              <Text style={[Styles.reg16, { color: "white" }]}>Add Transaction</Text>
+              <Text style={[Styles.reg16, { color: "white" }]}>{tx("auto.addTransaction_ea77")}</Text>
             </Pressable>
 
             {hasTransactions ? (
@@ -217,14 +222,14 @@ const FinanceScreen = () => {
             ) : (
               <View style={styles.emptyChartContainer}>
                 <Text style={[styles.emptyChartText, { color: emptyTextColor }]}>
-                  No transactions yet. Add your first transaction to see your financial overview.
+                  {tx("auto.noTransactionsYetAddYour_21f6")}
                 </Text>
               </View>
             )}
 
             <View style={styles.section}>
               <View style={styles.row}>
-                <Text style={[Styles.reg16, { color: textColor }]}>Recent Transactions</Text>
+                <Text style={[Styles.reg16, { color: textColor }]}>{tx("auto.recentTransactions_f28b")}</Text>
                 <SortByButton
                   value={sortBy}
                   onChange={setSortBy}
@@ -249,7 +254,7 @@ const FinanceScreen = () => {
               ) : (
                 <View style={styles.emptyState}>
                   <Text style={[styles.emptyStateText, { color: subTextColor }]}>
-                    No transactions to display
+                    {tx("auto.noTransactionsToDisplay_dbac")}
                   </Text>
                 </View>
               )}
@@ -283,7 +288,7 @@ const FinanceScreen = () => {
           </HapticTab>
 
           <Animated.Text style={[styles.headerTitle, { opacity: titleOpacity, color: headerIconColor }]}>
-            Finance
+            {tx("auto.finance_1b48")}
           </Animated.Text>
 
           <View style={{ width: scale(24) }} />

@@ -14,6 +14,8 @@ import { API_BASE_URL } from "../lib/apiClient";
 import { setEffectiveEmail } from "../lib/effectiveEmail";
 import { BrandSettings, RegisterUserData } from "../types/auth";
 import { sanitizeBrandSettings, ShowToastMessage } from "../utils/random";
+import { t as tx } from "@/src/i18n";
+
 interface UserState {
   loading: boolean;
   user: RegisterUserData | null;
@@ -82,7 +84,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       console.error("error updating profile", error);
 
       ShowToastMessage({
-        title: "Error updating profile",
+        title: tx("auto.errorUpdatingProfile_9c05"),
         preset: "error",
         haptic: "error",
       });

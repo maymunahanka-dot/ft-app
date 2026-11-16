@@ -39,6 +39,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const orderStatusList = [
   {
     label: "Pending",
@@ -102,6 +105,7 @@ const orderGarmentTypeList = [
 ];
 
 const CreateOrderScreen = () => {
+  const { t: tx } = useTranslation();
   const { clientId } = useLocalSearchParams<{ clientId?: string }>();
   const clients = useClientStore((state) => state.clients);
   const foundClient = clients.find((prev) => prev.id === clientId?.toString());
@@ -236,36 +240,36 @@ const CreateOrderScreen = () => {
 
     // Client
     if (!orderData.clientName.trim()) {
-      newErrors.clientName = "Client name is required";
+      newErrors.clientName = tx("auto.clientNameIsRequired_2cf1");
       isValid = false;
     }
 
     if (!orderData.clientPhone.trim()) {
-      newErrors.clientPhone = "Client phone is required";
+      newErrors.clientPhone = tx("auto.clientPhoneIsRequired_85e2");
       isValid = false;
     }
 
     // Garment
     if (!orderData.garmentDescription.trim()) {
-      newErrors.garmentDescription = "Design / style name is required";
+      newErrors.garmentDescription = tx("auto.designStyleNameIsRequired_8df7");
       isValid = false;
     }
 
     // Quantity
     if (!orderData.quantity || orderData.quantity < 1) {
-      newErrors.quantity = "Quantity must be at least 1";
+      newErrors.quantity = tx("auto.quantityMustBeAtLeast_1382");
       isValid = false;
     }
 
     // Due date
     if (!orderData.dueDate) {
-      newErrors.dueDate = "Delivery date is required";
+      newErrors.dueDate = tx("auto.deliveryDateIsRequired_c596");
       isValid = false;
     }
 
     // Price
     if (!orderData.price || orderData.price <= 0) {
-      newErrors.price = "Base price must be greater than 0";
+      newErrors.price = tx("auto.basePriceMustBeGreater_b892");
       isValid = false;
     }
 
@@ -273,12 +277,12 @@ const CreateOrderScreen = () => {
     const totalAmount = orderData.price * orderData.quantity;
 
     if (orderData.deposit < 0) {
-      newErrors.deposit = "Deposit cannot be negative";
+      newErrors.deposit = tx("auto.depositCannotBeNegative_d7f8");
       isValid = false;
     }
 
     if (orderData.deposit > totalAmount) {
-      newErrors.deposit = "Deposit cannot be greater than total amount";
+      newErrors.deposit = tx("auto.depositCannotBeGreaterThan_5b85");
       isValid = false;
     }
 
@@ -359,7 +363,7 @@ const CreateOrderScreen = () => {
             />
           </HapticTab>
 
-          <Text style={[styles.reg24, { color: textColor }]}>Create order</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.createOrder_f69d")}</Text>
         </View>
 
         <KeyboardAvoidingView
@@ -383,7 +387,7 @@ const CreateOrderScreen = () => {
           >
             <View style={styles.content}>
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Clients</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.clients_28e2")}</Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleClientModal}
@@ -398,7 +402,7 @@ const CreateOrderScreen = () => {
                     <Text
                       style={[Styles.reg16, { color: dropdownTextColor }]}
                     >
-                      Select a Client
+                      {tx("auto.selectAClient_b222")}
                     </Text>
                   )}
 
@@ -409,14 +413,14 @@ const CreateOrderScreen = () => {
               <View style={[styles.detailBox, { backgroundColor: detailBoxBg, borderColor: detailBoxBorder }]}>
                 <View style={Styles.inputContainer}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Name<Text style={styles.red}> *</Text>
+                    {tx("auto.name_709a")}<Text style={styles.red}> *</Text>
                   </Text>
                   <TextInput
                     value={orderData.clientName}
                     onChangeText={(text) =>
                       handleDataChange("clientName", text)
                     }
-                    placeholder="e.g., Adaeze Okonkwo"
+                    placeholder={tx("auto.eGAdaezeOkonkwo_e13e")}
                     placeholderTextColor={placeholderColor}
                     returnKeyLabel="next"
                     returnKeyType="next"
@@ -444,14 +448,14 @@ const CreateOrderScreen = () => {
 
                 <View style={Styles.inputContainer}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Phone<Text style={styles.red}> *</Text>
+                    {tx("auto.phone_7706")}<Text style={styles.red}> *</Text>
                   </Text>
                   <TextInput
                     value={orderData.clientPhone}
                     onChangeText={(text) =>
                       handleDataChange("clientPhone", text)
                     }
-                    placeholder="e.g., +234 801 234 5678"
+                    placeholder={tx("auto.eG234801234_527b")}
                     placeholderTextColor={placeholderColor}
                     returnKeyLabel="next"
                     returnKeyType="next"
@@ -479,7 +483,7 @@ const CreateOrderScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Order Status</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.orderStatus_a15b")}</Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleStatusModal}
@@ -496,14 +500,14 @@ const CreateOrderScreen = () => {
 
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Design/Style Name<Text style={styles.red}> *</Text>
+                  {tx("auto.designStyleName_2d4a")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={orderData.garmentDescription}
                   onChangeText={(text) =>
                     handleDataChange("garmentDescription", text)
                   }
-                  placeholder="e.g., Elegant Wedding Gown"
+                  placeholder={tx("auto.eGElegantWeddingGown_52db")}
                   placeholderTextColor={placeholderColor}
                   returnKeyLabel="next"
                   returnKeyType="next"
@@ -528,7 +532,7 @@ const CreateOrderScreen = () => {
 
               <View style={[styles.row, { gap: spacing(20) }]}>
                 <View style={[Styles.inputContainer, { flex: 1 }]}>
-                  <Text style={[Styles.label, { color: labelColor }]}>Fabric Type</Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.fabricType_ce68")}</Text>
                   <Pressable
                     style={[
                       Styles.input,
@@ -548,14 +552,14 @@ const CreateOrderScreen = () => {
 
                 <View style={[Styles.inputContainer, { flex: 1 }]}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Quantity<Text style={styles.red}> *</Text>
+                    {tx("auto.quantity_44f6")}<Text style={styles.red}> *</Text>
                   </Text>
                   <TextInput
                     value={orderData.quantity.toString()}
                     onChangeText={(text) =>
                       handleDataChange("quantity", Number(text))
                     }
-                    placeholder="e.g., 5"
+                    placeholder={tx("auto.eG5_9b53")}
                     placeholderTextColor={placeholderColor}
                     returnKeyLabel="next"
                     returnKeyType="next"
@@ -583,7 +587,7 @@ const CreateOrderScreen = () => {
               </View>
 
               <View style={{}}>
-                <Text style={[Styles.label, { color: labelColor }]}>Measurements</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.measurements_737b")}</Text>
 
                 <View
                   style={{
@@ -640,7 +644,7 @@ const CreateOrderScreen = () => {
 
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Delivery Date<Text style={styles.red}> *</Text>
+                  {tx("auto.deliveryDate_7e86")}<Text style={styles.red}> *</Text>
                 </Text>
                 <Pressable
                   style={[
@@ -660,7 +664,7 @@ const CreateOrderScreen = () => {
                     <Text
                       style={[Styles.reg16, { color: dropdownTextColor }]}
                     >
-                      Select date
+                      {tx("auto.selectDate_b84a")}
                     </Text>
                   )}
                   {error.dueDate ? (
@@ -696,12 +700,12 @@ const CreateOrderScreen = () => {
 
               <View style={[styles.summaryBox, { backgroundColor: summaryBoxBg, borderColor: summaryBoxBorder }]}>
                 <Text style={[Styles.med14, { color: summaryTitleColor }]}>
-                  Pricing
+                  {tx("auto.pricing_a0d9")}
                 </Text>
 
                 <View style={[styles.row, { gap: spacing(20) }]}>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={[Styles.label, { color: labelColor }]}>Base Price ({symbol})</Text>
+                    <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.basePrice_1698")}{symbol})</Text>
                     <TextInput
                       value={
                         orderData.price === 0 ? "" : orderData.price.toString()
@@ -709,7 +713,7 @@ const CreateOrderScreen = () => {
                       onChangeText={(text) =>
                         handleDataChange("price", Number(text))
                       }
-                      placeholder="e.g., 50000"
+                      placeholder={tx("auto.eG50000_d1af")}
                       placeholderTextColor={placeholderColor}
                       returnKeyLabel="next"
                       returnKeyType="next"
@@ -729,7 +733,7 @@ const CreateOrderScreen = () => {
                   </View>
 
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={[Styles.label, { color: labelColor }]}>Deposit Paid ({symbol})</Text>
+                    <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.depositPaid_b41f")}{symbol})</Text>
                     <TextInput
                       value={
                         orderData.deposit === 0
@@ -739,7 +743,7 @@ const CreateOrderScreen = () => {
                       onChangeText={(text) =>
                         handleDataChange("deposit", Number(text))
                       }
-                      placeholder="e.g., 25000"
+                      placeholder={tx("auto.eG25000_6a2b")}
                       placeholderTextColor={placeholderColor}
                       returnKeyLabel="next"
                       returnKeyType="next"
@@ -771,21 +775,21 @@ const CreateOrderScreen = () => {
                 >
                   <View style={styles.row}>
                     <Text style={[Styles.reg14, { color: inputTextColor }]}>
-                      Total Amount:
+                      {tx("auto.totalAmount_a10e")}
                     </Text>
                     <EntryMoney amount={totalAmount} color={inputTextColor} align="end" />
                   </View>
 
                   <View style={styles.row}>
                     <Text style={[Styles.reg14, { color: inputTextColor }]}>
-                      Deposit:
+                      {tx("auto.deposit_b8ca")}
                     </Text>
                     <EntryMoney amount={orderData.deposit} color={inputTextColor} align="end" />
                   </View>
                 </View>
                 <View style={styles.row}>
                   <Text style={[Styles.reg14, { color: inputTextColor }]}>
-                    Balance:
+                    {tx("auto.balance_802d")}
                   </Text>
                   <EntryMoney amount={totalAmount - orderData.deposit} color={inputTextColor} align="end" />
                 </View>
@@ -797,13 +801,13 @@ const CreateOrderScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Special Instructions / Notes</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.specialInstructionsNotes_7ea3")}</Text>
                 <TextInput
                   value={orderData.specialInstructions}
                   onChangeText={(text) =>
                     handleDataChange("specialInstructions", text)
                   }
-                  placeholder="Any special requirements, modifications, or notes..."
+                  placeholder={tx("auto.anySpecialRequirementsModificati_d888")}
                   placeholderTextColor={placeholderColor}
                   returnKeyLabel="next"
                   returnKeyType="next"
@@ -828,7 +832,7 @@ const CreateOrderScreen = () => {
 
               <View style={styles.button}>
                 <PrimaryButton
-                  title="Create Order"
+                  title={tx("auto.createOrder_0289")}
                   onPress={handleCreateOrder}
                   loading={loading}
                 />

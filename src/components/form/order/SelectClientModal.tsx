@@ -15,6 +15,9 @@ import {
   View,
 } from "react-native";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -22,6 +25,7 @@ type Props = {
 };
 
 const SelectClientModal = ({ visible, onClose, handleOption }: Props) => {
+  const { t: tx } = useTranslation();
   const clients = useClientStore((state) => state.clients);
   const isLoading = useClientStore((state) => state.loading);
   const fetchClients = useClientStore((state) => state.getClientsByTailor);
@@ -102,7 +106,7 @@ const SelectClientModal = ({ visible, onClose, handleOption }: Props) => {
           isLoading ? (
             <ActivityIndicator size="large" color="#0000ff" />
           ) : (
-            <Text style={styles.desc}>No clients found</Text>
+            <Text style={styles.desc}>{tx("auto.noClientsFound_b875")}</Text>
           )
         }
       />

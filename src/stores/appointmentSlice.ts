@@ -10,6 +10,8 @@ import { readCache, writeCache } from "../utils/storeCache";
 import { toDateKey } from "../utils/blockedDays";
 import { ShowToastMessage } from "../utils/random";
 
+import { t as tx } from "@/src/i18n";
+
 const CACHE_KEY = "store_appointments";
 
 interface AppointmentState {
@@ -44,7 +46,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       if (isAuthError(error)) return;
       console.error("Error getting appointments:", error);
       if (!cached) {
-        ShowToastMessage({ title: error.message ?? "Failed to fetch appointments", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchAppointments_fce9"), preset: "error", haptic: "error" });
       }
     } finally {
       set({ loading: false });
@@ -78,10 +80,10 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
           ? state.appointments.map((a) => (a.id === saved.id ? saved : a))
           : [saved, ...state.appointments],
       }));
-      ShowToastMessage({ title: "Appointment created", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.appointmentCreated_ab97"), preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error saving appointment:", error);
-      ShowToastMessage({ title: error.message ?? "Error saving appointment", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.errorSavingAppointment_f727"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -100,7 +102,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       return res.data ?? null;
     } catch (error: any) {
       console.error("Error getting appointment:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to fetch appointment", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchAppointment_efe9"), preset: "error", haptic: "error" });
       return null;
     } finally {
       set({ loading: false });
@@ -153,10 +155,10 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
           a.id === updated.id ? updated : a,
         ),
       }));
-      ShowToastMessage({ title: "Appointment updated successfully", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.appointmentUpdatedSuccessfully_4894"), preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error updating appointment:", error);
-      ShowToastMessage({ title: error.message ?? "Update failed", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.updateFailed_4de0"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -178,10 +180,10 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
       set((state) => ({
         appointments: state.appointments.filter((a) => a.id !== appointmentId),
       }));
-      ShowToastMessage({ title: "Appointment deleted successfully", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.appointmentDeletedSuccessfully_12ef"), preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error deleting appointment:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to delete appointment", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToDeleteAppointment_c4c4"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

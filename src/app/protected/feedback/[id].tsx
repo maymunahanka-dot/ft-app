@@ -35,6 +35,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const STATUSLIST = [
   {
     label: "Pending",
@@ -84,6 +87,7 @@ const InteractiveStarRating = ({
 };
 
 const EditFeebackScreen = () => {
+  const { t: tx } = useTranslation();
   const { id } = useLocalSearchParams();
   const clientFeedbacks = useCrmStore((state) => state.clientFeedbacks);
   const foundFeeback = clientFeedbacks.find(
@@ -154,17 +158,17 @@ const EditFeebackScreen = () => {
     };
 
     if (!data.clientName.trim()) {
-      newErrors.clientName = "Client name is required";
+      newErrors.clientName = tx("auto.clientNameIsRequired_2cf1");
     }
 
     if (!data.clientEmail.trim()) {
-      newErrors.clientEmail = "Client email is required";
+      newErrors.clientEmail = tx("auto.clientEmailIsRequired_976c");
     } else if (!/\S+@\S+\.\S+/.test(data.clientEmail)) {
-      newErrors.clientEmail = "Please enter a valid email address";
+      newErrors.clientEmail = tx("auto.pleaseEnterAValidEmail_0802");
     }
 
     if (!data.comment.trim()) {
-      newErrors.comment = "Feedback comment is required";
+      newErrors.comment = tx("auto.feedbackCommentIsRequired_59a4");
     }
 
     setError(newErrors);
@@ -177,7 +181,7 @@ const EditFeebackScreen = () => {
       const success = await editFeedback(foundFeeback.id, data);
       if (success) {
         ShowToastMessage({
-          title: "Feedback Updated successfully",
+          title: tx("auto.feedbackUpdatedSuccessfully_8392"),
           from: "top",
           preset: "done",
         });
@@ -207,7 +211,7 @@ const EditFeebackScreen = () => {
           >
             <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-          <Text style={[styles.reg24, { color: textColor }]}>Edit Client Feedback</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.editClientFeedback_53f9")}</Text>
         </View>
 
         <KeyboardAvoidingView
@@ -225,17 +229,17 @@ const EditFeebackScreen = () => {
               <ImageUploadField
                 uri={data.imageUrl}
                 onChange={(uri) => handleDataChange("imageUrl", uri)}
-                label="Photo (Optional)"
+                label={tx("auto.photoOptional_fc8f")}
               />
               {/* client picker */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Clients</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.clients_28e2")}</Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleClientModal}
                 >
                   <Text style={[Styles.reg16, { color: selectedClient ? dropdownActiveColor : dropdownTextColor }]}>
-                    {selectedClient ? selectedClient.name : "Select a Client from your list"}
+                    {selectedClient ? selectedClient.name : tx("auto.selectAClientFromYour_dbac")}
                   </Text>
                   <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
@@ -244,12 +248,12 @@ const EditFeebackScreen = () => {
               {/* client name */}
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Client Name<Text style={styles.red}> *</Text>
+                  {tx("auto.clientName_130c")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.clientName}
                   onChangeText={(text) => handleDataChange("clientName", text)}
-                  placeholder="Enter client's full name"
+                  placeholder={tx("auto.enterClientSFullName_29f9")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
@@ -262,12 +266,12 @@ const EditFeebackScreen = () => {
               {/* client email */}
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Client Email<Text style={styles.red}> *</Text>
+                  {tx("auto.clientEmail_d1b1")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.clientEmail}
                   onChangeText={(text) => handleDataChange("clientEmail", text)}
-                  placeholder="Enter client's email address"
+                  placeholder={tx("auto.enterClientSEmailAddress_b905")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="email-address"
@@ -280,7 +284,7 @@ const EditFeebackScreen = () => {
               {/* rating */}
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Rating<Text style={styles.red}> *</Text>
+                  {tx("auto.rating_6437")}<Text style={styles.red}> *</Text>
                 </Text>
                 <InteractiveStarRating
                   rating={data.rating}
@@ -293,12 +297,12 @@ const EditFeebackScreen = () => {
               {/* comment */}
               <View style={Styles.inputContainer}>
                 <Text style={[styles.reg14, { color: labelColor }]}>
-                  Feedback Comment<Text style={styles.red}> *</Text>
+                  {tx("auto.feedbackComment_d14b")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.comment}
                   onChangeText={(text) => handleDataChange("comment", text)}
-                  placeholder="Share your experience with our service"
+                  placeholder={tx("auto.shareYourExperienceWithOur_5b3a")}
                   placeholderTextColor={placeholderColor}
                   keyboardType="default"
                   multiline
@@ -310,12 +314,12 @@ const EditFeebackScreen = () => {
               {/* product */}
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Product/Service<Text style={styles.red}> *</Text>
+                  {tx("auto.productService_8b9c")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.productName}
                   onChangeText={(text) => handleDataChange("productName", text)}
-                  placeholder="E.g. Custom wedding gown"
+                  placeholder={tx("auto.eGCustomWeddingGown_ea89")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="done"
                   autoCorrect={true}
@@ -326,7 +330,7 @@ const EditFeebackScreen = () => {
 
               {/* status */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Status</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.status_bae7")}</Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleStatusModal}
@@ -339,7 +343,7 @@ const EditFeebackScreen = () => {
               </View>
 
               <View style={styles.button}>
-                <PrimaryButton title="Edit Feedback" onPress={handleEditFeedback} loading={loading} props={{ disabled: loading }} />
+                <PrimaryButton title={tx("auto.editFeedback_0772")} onPress={handleEditFeedback} loading={loading} props={{ disabled: loading }} />
               </View>
             </View>
           </ScrollView>

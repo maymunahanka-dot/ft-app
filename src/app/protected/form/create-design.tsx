@@ -28,7 +28,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const CreateDesignScreen = () => {
+  const { t: tx } = useTranslation();
   const { clientId } = useLocalSearchParams<{ clientId?: string }>();
   const createDesign = useDesignStore((state) => state.createDesign);
   const { symbol, toNaira, blockUntilRate } = useDisplayCurrency();
@@ -144,7 +148,7 @@ const CreateDesignScreen = () => {
           >
             <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-          <Text style={[styles.reg24, { color: textColor }]}>Add New Design</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.addNewDesign_a51d")}</Text>
         </View>
 
         <KeyboardAvoidingView
@@ -162,14 +166,14 @@ const CreateDesignScreen = () => {
               {!clientId && (
                 <View style={Styles.inputContainer}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Clients<Text style={styles.red}> *</Text>
+                    {tx("auto.clients_28e2")}<Text style={styles.red}> *</Text>
                   </Text>
                   <Pressable
                     style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                     onPress={toggleClientModal}
                   >
                     <Text style={[Styles.reg16, { color: dropdownTextColor }]}>
-                      {selectedClient ? selectedClient.name : "Select a Client"}
+                      {selectedClient ? selectedClient.name : tx("auto.selectAClient_b222")}
                     </Text>
                     <ChevronDown size={scale(20)} color={chevronColor} />
                   </Pressable>
@@ -179,7 +183,7 @@ const CreateDesignScreen = () => {
               {/* image picker */}
               <View style={[Styles.inputContainer, { gap: spacing(12) }]}>
                 <Text style={[styles.reg14, { color: labelColor }]}>
-                  Style Image<Text style={styles.red}> *</Text>
+                  {tx("auto.styleImage_bae5")}<Text style={styles.red}> *</Text>
                 </Text>
                 <HapticTab
                   style={[styles.imagePicker, { borderColor: imagePickerBorder }]}
@@ -196,8 +200,8 @@ const CreateDesignScreen = () => {
                         <Upload size={scale(25)} color={iconColor} />
                       </View>
                       <View style={[styles.col, { justifyContent: "center", alignItems: "center" }]}>
-                        <Text style={[styles.reg14, { color: labelColor }]}>Click to upload design image</Text>
-                        <Text style={[styles.reg12, { color: subLabelColor }]}>PNG, JPG up to 10MB</Text>
+                        <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.clickToUploadDesignImage_083c")}</Text>
+                        <Text style={[styles.reg12, { color: subLabelColor }]}>{tx("auto.pngJpgUpTo10mb_951d")}</Text>
                       </View>
                     </>
                   )}
@@ -210,12 +214,12 @@ const CreateDesignScreen = () => {
               {/* name */}
               <View style={Styles.inputContainer}>
                 <Text style={[styles.reg14, { color: labelColor }]}>
-                  Design Name<Text style={styles.red}> *</Text>
+                  {tx("auto.designName_32f6")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={designDetails.name}
                   onChangeText={(text) => handleDetailsChange("name", text)}
-                  placeholder="e.g., Ankara Maxi Dress"
+                  placeholder={tx("auto.eGAnkaraMaxiDress_dc17")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
@@ -229,12 +233,12 @@ const CreateDesignScreen = () => {
               {/* price */}
               <View style={Styles.inputContainer}>
                 <Text style={[styles.reg14, { color: labelColor }]}>
-                  Price ({symbol})<Text style={styles.red}> *</Text>
+                  {tx("auto.price_40f8")}{symbol})<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={formatPrice(designDetails.price)}
                   onChangeText={(text) => handleDetailsChange("price", text)}
-                  placeholder="e.g., 85000"
+                  placeholder={tx("auto.eG85000_f1bb")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="numeric"
@@ -248,11 +252,11 @@ const CreateDesignScreen = () => {
 
               {/* description */}
               <View style={Styles.inputContainer}>
-                <Text style={[styles.reg14, { color: labelColor }]}>Description</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.description_55f8")}</Text>
                 <TextInput
                   value={designDetails.description}
                   onChangeText={(text) => handleDetailsChange("description", text)}
-                  placeholder="Brief description of the design..."
+                  placeholder={tx("auto.briefDescriptionOfTheDesign_7ce0")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
@@ -262,11 +266,11 @@ const CreateDesignScreen = () => {
 
               {/* notes */}
               <View style={Styles.inputContainer}>
-                <Text style={[styles.reg14, { color: labelColor }]}>Notes</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.notes_7044")}</Text>
                 <TextInput
                   value={designDetails.notes}
                   onChangeText={(text) => handleDetailsChange("notes", text)}
-                  placeholder="Additional notes, client preferences, special requirements..."
+                  placeholder={tx("auto.additionalNotesClientPreferences_5f9c")}
                   placeholderTextColor={placeholderColor}
                   keyboardType="default"
                   style={[Styles.input, { height: 100, textAlignVertical: "top", paddingTop: spacing(15), paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
@@ -274,7 +278,7 @@ const CreateDesignScreen = () => {
               </View>
 
               <View style={[styles.button, { marginTop: spacing(30) }]}>
-                <PrimaryButton title="Create Design" onPress={handleCreateDesign} loading={loading} />
+                <PrimaryButton title={tx("auto.createDesign_d641")} onPress={handleCreateDesign} loading={loading} />
               </View>
             </View>
           </ScrollView>

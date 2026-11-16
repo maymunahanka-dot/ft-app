@@ -24,6 +24,9 @@ import {
   View,
 } from "react-native";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = {
   mode: "ask" | "denied";
   onDismiss: () => void;
@@ -32,6 +35,7 @@ type Props = {
 };
 
 const NotificationPermissionModal = ({ mode, onDismiss, onEnabled }: Props) => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const [loading, setLoading] = useState(false);
 
@@ -97,14 +101,14 @@ const NotificationPermissionModal = ({ mode, onDismiss, onEnabled }: Props) => {
 
           {/* Title */}
           <Text style={[styles.title, { color: textColor }]}>
-            {mode === "ask" ? "Enable Notifications" : "Notifications Blocked"}
+            {mode === "ask" ? tx("auto.enableNotifications_8ec6") : tx("auto.notificationsBlocked_98de")}
           </Text>
 
           {/* Body */}
           <Text style={[styles.body, { color: subColor }]}>
             {mode === "ask"
-              ? "Stay on top of your business — get notified about logins, orders, and important updates."
-              : "You've blocked notifications for FashionTally. To receive alerts, enable them in your device settings."
+              ? tx("auto.stayOnTopOfYour_29ad")
+              : tx("auto.youVeBlockedNotificationsFor_bf25")
             }
           </Text>
 
@@ -117,7 +121,7 @@ const NotificationPermissionModal = ({ mode, onDismiss, onEnabled }: Props) => {
             {loading
               ? <ActivityIndicator color="white" size="small" />
               : <Text style={styles.primaryBtnText}>
-                  {mode === "ask" ? "Enable Notifications" : "Open Settings"}
+                  {mode === "ask" ? tx("auto.enableNotifications_8ec6") : tx("auto.openSettings_1346")}
                 </Text>
             }
           </Pressable>
@@ -125,7 +129,7 @@ const NotificationPermissionModal = ({ mode, onDismiss, onEnabled }: Props) => {
           {/* Secondary — dismiss */}
           <Pressable style={styles.secondaryBtn} onPress={onDismiss}>
             <Text style={[styles.secondaryBtnText, { color: subColor }]}>
-              {mode === "ask" ? "Not now" : "Dismiss"}
+              {mode === "ask" ? tx("auto.notNow_e457") : tx("auto.dismiss_70af")}
             </Text>
           </Pressable>
         </Pressable>

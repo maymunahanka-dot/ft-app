@@ -10,6 +10,9 @@ import ColorPicker, {
   SaturationSlider,
 } from "reanimated-color-picker";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 interface Props {
   value: string;
   onChange: (hex: string) => void;
@@ -20,6 +23,7 @@ export const ColorWheelPicker: React.FC<Props> = ({
   value,
   onChange,
 }) => {
+  const { t: tx } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [tempColor, setTempColor] = useState(value);
 
@@ -51,7 +55,7 @@ export const ColorWheelPicker: React.FC<Props> = ({
           {/* Color swatch preview */}
           <View style={[styles.swatch, { backgroundColor: value }]} />
           <Text style={styles.hexText}>{value.toUpperCase()}</Text>
-          <Text style={styles.changeText}>Change →</Text>
+          <Text style={styles.changeText}>{tx("auto.change_0b5f")}</Text>
         </Pressable>
       </View>
 
@@ -67,7 +71,7 @@ export const ColorWheelPicker: React.FC<Props> = ({
         />
 
         <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>Choose Invoice Color</Text>
+          <Text style={styles.sheetTitle}>{tx("auto.chooseInvoiceColor_9d89")}</Text>
 
           <ColorPicker
             value={value}
@@ -95,14 +99,14 @@ export const ColorWheelPicker: React.FC<Props> = ({
               style={[styles.btn, styles.cancelBtn]}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={styles.cancelText}>Cancel</Text>
+              <Text style={styles.cancelText}>{tx("auto.cancel_77df")}</Text>
             </Pressable>
 
             <Pressable
               style={[styles.btn, styles.confirmBtn]}
               onPress={handleConfirm}
             >
-              <Text style={styles.confirmText}>Apply</Text>
+              <Text style={styles.confirmText}>{tx("auto.apply_cfea")}</Text>
             </Pressable>
           </View>
         </View>

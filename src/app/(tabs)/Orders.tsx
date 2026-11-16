@@ -24,7 +24,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const OrdersScreen = () => {
+  const { t: tx } = useTranslation();
   const { bottom, top } = useSafeAreaInsets();
   const { isDark } = useTheme();
 
@@ -73,7 +77,7 @@ const OrdersScreen = () => {
       {/* header */}
       <View style={[styles.headerArea, { backgroundColor: bg }]}>
         <BurgerIcon
-          title="Orders"
+          title={tx("auto.orders_cded")}
           iconColor={isDark ? "white" : undefined}
           textStyle={{
             fontFamily: "medium",
@@ -90,7 +94,7 @@ const OrdersScreen = () => {
             <TextInput
               value={searchValue}
               onChangeText={setSearchValue}
-              placeholder="Search orders..."
+              placeholder={tx("auto.searchOrders_3c15")}
               placeholderTextColor={placeholderColor}
               style={[styles.input, { color: textColor }]}
             />
@@ -133,7 +137,7 @@ const OrdersScreen = () => {
         ListEmptyComponent={() => (
           <View style={styles.centered}>
             <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
-              {loading ? "" : "No Order found."}
+              {loading ? "" : tx("auto.noOrderFound_ec27")}
             </Text>
           </View>
         )}

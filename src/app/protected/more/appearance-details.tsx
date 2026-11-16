@@ -18,7 +18,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Line, Rect } from "react-native-svg";
+import { useTranslation } from "react-i18next";
+import { LANGUAGES, setAppLanguage } from "@/src/i18n";
 
+import { tl } from "@/src/i18n";
 const THEME_STORAGE_KEY = "app-theme";
 
 type ThemeOption = "light" | "dark" | "system";
@@ -58,6 +61,7 @@ const AppearanceDetailsScreen = () => {
   const [selected, setSelected] = useState<ThemeOption>("system");
   const [saving, setSaving] = useState(false);
   const { isDark } = useTheme();
+  const { t, i18n } = useTranslation();
 
   const bg = isDark ? "#0f0f0f" : "white";
   const textColor = isDark ? Colors.text.white : "rgba(54, 65, 83, 1)";
@@ -100,9 +104,9 @@ const AppearanceDetailsScreen = () => {
         </HapticTab>
 
         <View style={styles.col}>
-          <Text style={[styles.reg24, { color: textColor }]}>Appearance</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{t("appearance.title")}</Text>
           <Text style={[Styles.reg14, { color: subTextColor }]}>
-            Customize your experience
+            {t("appearance.subtitle")}
           </Text>
         </View>
       </View>
@@ -111,7 +115,7 @@ const AppearanceDetailsScreen = () => {
         contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingVertical: spacing(30) }}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>Theme</Text>
+        <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>{t("appearance.theme")}</Text>
 
         <View style={styles.cardsRow}>
           {themeOptions.map((opt) => {
@@ -129,7 +133,7 @@ const AppearanceDetailsScreen = () => {
                   {opt.icon}
                 </View>
                 <Text style={[styles.cardLabel, { color: isSelected ? Colors.primary : isDark ? "rgba(160,160,160,1)" : Colors.label }]}>
-                  {opt.label}
+                  {t(`appearance.${opt.key}`)}
                 </Text>
               </Pressable>
             );
@@ -137,12 +141,44 @@ const AppearanceDetailsScreen = () => {
         </View>
 
         <Text style={[styles.hint, { color: hintColor }]}>
-          Theme changes are saved and will persist across sessions.
+          {t("appearance.themeInfo")}
         </Text>
+
+        {/* Language: switches straight away and is saved to the account */}
+        <Text style={[styles.sectionTitle, { color: sectionTitleColor, marginTop: spacing(30) }]}>
+          {t("appearance.language")}
+        </Text>
+        <View style={styles.cardsRow}>
+          {LANGUAGES.map((lang) => {
+            const isSelected = i18n.language === lang.code;
+            return (
+              <Pressable
+                key={lang.code}
+                onPress={() => setAppLanguage(lang.code, { saveToAccount: true })}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: isSelected }}
+                style={[
+                  styles.card,
+                  { backgroundColor: isSelected ? cardSelectedBg : cardBg, borderColor: isSelected ? Colors.primary : cardBorder },
+                ]}
+              >
+                <View style={[styles.iconBox, { backgroundColor: isSelected ? iconBoxSelectedBg : iconBoxBg }]}>
+                  <Text style={{ fontFamily: "semibold", fontSize: scaleFontSize(15), color: Colors.primary }}>
+                    {lang.code.toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={[styles.cardLabel, { color: isSelected ? Colors.primary : isDark ? "rgba(160,160,160,1)" : Colors.label }]}>
+                  {tl(lang.label)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Text style={[styles.hint, { color: hintColor }]}>{t("appearance.languageInfo")}</Text>
       </ScrollView>
 
       <View style={{ paddingHorizontal: 16, paddingBottom: spacing(24) }}>
-        <PrimaryButton title="Save Settings" onPress={handleSave} loading={saving} />
+        <PrimaryButton title={t("appearance.save")} onPress={handleSave} loading={saving} />
       </View>
     </SafeAreaView>
   );

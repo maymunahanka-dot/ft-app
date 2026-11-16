@@ -14,6 +14,8 @@ import {
 } from "react-native";
 import { HapticTab } from "../haptic-tab";
 
+import { tl } from "@/src/i18n";
+import { useTranslation } from "react-i18next";
 interface Props {
   children: React.ReactNode;
   headerChildren: () => React.JSX.Element;
@@ -41,6 +43,7 @@ const BGScreenBG: React.FC<Props> = ({
   drawer = false,
   contentBg = "white",
 }) => {
+  useTranslation(); // re-render when the language changes
   const RightComp = rightIcon;
   const HeaderComp = headerChildren;
 
@@ -75,7 +78,7 @@ const BGScreenBG: React.FC<Props> = ({
               )}
 
               <View style={{ gap: spacing(8) }}>
-                <Text style={styles.title}>{title}</Text>
+                <Text style={styles.title}>{tl(title)}</Text>
                 {subText && (
                   <Text
                     style={[

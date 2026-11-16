@@ -24,7 +24,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const DesignsScreen = () => {
+  const { t: tx } = useTranslation();
   const { bottom, top } = useSafeAreaInsets();
   const { isDark } = useTheme();
 
@@ -67,7 +71,7 @@ const DesignsScreen = () => {
       {/* header */}
       <View style={[styles.headerArea, { backgroundColor: bg }]}>
         <BurgerIcon
-          title="Designs"
+          title={tx("auto.designs_fdea")}
           iconColor={isDark ? "white" : undefined}
           textStyle={{
             fontFamily: "medium",
@@ -84,7 +88,7 @@ const DesignsScreen = () => {
             <TextInput
               value={searchValue}
               onChangeText={setSearchValue}
-              placeholder="Search designs..."
+              placeholder={tx("auto.searchDesigns_53cb")}
               placeholderTextColor={placeholderColor}
               style={[styles.input, { color: textColor }]}
             />
@@ -131,7 +135,7 @@ const DesignsScreen = () => {
         ListEmptyComponent={() => (
           <View style={styles.centered}>
             <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
-              {loading ? "" : "No design found."}
+              {loading ? "" : tx("auto.noDesignFound_5418")}
             </Text>
           </View>
         )}

@@ -4,6 +4,8 @@ import { Order } from "../types/Order";
 import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
 
+import { t as tx } from "@/src/i18n";
+
 const CACHE_KEY = "store_orders";
 
 interface OrderState {
@@ -41,7 +43,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
     } catch (error: any) {
       console.error("Error getting orders:", error);
       if (!cached) {
-        ShowToastMessage({ title: error.message ?? "Failed to fetch orders", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchOrders_06e7"), preset: "error", haptic: "error" });
       }
     } finally {
       set({ loading: false });
@@ -74,7 +76,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       }
     } catch (error: any) {
       console.error("Error saving order:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to save order", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToSaveOrder_8830"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -94,7 +96,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       return res.data ?? null;
     } catch (error: any) {
       console.error("Error getting order:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to fetch order", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchOrder_00ae"), preset: "error", haptic: "error" });
       return null;
     } finally {
       set({ loading: false });
@@ -116,7 +118,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       }));
     } catch (error: any) {
       console.error("Error updating order status:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to update status", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToUpdateStatus_5e34"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -134,7 +136,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
       }));
     } catch (error: any) {
       console.error("Error deleting order:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to delete order", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToDeleteOrder_1fea"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

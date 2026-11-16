@@ -6,6 +6,8 @@ import React from "react";
 import { ColorValue, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 
+import { tl } from "@/src/i18n";
+import { useTranslation } from "react-i18next";
 interface StatCircleProps {
   title: string;
   value: number;
@@ -23,6 +25,7 @@ const StatCircle: React.FC<StatCircleProps> = ({
   strokeWidth = 16,
   colorText,
 }) => {
+  useTranslation(); // re-render when the language changes
   const { isDark } = useTheme();
 
   const textColor = colorText ?? (isDark ? Colors.text.white : "black");
@@ -75,7 +78,7 @@ const StatCircle: React.FC<StatCircleProps> = ({
             {`${Math.round(safeValue * 10) / 10}%`}
           </Text>
         )}
-        <Text style={[styles.title, { color: labelColor }]}>{title}</Text>
+        <Text style={[styles.title, { color: labelColor }]}>{tl(title)}</Text>
       </View>
     </View>
   );

@@ -24,7 +24,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const AppointmentsScreen = () => {
+  const { t: tx } = useTranslation();
   const { bottom, top } = useSafeAreaInsets();
   const { isDark } = useTheme();
 
@@ -70,7 +74,7 @@ const AppointmentsScreen = () => {
 
       <View style={[styles.headerArea, { backgroundColor: bg }]}>
         <BurgerIcon
-          title="Appointments"
+          title={tx("auto.appointments_1f3f")}
           iconColor={isDark ? "white" : undefined}
           textStyle={{
             fontFamily: "medium",
@@ -85,7 +89,7 @@ const AppointmentsScreen = () => {
               onPress={() => router.push("/protected/block-days")}
             >
               <Calendar size={scale(13)} color={Colors.primary} />
-              <Text style={[styles.blockText, { color: textColor }]}>Block days</Text>
+              <Text style={[styles.blockText, { color: textColor }]}>{tx("auto.blockDays_bf76")}</Text>
             </Pressable>
           }
         />
@@ -96,7 +100,7 @@ const AppointmentsScreen = () => {
             <TextInput
               value={searchValue}
               onChangeText={setSearchValue}
-              placeholder="Search appointments..."
+              placeholder={tx("auto.searchAppointments_6ae9")}
               placeholderTextColor={placeholderColor}
               style={[styles.input, { color: textColor }]}
             />
@@ -139,7 +143,7 @@ const AppointmentsScreen = () => {
         ListEmptyComponent={() => (
           <View style={styles.centered}>
             <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
-              {loading ? "" : "No Appointment found."}
+              {loading ? "" : tx("auto.noAppointmentFound_a674")}
             </Text>
           </View>
         )}

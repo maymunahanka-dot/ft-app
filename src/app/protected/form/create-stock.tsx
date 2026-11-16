@@ -34,7 +34,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const CreateStockItemScreen = () => {
+  const { t: tx } = useTranslation();
   const { symbol, toNaira, blockUntilRate } = useDisplayCurrency();
   const saveItem = useInventoryStore((state) => state.saveInventoryItem);
   const loading = useInventoryStore((state) => state.loading);
@@ -114,22 +118,22 @@ const CreateStockItemScreen = () => {
     let isValid = true;
 
     if (!stockData.name.trim()) {
-      newError.name = "Item name is required";
+      newError.name = tx("auto.itemNameIsRequired_e50f");
       isValid = false;
     }
 
     if (!suppliers.some((entry) => entry.name.trim())) {
-      newError.supplier = "At least one supplier name is required";
+      newError.supplier = tx("auto.atLeastOneSupplierName_71b3");
       isValid = false;
     }
 
     if (!stockData.quantity || stockData.quantity <= 0) {
-      newError.quantity = "Quantity must be greater than 0";
+      newError.quantity = tx("auto.quantityMustBeGreaterThan_ef16");
       isValid = false;
     }
 
     if (!stockData.sellingPricePerUnit || stockData.sellingPricePerUnit <= 0) {
-      newError.sellingPricePerUnit = "Selling price must be greater than 0";
+      newError.sellingPricePerUnit = tx("auto.sellingPriceMustBeGreater_0816");
       isValid = false;
     }
 
@@ -183,7 +187,7 @@ const CreateStockItemScreen = () => {
           >
             <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-          <Text style={[styles.reg24, { color: textColor }]}>Add Inventory Item</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.addInventoryItem_7bb3")}</Text>
         </View>
 
         <KeyboardAvoidingView
@@ -201,16 +205,16 @@ const CreateStockItemScreen = () => {
               <ImageUploadField
                 uri={stockData.imageUrl}
                 onChange={(uri) => handleDataChange("imageUrl", uri)}
-                label="Item Image (Optional)"
+                label={tx("auto.itemImageOptional_c259")}
               />
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Name<Text style={styles.red}> *</Text>
+                  {tx("auto.name_709a")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={stockData.name}
                   onChangeText={(text) => handleDataChange("name", text)}
-                  placeholder="e.g., Ankara Print Fabric"
+                  placeholder={tx("auto.eGAnkaraPrintFabric_9d4c")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
@@ -221,7 +225,7 @@ const CreateStockItemScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Category</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.category_a3c6")}</Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleCategoryModal}
@@ -244,12 +248,12 @@ const CreateStockItemScreen = () => {
                 <View style={[styles.row, { gap: spacing(20) }]}>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
                     <Text style={[Styles.label, { color: labelColor }]}>
-                      Quantity<Text style={styles.red}> *</Text>
+                      {tx("auto.quantity_44f6")}<Text style={styles.red}> *</Text>
                     </Text>
                     <TextInput
                       value={stockData.quantity === 0 ? "" : stockData.quantity.toString()}
                       onChangeText={(text) => handleDataChange("quantity", Number(text))}
-                      placeholder="Quantity"
+                      placeholder={tx("auto.quantity_44f6")}
                       placeholderTextColor={placeholderColor}
                       returnKeyType="next"
                       keyboardType="number-pad"
@@ -258,7 +262,7 @@ const CreateStockItemScreen = () => {
                     />
                   </View>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={[Styles.label, { color: labelColor }]}>Unit</Text>
+                    <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.unit_f6b9")}</Text>
                     <Pressable
                       style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                       onPress={toggleUnitModal}
@@ -272,7 +276,7 @@ const CreateStockItemScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Status</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.status_bae7")}</Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleStatusModal}
@@ -288,12 +292,12 @@ const CreateStockItemScreen = () => {
                 <View style={[styles.row, { gap: spacing(20) }]}>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
                     <Text style={[Styles.label, { color: labelColor }]}>
-                      Price per Unit ({symbol})<Text style={styles.red}> *</Text>
+                      {tx("auto.pricePerUnit_6893")}{symbol})<Text style={styles.red}> *</Text>
                     </Text>
                     <TextInput
                       value={((stockData?.sellingPricePerUnit ?? 1) === 0 ? "" : (stockData?.sellingPricePerUnit ?? 1)).toString()}
                       onChangeText={(text) => handleDataChange("sellingPricePerUnit", Number(text))}
-                      placeholder="Price per unit"
+                      placeholder={tx("auto.pricePerUnit_be76")}
                       placeholderTextColor={placeholderColor}
                       returnKeyType="next"
                       keyboardType="number-pad"
@@ -302,7 +306,7 @@ const CreateStockItemScreen = () => {
                     />
                   </View>
                   <View style={[Styles.inputContainer, { flex: 1 }]}>
-                    <Text style={[Styles.label, { color: labelColor }]}>Re-order Point</Text>
+                    <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.reOrderPoint_b982")}</Text>
                     <TextInput
                       value={((stockData?.reorderPoint ?? 1) === 0 ? "" : (stockData?.reorderPoint ?? 1)).toString()}
                       onChangeText={(text) => handleDataChange("reorderPoint", Number(text))}
@@ -319,11 +323,11 @@ const CreateStockItemScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Description</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.description_55f8")}</Text>
                 <TextInput
                   value={stockData.description}
                   onChangeText={(text) => handleDataChange("description", text)}
-                  placeholder="Add notes about this item..."
+                  placeholder={tx("auto.addNotesAboutThisItem_e26b")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   autoCorrect={false}
@@ -334,7 +338,7 @@ const CreateStockItemScreen = () => {
               </View>
 
               <View style={styles.button}>
-                <PrimaryButton title="Add Item" onPress={handleCreateStock} loading={loading} />
+                <PrimaryButton title={tx("auto.addItem_4dba")} onPress={handleCreateStock} loading={loading} />
               </View>
             </View>
           </ScrollView>

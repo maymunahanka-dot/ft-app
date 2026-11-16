@@ -9,7 +9,11 @@ import { X } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const ClientAppointments = () => {
+  const { t: tx } = useTranslation();
   const { phone } = useLocalSearchParams();
   const { isDark } = useTheme();
 
@@ -35,14 +39,14 @@ const ClientAppointments = () => {
           </Pressable>
 
           <Text style={[styles.reg20, { flex: 1, textAlign: "center", color: textColor }]}>
-            Appointments
+            {tx("auto.appointments_1f3f")}
           </Text>
         </View>
 
         <View style={styles.content}>
           <View style={styles.rowHeader}>
             <Text style={[Styles.med16, { color: textColor }]}>
-              Upcoming
+              {tx("auto.upcoming_523b")}
             </Text>
           </View>
 

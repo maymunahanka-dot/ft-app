@@ -7,11 +7,15 @@ import { StyleSheet, Text, View } from "react-native";
 import { formatFirestoreTimestamp } from "../invoice/util";
 import ImagePlaceholder from "../shared/ImagePlaceholder";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = {
   item: Client | undefined;
 };
 
 const ClientCard = ({ item }: Props) => {
+  const { t: tx } = useTranslation();
   const fullName = item?.name;
   console.log("client. card", item);
 
@@ -33,7 +37,7 @@ const ClientCard = ({ item }: Props) => {
                 { color: "rgba(0, 130, 54, 1)", lineHeight: 16 },
               ]}
             >
-              Active
+              {tx("auto.active_a733")}
             </Text>
           </View>
         </View>
@@ -41,14 +45,14 @@ const ClientCard = ({ item }: Props) => {
         <View style={[styles.gapRow, { gap: spacing(4) }]}>
           <Mail size={scale(15)} color={"white"} />
           <Text style={[Styles.reg14, { color: "white", lineHeight: 20 }]}>
-            {item?.email || "N/A"}
+            {item?.email || tx("auto.nA_08d2")}
           </Text>
         </View>
 
         <View style={[styles.gapRow, { gap: spacing(4) }]}>
           <Phone size={scale(15)} color={"white"} />
           <Text style={[Styles.reg14, { color: "white", lineHeight: 20 }]}>
-            {item?.phone || "N/A"}
+            {item?.phone || tx("auto.nA_08d2")}
           </Text>
         </View>
 

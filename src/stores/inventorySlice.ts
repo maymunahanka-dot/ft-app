@@ -5,6 +5,8 @@ import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
 import { resolveImageUrl } from "../utils/uploadImage";
 
+import { t as tx } from "@/src/i18n";
+
 const CACHE_KEY = "store_inventory";
 
 interface InventoryState {
@@ -41,7 +43,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       }));
     } catch (error: any) {
       console.error("Error saving inventory item:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to save item", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToSaveItem_a202"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -61,7 +63,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       return res.data ?? null;
     } catch (error: any) {
       console.error("Error getting inventory item:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to fetch item", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchItem_8380"), preset: "error", haptic: "error" });
       return null;
     } finally {
       set({ loading: false });
@@ -89,7 +91,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     } catch (error: any) {
       console.error("Error getting inventory:", error);
       if (!cached) {
-        ShowToastMessage({ title: error.message ?? "Failed to fetch inventory", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchInventory_61ea"), preset: "error", haptic: "error" });
       }
     } finally {
       set({ loading: false });
@@ -117,10 +119,10 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       set((state) => ({
         stocks: state.stocks.map((s) => (s.id === updated.id ? updated : s)),
       }));
-      ShowToastMessage({ title: "Inventory updated successfully", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.inventoryUpdatedSuccessfully_52cc"), preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error updating inventory item:", error);
-      ShowToastMessage({ title: error.message ?? "Update failed", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.updateFailed_4de0"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -138,7 +140,7 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       }));
     } catch (error: any) {
       console.error("Error deleting inventory item:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to delete item", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToDeleteItem_f478"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

@@ -2,6 +2,8 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 
+import { t as tx } from "@/src/i18n";
+
 type UseUserImageOptions = {
   maxWidth?: number;
   compress?: number;
@@ -54,7 +56,7 @@ export const useUserImage = ({
       setImage(returnBase64 ? manipulated.base64! : manipulated.uri);
     } catch (err) {
       console.error(err);
-      setError("Failed to pick image");
+      setError(tx("auto.failedToPickImage_1259"));
     } finally {
       setLoading(false);
     }

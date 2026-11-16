@@ -22,6 +22,9 @@ import { HapticTab } from "../haptic-tab";
 import { toDate } from "../invoice/util";
 
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type StarRatingProps = {
   rating: number;
   size?: number;
@@ -49,6 +52,7 @@ type Props = {
 };
 
 const FeedbackItem = ({ item }: Props) => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const loading = useCrmStore((state) => state.loading);
   const replyToFeedback = useCrmStore((state) => state.replyToFeedback);
@@ -77,13 +81,13 @@ const FeedbackItem = ({ item }: Props) => {
       if (isEdit) {
         const success = await updateFeedbackReply(item.id, value);
         if (success) {
-          ShowToastMessage({ title: "Reply updated successfully", preset: "done", from: "top" });
+          ShowToastMessage({ title: tx("auto.replyUpdatedSuccessfully_370f"), preset: "done", from: "top" });
           toggleEditModal();
         }
       } else {
         const success = await replyToFeedback(item.id, value);
         if (success) {
-          ShowToastMessage({ title: "Reply added successfully", preset: "done", from: "top" });
+          ShowToastMessage({ title: tx("auto.replyAddedSuccessfully_90ea"), preset: "done", from: "top" });
           toggleEditModal();
         }
       }
@@ -129,25 +133,25 @@ const FeedbackItem = ({ item }: Props) => {
           </Text>
 
           <Text style={[Styles.reg12, { color: subTextColor }]}>
-            Service: {CapitalizeFirstName(item.productName)}
+            {tx("auto.service_e5bc")}{" "}{CapitalizeFirstName(item.productName)}
           </Text>
 
           {!edit && item.reply ? (
             <View style={[styles.resBox, { backgroundColor: resBoxBg }]}>
-              <Text style={[Styles.reg12, { color: resLabelColor }]}>Your Response:</Text>
+              <Text style={[Styles.reg12, { color: resLabelColor }]}>{tx("auto.yourResponse_24ec")}</Text>
               <View style={[styles.gapRow, { alignItems: "flex-end" }]}>
                 <Text style={[Styles.reg14, { color: resTextColor, flex: 1, flexShrink: 1 }]}>
                   {CapitalizeFirstName(item.reply)}
                 </Text>
                 <HapticTab hitSlop={20} onPress={toggleEditModal}>
-                  <Text style={[Styles.reg14, { color: Colors.primary }]}>Edit</Text>
+                  <Text style={[Styles.reg14, { color: Colors.primary }]}>{tx("auto.edit_5301")}</Text>
                 </HapticTab>
               </View>
             </View>
           ) : (
             <HapticTab style={[styles.gapRow, { gap: spacing(5) }]} hitSlop={20} onPress={toggleEditModal}>
               <MessageSquare size={scale(16)} color={Colors.primary} />
-              <Text style={[Styles.reg14, { color: Colors.primary }]}>Reply</Text>
+              <Text style={[Styles.reg14, { color: Colors.primary }]}>{tx("auto.reply_6c2b")}</Text>
             </HapticTab>
           )}
         </View>
@@ -159,7 +163,7 @@ const FeedbackItem = ({ item }: Props) => {
             <TextInput
               value={value}
               onChangeText={setValue}
-              placeholder="Type your reply...."
+              placeholder={tx("auto.typeYourReply_066a")}
               placeholderTextColor={isDark ? "rgba(100,100,100,1)" : Colors.grayText}
               keyboardType="default"
               style={[
@@ -170,13 +174,13 @@ const FeedbackItem = ({ item }: Props) => {
           </View>
           <View style={styles.editBtns}>
             <HapticTab style={styles.cancelBtn} onPress={toggleEditModal} disabled={loading}>
-              <Text style={[Styles.reg14, { color: "white", textAlign: "center" }]}>Cancel</Text>
+              <Text style={[Styles.reg14, { color: "white", textAlign: "center" }]}>{tx("auto.cancel_77df")}</Text>
             </HapticTab>
             <HapticTab style={styles.updateBtn} onPress={onUpdate} disabled={loading}>
               {loading ? (
                 <ActivityIndicator size="small" color="white" />
               ) : (
-                <Text style={[Styles.reg14, { color: "white", textAlign: "center" }]}>Send</Text>
+                <Text style={[Styles.reg14, { color: "white", textAlign: "center" }]}>{tx("auto.send_9bc2")}</Text>
               )}
             </HapticTab>
           </View>

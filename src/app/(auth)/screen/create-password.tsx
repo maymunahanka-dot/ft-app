@@ -23,7 +23,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const CreatePasswordScreen = () => {
+  const { t: tx } = useTranslation();
   const { top: statusBarHeight } = useSafeAreaInsets();
   const { isDark } = useTheme();
   const { loading, signUp } = useAuth();
@@ -49,17 +53,17 @@ const CreatePasswordScreen = () => {
     const newErrors = { password: "", confirmPassword: "" };
     let isValid = true;
     if (!details.password?.trim()) {
-      newErrors.password = "Password is required";
+      newErrors.password = tx("auto.passwordIsRequired_6c56");
       isValid = false;
     } else if (details.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = tx("auto.passwordMustBeAtLeast_c017");
       isValid = false;
     }
     if (!details.confirmPassword?.trim()) {
-      newErrors.confirmPassword = "Please confirm your password";
+      newErrors.confirmPassword = tx("auto.pleaseConfirmYourPassword_51d6");
       isValid = false;
     } else if (details.password !== details.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = tx("auto.passwordsDoNotMatch_d69c");
       isValid = false;
     }
     setError(newErrors);
@@ -68,7 +72,7 @@ const CreatePasswordScreen = () => {
 
   const handleContinue = async () => {
     if (!validateForm()) {
-      Alert.alert("Validation Error", "Please fix the errors in the form before continuing.", [{ text: "OK" }]);
+      Alert.alert(tx("auto.validationError_a997"), tx("auto.pleaseFixTheErrorsIn_1e16"), [{ text: "OK" }]);
       return;
     }
     try {
@@ -99,18 +103,18 @@ const CreatePasswordScreen = () => {
             <HapticTab onPress={() => router.back()} hitSlop={20} style={{ paddingVertical: spacing(8) }}>
               <MoveLeft size={scale(20)} color={"white"} />
             </HapticTab>
-            <Text style={[Styles.sm15, { color: Colors.secondary }]}>Step 4 Of 4</Text>
+            <Text style={[Styles.sm15, { color: Colors.secondary }]}>{tx("auto.step4Of4_2986")}</Text>
             <View style={styles.col}>
-              <Text style={Styles.bold32}>One Platform.{"\n"}Powering Business Growth</Text>
-              <Text style={Styles.reg14}>Almost done. Just one more thing..</Text>
+              <Text style={Styles.bold32}>{tx("auto.onePlatform_909a")}{"\n"}{tx("auto.poweringBusinessGrowth_02eb")}</Text>
+              <Text style={Styles.reg14}>{tx("auto.almostDoneJustOneMore_65c9")}</Text>
             </View>
             <Text style={Styles.bold12}>
-              Already have an account?{"  "}
+              {tx("auto.alreadyHaveAnAccount_8559")}{"  "}
               <Text
                 style={[Styles.med16, { color: Colors.secondary, textDecorationLine: "underline" }]}
                 onPress={() => router.replace("/sign-in")}
               >
-                Sign in
+                {tx("auto.signIn_ada2")}
               </Text>
             </Text>
           </View>
@@ -129,7 +133,7 @@ const CreatePasswordScreen = () => {
           <View style={styles.content}>
             <View style={styles.inputsWrapper}>
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Password</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.password_8be3")}</Text>
                 <View style={[Styles.input2, { backgroundColor: inputBg, borderColor: inputBorder }]}>
                   <TextInput
                     value={details.password}
@@ -154,7 +158,7 @@ const CreatePasswordScreen = () => {
               </View>
 
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Confirm Password</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.confirmPassword_c2d4")}</Text>
                 <View style={[Styles.input2, { backgroundColor: inputBg, borderColor: inputBorder }]}>
                   <TextInput
                     value={details.confirmPassword}
@@ -180,7 +184,7 @@ const CreatePasswordScreen = () => {
             </View>
 
             <View style={styles.footer}>
-              <PrimaryButton title="Launch Account" onPress={handleContinue} loading={loading} />
+              <PrimaryButton title={tx("auto.launchAccount_a530")} onPress={handleContinue} loading={loading} />
             </View>
           </View>
         </View>

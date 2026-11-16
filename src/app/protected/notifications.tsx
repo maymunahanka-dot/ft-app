@@ -3,7 +3,7 @@ import { apiFetch } from "@/src/lib/apiClient";
 import { scale, scaleFontSize, spacing } from "@/src/utils/random";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Bell, ChevronLeft, Megaphone } from "lucide-react-native";
+import { Bell, CalendarClock, ChevronLeft, CircleAlert, CircleCheck, CircleX, Megaphone } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -18,13 +18,29 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/src/context/ThemeContext";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { dateLocale } from "@/src/i18n/dateLocale";
+import { tl } from "@/src/i18n";
 type Notification = {
   id: string;
   title: string;
   body: string;
   sentAt: string;
   isRead: boolean;
+  /** "broadcast", or a payment/plan type such as "payment_success" */
+  type?: string;
 };
+
+/** Icon and colour per type; anything else is an announcement. */
+const TYPE_ICON: Record<string, { Icon: typeof Megaphone; color: string }> = {
+  payment_success: { Icon: CircleCheck, color: Colors.primary },
+  plan_ending: { Icon: CalendarClock, color: "#D97706" },
+  plan_expired: { Icon: CircleAlert, color: "#DC2626" },
+  subscription_cancelled: { Icon: CircleX, color: "#DC2626" },
+};
+const isPlanNotice = (type?: string) => !!type && type in TYPE_ICON;
 
 const formatTime = (isoStr: string): string => {
   if (!isoStr) return "";
@@ -33,13 +49,14 @@ const formatTime = (isoStr: string): string => {
   const hours = Math.floor(diff / 3600000);
   const days  = Math.floor(diff / 86400000);
   if (mins  < 1)  return "Just now";
-  if (mins  < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days  < 7)  return `${days}d ago`;
-  return new Date(isoStr).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  if (mins  < 60) return tx("tpl.minsAgo", { n: mins });
+  if (hours < 24) return tx("tpl.hoursAgo", { n: hours });
+  if (days  < 7)  return tx("tpl.daysAgo", { n: days });
+  return new Date(isoStr).toLocaleDateString(dateLocale("en-GB"), { day: "numeric", month: "short" });
 };
 
 export default function NotificationsScreen() {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const { top, bottom } = useSafeAreaInsets();
 
@@ -101,15 +118,22 @@ export default function NotificationsScreen() {
           borderWidth: item.isRead ? 1 : 1.5,
         },
       ]}
-      onPress={() => !item.isRead && markRead(item.id)}
+      onPress={() => {
+        if (!item.isRead) markRead(item.id);
+        // Payment & plan notices open the subscription screen
+        if (isPlanNotice(item.type)) router.push("/protected/more/subscription-details");
+      }}
     >
       <View style={styles.cardRow}>
         <View style={styles.iconWrap}>
-          <Megaphone size={scale(18)} color={Colors.primary} />
+          {(() => {
+            const { Icon, color } = TYPE_ICON[item.type ?? ""] ?? { Icon: Megaphone, color: Colors.primary };
+            return <Icon size={scale(18)} color={color} />;
+          })()}
         </View>
         <View style={styles.cardBody}>
           <Text style={[styles.cardTitle, { color: textColor }]} numberOfLines={2}>
-            {item.title}
+            {tl(item.title)}
           </Text>
           <Text style={[styles.cardBody2, { color: subColor }]} numberOfLines={3}>
             {item.body}
@@ -132,10 +156,10 @@ export default function NotificationsScreen() {
         <TouchableOpacity onPress={() => router.back()} hitSlop={16} style={styles.backBtn}>
           <ChevronLeft size={scale(22)} color={textColor} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Notifications</Text>
+        <Text style={[styles.headerTitle, { color: textColor }]}>{tx("auto.notifications_753a")}</Text>
         {unreadCount > 0 ? (
           <TouchableOpacity onPress={markAllRead} hitSlop={12}>
-            <Text style={styles.markAllText}>Mark all read</Text>
+            <Text style={styles.markAllText}>{tx("auto.markAllRead_8958")}</Text>
           </TouchableOpacity>
         ) : (
           <View style={{ width: scale(60) }} />
@@ -149,7 +173,7 @@ export default function NotificationsScreen() {
       ) : notifications.length === 0 ? (
         <View style={styles.center}>
           <Bell size={scale(48)} color={subColor} strokeWidth={1.2} />
-          <Text style={[styles.emptyText, { color: subColor }]}>No notifications yet</Text>
+          <Text style={[styles.emptyText, { color: subColor }]}>{tx("auto.noNotificationsYet_d260")}</Text>
         </View>
       ) : (
         <FlatList

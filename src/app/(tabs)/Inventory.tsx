@@ -29,12 +29,14 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Animated, ImageBackground, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
 const CARD_GAP = spacing(8);
 const HEADER_SCROLL_DISTANCE = 100;
 
 // ─── Summary boxes ──────────────────────────────────────────────────────────
 const RowBoxes = () => {
+  const { t } = useTranslation();
   const stocks = useInventoryStore((state) => state.stocks);
   const lowStock = stocks.filter((s) => s.status === "low-stock").length;
   const outOfStock = stocks.filter((s) => s.status === "out-of-stock").length;
@@ -49,7 +51,7 @@ const RowBoxes = () => {
         <View style={[styles.cardInner]}>
           <View style={styles.startRow}>
             <BanknoteArrowUp size={scale(13)} color={"white"} />
-            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Stock Value</Text>
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>{t("inventory.stockValue")}</Text>
           </View>
           <MoneyAmount
             amount={inventoryValue}
@@ -64,7 +66,7 @@ const RowBoxes = () => {
         <View style={styles.cardInner}>
           <View style={styles.startRow}>
             <TriangleAlert size={scale(13)} color={"white"} />
-            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Low Stock</Text>
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>{t("inventory.lowStock")}</Text>
           </View>
           <Text style={styles.sm18}>{lowStock}</Text>
         </View>
@@ -74,7 +76,7 @@ const RowBoxes = () => {
         <View style={styles.cardInner}>
           <View style={styles.startRow}>
             <TrendingDown size={scale(13)} color={"white"} />
-            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Out of Stock</Text>
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>{t("inventory.outOfStock")}</Text>
           </View>
           <Text style={styles.sm18}>{outOfStock}</Text>
         </View>
@@ -85,6 +87,7 @@ const RowBoxes = () => {
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 const InventoryScreen = () => {
+  const { t } = useTranslation();
   const [searchValue, setSearchValue] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useSavedSort("ft.sort.inventory");
@@ -199,9 +202,9 @@ const InventoryScreen = () => {
             }}
           >
             <View style={{ gap: spacing(4) }}>
-              <Text style={styles.heroTitle}>Inventory</Text>
+              <Text style={styles.heroTitle}>{t("inventory.title")}</Text>
               <Text style={[Styles.reg14, { color: "rgba(255,255,255,0.8)", lineHeight: 18 }]}>
-                Manage your stock and supplies
+                {t("inventory.subtitle")}
               </Text>
             </View>
             <RowBoxes />
@@ -230,7 +233,7 @@ const InventoryScreen = () => {
                 <TextInput
                   value={searchValue}
                   onChangeText={setSearchValue}
-                  placeholder={"Search inventory..."}
+                  placeholder={t("inventory.search")}
                   placeholderTextColor={isDark ? "rgba(120,120,120,1)" : Colors.grey}
                   style={[styles.input, { color: searchTextColor }]}
                 />
@@ -240,12 +243,12 @@ const InventoryScreen = () => {
                 onChange={setSortBy}
                 borderColor={searchBorder}
                 options={[
-                  { value: "newest", label: "Newest" },
-                  { value: "oldest", label: "Oldest" },
-                  { value: "name-asc", label: "Name (A–Z)" },
-                  { value: "name-desc", label: "Name (Z–A)" },
-                  { value: "quantity", label: "Quantity" },
-                  { value: "price", label: "Price" },
+                  { value: "newest", label: t("sort.newest") },
+                  { value: "oldest", label: t("sort.oldest") },
+                  { value: "name-asc", label: t("sort.nameAsc") },
+                  { value: "name-desc", label: t("sort.nameDesc") },
+                  { value: "quantity", label: t("sort.quantity") },
+                  { value: "price", label: t("sort.price") },
                 ]}
               />
             </View>
@@ -260,7 +263,7 @@ const InventoryScreen = () => {
 
             {/* List header */}
             <Text style={[Styles.reg16, { color: countTextColor }]}>
-              {stocks.length} Items
+              {t("inventory.items", { count: stocks.length })}
             </Text>
 
             {/* Items */}
@@ -271,7 +274,7 @@ const InventoryScreen = () => {
             ) : filteredStocks.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
-                  No item found.
+                  {t("inventory.empty")}
                 </Text>
               </View>
             ) : (
@@ -310,7 +313,7 @@ const InventoryScreen = () => {
           </HapticTab>
 
           <Animated.Text style={[styles.headerTitle, { opacity: titleOpacity, color: headerIconColor }]}>
-            Inventory
+            {t("inventory.title")}
           </Animated.Text>
 
           <View style={{ width: scale(24) }} />

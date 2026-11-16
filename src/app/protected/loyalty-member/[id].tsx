@@ -34,6 +34,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const LevelList = [
   {
     label: "Bronze",
@@ -54,6 +57,7 @@ const LevelList = [
 ];
 
 const EditLoyaltyMemberScreen = () => {
+  const { t: tx } = useTranslation();
   const { id } = useLocalSearchParams();
   const loyaltyMembers = useCrmStore((state) => state.loyaltyMembers);
   const foundMember = loyaltyMembers.find((prev) => prev.id === id.toString());
@@ -117,21 +121,21 @@ const EditLoyaltyMemberScreen = () => {
     };
 
     if (!data.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = tx("auto.nameIsRequired_222c");
     }
 
     if (!data.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = tx("auto.emailIsRequired_4da1");
     } else if (!/\S+@\S+\.\S+/.test(data.email)) {
-      newErrors.email = "Please enter a valid email";
+      newErrors.email = tx("auto.pleaseEnterAValidEmail_2cf1");
     }
 
     if (data.points < 0) {
-      newErrors.points = "Points cannot be negative";
+      newErrors.points = tx("auto.pointsCannotBeNegative_8d87");
     }
 
     if (data.totalSpent < 0) {
-      newErrors.totalSpent = "Total spent cannot be negative";
+      newErrors.totalSpent = tx("auto.totalSpentCannotBeNegative_f8db");
     }
 
     setError(newErrors);
@@ -144,7 +148,7 @@ const EditLoyaltyMemberScreen = () => {
       const success = await editLoyaltyMember(foundMember.id, data);
       if (success) {
         ShowToastMessage({
-          title: "Member updated successfully",
+          title: tx("auto.memberUpdatedSuccessfully_940f"),
           from: "top",
           preset: "done",
         });
@@ -174,7 +178,7 @@ const EditLoyaltyMemberScreen = () => {
           >
             <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-          <Text style={[styles.reg24, { color: textColor }]}>Edit Loyalty Member</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.editLoyaltyMember_ce3d")}</Text>
         </View>
 
         <KeyboardAvoidingView
@@ -191,13 +195,13 @@ const EditLoyaltyMemberScreen = () => {
             <View style={styles.content}>
               {/* client picker */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Clients</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.clients_28e2")}</Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleClientModal}
                 >
                   <Text style={[Styles.reg16, { color: selectedClient ? dropdownActiveColor : dropdownTextColor }]}>
-                    {selectedClient ? selectedClient.name : "Select a Client from your list"}
+                    {selectedClient ? selectedClient.name : tx("auto.selectAClientFromYour_dbac")}
                   </Text>
                   <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
@@ -206,12 +210,12 @@ const EditLoyaltyMemberScreen = () => {
               {/* name */}
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Name<Text style={styles.red}> *</Text>
+                  {tx("auto.name_709a")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.name}
                   onChangeText={(text) => handleDataChange("name", text)}
-                  placeholder="Enter member's full name"
+                  placeholder={tx("auto.enterMemberSFullName_ae1a")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
@@ -224,12 +228,12 @@ const EditLoyaltyMemberScreen = () => {
               {/* email */}
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Email Address<Text style={styles.red}> *</Text>
+                  {tx("auto.emailAddress_09ba")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={data.email}
                   onChangeText={(text) => handleDataChange("email", text)}
-                  placeholder="Enter member's email address"
+                  placeholder={tx("auto.enterMemberSEmailAddress_53d9")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="email-address"
@@ -241,7 +245,7 @@ const EditLoyaltyMemberScreen = () => {
 
               {/* level */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Loyalty Level</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.loyaltyLevel_f0a9")}</Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleLevelModal}
@@ -257,7 +261,7 @@ const EditLoyaltyMemberScreen = () => {
               <View style={[styles.row, { gap: spacing(20) }]}>
                 <View style={[Styles.inputContainer, { flex: 1 }]}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Current Points<Text style={styles.red}> *</Text>
+                    {tx("auto.currentPoints_6653")}<Text style={styles.red}> *</Text>
                   </Text>
                   <TextInput
                     value={data.points === 0 ? "" : data.points.toString()}
@@ -274,7 +278,7 @@ const EditLoyaltyMemberScreen = () => {
 
                 <View style={[Styles.inputContainer, { flex: 1 }]}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Total Spent (₦)<Text style={styles.red}> *</Text>
+                    {tx("auto.totalSpent_0d4c")}<Text style={styles.red}> *</Text>
                   </Text>
                   <TextInput
                     value={data.totalSpent === 0 ? "" : formatPrice(data.totalSpent.toString())}
@@ -291,7 +295,7 @@ const EditLoyaltyMemberScreen = () => {
               </View>
 
               <View style={styles.button}>
-                <PrimaryButton title="Edit Member" onPress={handleEditMemeber} loading={loading} props={{ disabled: loading }} />
+                <PrimaryButton title={tx("auto.editMember_cf6e")} onPress={handleEditMemeber} loading={loading} props={{ disabled: loading }} />
               </View>
             </View>
           </ScrollView>

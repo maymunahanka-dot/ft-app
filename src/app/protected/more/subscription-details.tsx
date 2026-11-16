@@ -24,6 +24,11 @@ import { useEffect, useState, type ReactNode } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { dateLocale } from "@/src/i18n/dateLocale";
+import { tl } from "@/src/i18n";
 /** Brand greens (same as the website). */
 const BRAND = Colors.primary; // rgba(22, 152, 141, 1)
 const BRAND_DARK = "#0B4F49";
@@ -32,7 +37,7 @@ const DANGER = "#E5484D";
 
 /** Same date format as the web subscription panel, e.g. "6 Nov 2026". */
 const formatDate = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "N/A";
+  iso ? new Date(iso).toLocaleDateString(dateLocale("en-GB"), { day: "numeric", month: "short", year: "numeric" }) : "N/A";
 
 const INACTIVE_TITLE: Record<string, string> = {
   trial_ended: "Your free trial has ended",
@@ -45,6 +50,7 @@ const FREE_FEATURES = ["Dashboard", "Up to 10 clients", "Up to 10 invoices"];
 const PAID_FEATURES = ["Unlimited clients & invoices", "Orders & custom designs", "Inventory & finance", "Appointments & CRM"];
 
 export default function SubscriptionDetailsScreen() {
+  const { t: tx } = useTranslation();
   const user = useUserStore((state) => state.user);
   const [info, setInfo] = useState<SubscriptionSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +93,7 @@ export default function SubscriptionDetailsScreen() {
     try {
       await openPayPage();
     } catch (err: any) {
-      setPayError(err?.message ?? "Couldn't open the payment page. Please try again.");
+      setPayError(err?.message ?? tx("auto.couldnTOpenThePayment_4b8a"));
     } finally {
       setOpening(false);
       fetchStatus();
@@ -109,13 +115,13 @@ export default function SubscriptionDetailsScreen() {
           style={[styles.payBtn, opening && { opacity: 0.7 }]}
         >
           {opening ? <ActivityIndicator color="white" /> : <Zap size={scale(16)} color="white" fill="white" />}
-          <Text style={styles.payBtnText}>{opening ? "Opening checkout…" : label}</Text>
+          <Text style={styles.payBtnText}>{opening ? tx("auto.openingCheckout_4b14") : label}</Text>
         </LinearGradient>
       </TouchableOpacity>
       {!!payError && <Text style={styles.errorText}>{payError}</Text>}
       <View style={styles.secureRow}>
         <Lock size={scale(11)} color={c.sub} />
-        <Text style={[styles.secureText, { color: c.sub }]}>Secure payment with Flutterwave · no auto-renew</Text>
+        <Text style={[styles.secureText, { color: c.sub }]}>{tx("auto.securePaymentWithFlutterwaveNo_ce3f")}</Text>
       </View>
     </>
   );
@@ -133,13 +139,13 @@ export default function SubscriptionDetailsScreen() {
           <ChevronLeft size={scale(20)} color={c.text} strokeWidth={1.8} />
         </HapticTab>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: c.text }]}>Subscription</Text>
-          <Text style={[styles.subtitle, { color: c.sub }]}>Your plan and billing</Text>
+          <Text style={[styles.title, { color: c.text }]}>{tx("auto.subscription_8fde")}</Text>
+          <Text style={[styles.subtitle, { color: c.sub }]}>{tx("auto.yourPlanAndBilling_f631")}</Text>
         </View>
         <TouchableOpacity
           onPress={fetchStatus}
           style={[styles.backBtn, { backgroundColor: c.card, borderColor: c.border }]}
-          accessibilityLabel="Refresh status"
+          accessibilityLabel={tx("auto.refreshStatus_ade1")}
         >
           <RefreshCw size={scale(16)} color={BRAND} />
         </TouchableOpacity>
@@ -162,17 +168,17 @@ export default function SubscriptionDetailsScreen() {
                   <Sparkles size={scale(30)} color={BRAND} />
                 </View>
                 <Text style={[styles.inactiveTitle, { color: c.text }]}>
-                  {info?.status === "expired" ? `Your ${info.plan} plan has expired` : INACTIVE_TITLE[info?.status ?? "cancelled"]}
+                  {info?.status === "expired" ? tx("tpl.planExpired", { plan: tl(info.plan) }) : INACTIVE_TITLE[info?.status ?? "cancelled"]}
                 </Text>
                 <Text style={[styles.inactiveSub, { color: c.sub }]}>
-                  {info?.endDate && info.status !== "cancelled" ? `It ended on ${formatDate(info.endDate)}. ` : ""}
-                  Pick a plan to unlock everything again.
+                  {info?.endDate && info.status !== "cancelled" ? tx("tpl.endedOn", { date: formatDate(info.endDate) }) : ""}
+                  {tx("auto.pickAPlanToUnlock_683f")}
                 </Text>
                 {renderPayButton("Choose a plan & pay")}
               </View>
 
               <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
-                <Text style={[styles.sectionLabel, { color: c.sub }]}>STILL FREE</Text>
+                <Text style={[styles.sectionLabel, { color: c.sub }]}>{tx("auto.stillFree_702b")}</Text>
                 {FREE_FEATURES.map((f) => (
                   <View key={f} style={styles.featureRow}>
                     <View style={[styles.featureDot, { backgroundColor: c.tint }]}>
@@ -182,7 +188,7 @@ export default function SubscriptionDetailsScreen() {
                   </View>
                 ))}
                 <View style={[styles.divider, { backgroundColor: c.border }]} />
-                <Text style={[styles.sectionLabel, { color: c.sub }]}>UNLOCK WITH A PLAN</Text>
+                <Text style={[styles.sectionLabel, { color: c.sub }]}>{tx("auto.unlockWithAPlan_11e0")}</Text>
                 {PAID_FEATURES.map((f) => (
                   <View key={f} style={styles.featureRow}>
                     <View style={[styles.featureDot, { backgroundColor: c.tint }]}>
@@ -209,18 +215,18 @@ export default function SubscriptionDetailsScreen() {
                   </View>
                   <View style={styles.heroPill}>
                     <Text style={styles.heroPillText}>
-                      {isTrial ? "Free trial" : info.billingCycle === "yearly" ? "Yearly" : "Monthly"}
+                      {isTrial ? tx("auto.freeTrial_2235") : info.billingCycle === "yearly" ? tx("auto.yearly_7622") : tx("auto.monthly_d31e")}
                     </Text>
                   </View>
                 </View>
 
-                <Text style={styles.heroLabel}>{isTrial ? "Trying" : "Current plan"}</Text>
-                <Text style={styles.heroPlan}>{info.plan ?? "Free"}</Text>
+                <Text style={styles.heroLabel}>{isTrial ? tx("auto.trying_773f") : tx("auto.currentPlan_ec5c")}</Text>
+                <Text style={styles.heroPlan}>{info.plan ?? tx("auto.free_75f5")}</Text>
 
                 <View style={styles.heroDaysRow}>
                   <Text style={styles.heroDays}>{info.daysLeft}</Text>
                   <Text style={styles.heroDaysUnit}>
-                    day{info.daysLeft === 1 ? "" : "s"} left of {info.totalDays}
+                    {tx("auto.day_a262")}{info.daysLeft === 1 ? "" : "s"}{" "}{tx("auto.leftOf_7422")}{" "}{info.totalDays}
                   </Text>
                 </View>
 
@@ -228,7 +234,7 @@ export default function SubscriptionDetailsScreen() {
                   <View style={[styles.heroFill, { width: `${leftShare * 100}%` as any }]} />
                 </View>
                 <Text style={styles.heroEnds}>
-                  {isTrial ? "Trial ends" : "Ends"} {formatDate(info.endDate)}
+                  {isTrial ? tx("auto.trialEnds_d68a") : tx("auto.ends_9185")} {formatDate(info.endDate)}
                 </Text>
               </LinearGradient>
 
@@ -236,7 +242,7 @@ export default function SubscriptionDetailsScreen() {
                 <View style={[styles.notice, { backgroundColor: c.tint }]}>
                   <CalendarClock size={scale(16)} color={BRAND} />
                   <Text style={[styles.noticeText, { color: c.text }]}>
-                    Only {info.daysLeft} day{info.daysLeft === 1 ? "" : "s"} left. Renew now to avoid losing access.
+                    {tx("auto.only_8737")}{" "}{info.daysLeft}{" "}{tx("auto.day_a262")}{info.daysLeft === 1 ? "" : "s"}{" "}{tx("auto.leftRenewNowToAvoid_f721")}
                   </Text>
                 </View>
               )}
@@ -245,22 +251,22 @@ export default function SubscriptionDetailsScreen() {
               <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
                 <DetailRow
                   icon={<CalendarCheck size={scale(16)} color={BRAND} />}
-                  label="Started"
+                  label={tx("auto.started_faa9")}
                   value={formatDate(info.startDate)}
                   colors={c}
                 />
                 <View style={[styles.divider, { backgroundColor: c.border }]} />
                 <DetailRow
                   icon={<CalendarClock size={scale(16)} color={BRAND} />}
-                  label={isTrial ? "Trial ends" : "Ends"}
+                  label={isTrial ? tx("auto.trialEnds_d68a") : tx("auto.ends_9185")}
                   value={formatDate(info.endDate)}
                   colors={c}
                 />
                 <View style={[styles.divider, { backgroundColor: c.border }]} />
                 <DetailRow
                   icon={<Repeat size={scale(16)} color={BRAND} />}
-                  label="Auto-renew"
-                  value="Off"
+                  label={tx("auto.autoRenew_92db")}
+                  value={tx("auto.off_e3de")}
                   colors={c}
                 />
               </View>
@@ -268,12 +274,12 @@ export default function SubscriptionDetailsScreen() {
               {/* Pay */}
               <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
                 <Text style={[styles.payTitle, { color: c.text }]}>
-                  {isTrial ? "Ready to keep going?" : "Renew or switch plan"}
+                  {isTrial ? tx("auto.readyToKeepGoing_488f") : tx("auto.renewOrSwitchPlan_f899")}
                 </Text>
                 <Text style={[styles.paySub, { color: c.sub }]}>
                   {isTrial
-                    ? "Choose a plan before your trial ends to keep everything unlocked."
-                    : "Add more time to your plan or move to a different one."}
+                    ? tx("auto.chooseAPlanBeforeYour_bc6c")
+                    : tx("auto.addMoreTimeToYour_8724")}
                 </Text>
                 {renderPayButton(isTrial ? "Choose a plan & pay" : "Change or renew plan")}
               </View>
@@ -296,10 +302,11 @@ function DetailRow({
   value: string;
   colors: { text: string; sub: string; tint: string };
 }) {
+  useTranslation(); // re-render when the language changes
   return (
     <View style={styles.detailRow}>
       <View style={[styles.detailIcon, { backgroundColor: colors.tint }]}>{icon}</View>
-      <Text style={[styles.detailLabel, { color: colors.sub }]}>{label}</Text>
+      <Text style={[styles.detailLabel, { color: colors.sub }]}>{tl(label)}</Text>
       <Text style={[styles.detailValue, { color: colors.text }]}>{value}</Text>
     </View>
   );

@@ -15,6 +15,8 @@ import {
 } from "react-native";
 import { HapticTab } from "../haptic-tab";
 
+import { tl } from "@/src/i18n";
+import { useTranslation } from "react-i18next";
 type Props = {
   title?: string;
   iconColor?: ColorValue;
@@ -24,6 +26,7 @@ type Props = {
 };
 
 const BurgerIcon = ({ title, textStyle, iconColor, viewStyle, right }: Props) => {
+  useTranslation(); // re-render when the language changes
   const navigation = useNavigation();
   const { isDark } = useTheme();
   const color = iconColor ?? (isDark ? "white" : Colors.text.black);
@@ -40,7 +43,7 @@ const BurgerIcon = ({ title, textStyle, iconColor, viewStyle, right }: Props) =>
         <Menu size={scale(24)} color={color} />
       </HapticTab>
       <View style={styles.titleRow}>
-        <Text style={[styles.title, textStyle, { lineHeight }]}>{title}</Text>
+        <Text style={[styles.title, textStyle, { lineHeight }]}>{tl(title)}</Text>
         {right}
       </View>
     </View>

@@ -6,6 +6,9 @@ import { scale, spacing } from "@/src/utils/random";
 import { Plus, X } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type SupplierFieldsProps = {
   suppliers: InventorySupplier[];
   onChange: (suppliers: InventorySupplier[]) => void;
@@ -13,6 +16,7 @@ type SupplierFieldsProps = {
 };
 
 const SupplierFields = ({ suppliers, onChange, error }: SupplierFieldsProps) => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const labelColor = isDark ? "rgba(160,160,160,1)" : Colors.label;
   const inputBg = isDark ? "rgba(255,255,255,0.06)" : "white";
@@ -29,18 +33,18 @@ const SupplierFields = ({ suppliers, onChange, error }: SupplierFieldsProps) => 
 
   return (
     <View style={{ gap: spacing(8) }}>
-      <Text style={[Styles.label, { color: labelColor }]}>Suppliers</Text>
+      <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.suppliers_6f76")}</Text>
       {suppliers.map((entry, index) => (
         <View key={index} style={[styles.card, { backgroundColor: cardBg, borderColor: inputBorder }]}>
           <View style={styles.head}>
             <Text style={[styles.title, { color: titleColor }]}>
-              {suppliers.length > 1 ? `Supplier ${index + 1}` : "Supplier"}
+              {suppliers.length > 1 ? `Supplier ${index + 1}` : tx("auto.supplier_55ed")}
             </Text>
             {suppliers.length > 1 && (
               <Pressable
                 onPress={() => onChange(suppliers.filter((_, i) => i !== index))}
                 hitSlop={8}
-                accessibilityLabel="Remove supplier"
+                accessibilityLabel={tx("auto.removeSupplier_5607")}
               >
                 <X size={scale(16)} color="rgba(220, 38, 38, 1)" />
               </Pressable>
@@ -48,12 +52,12 @@ const SupplierFields = ({ suppliers, onChange, error }: SupplierFieldsProps) => 
           </View>
           <View style={Styles.inputContainer}>
             <Text style={[Styles.label, { color: labelColor }]}>
-              Name{index === 0 ? <Text style={styles.red}> *</Text> : null}
+              {tx("auto.name_709a")}{index === 0 ? <Text style={styles.red}> *</Text> : null}
             </Text>
             <TextInput
               value={entry.name}
               onChangeText={(text) => update(index, "name", text)}
-              placeholder="Lagos Textiles Ltd"
+              placeholder={tx("auto.lagosTextilesLtd_3966")}
               placeholderTextColor={placeholderColor}
               autoCorrect={false}
               style={[Styles.input, styles.field, { backgroundColor: inputBg, borderColor: inputBorder, color: inputTextColor }]}
@@ -63,11 +67,11 @@ const SupplierFields = ({ suppliers, onChange, error }: SupplierFieldsProps) => 
             ) : null}
           </View>
           <View style={Styles.inputContainer}>
-            <Text style={[Styles.label, { color: labelColor }]}>Contact</Text>
+            <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.contact_b374")}</Text>
             <TextInput
               value={entry.contact}
               onChangeText={(text) => update(index, "contact", text)}
-              placeholder="Phone or email"
+              placeholder={tx("auto.phoneOrEmail_c338")}
               placeholderTextColor={placeholderColor}
               autoCorrect={false}
               style={[Styles.input, styles.field, { backgroundColor: inputBg, borderColor: inputBorder, color: inputTextColor }]}
@@ -80,7 +84,7 @@ const SupplierFields = ({ suppliers, onChange, error }: SupplierFieldsProps) => 
         onPress={() => onChange([...suppliers, { name: "", contact: "" }])}
       >
         <Plus size={scale(16)} color={Colors.primary} />
-        <Text style={[styles.addText, { color: Colors.primary }]}>Add another supplier</Text>
+        <Text style={[styles.addText, { color: Colors.primary }]}>{tx("auto.addAnotherSupplier_86cd")}</Text>
       </Pressable>
     </View>
   );

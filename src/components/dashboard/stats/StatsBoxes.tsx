@@ -8,6 +8,9 @@ import { Box, CircleDollarSign, FileText } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 interface StatsBoxesProps {
   totalRevenue: number;
   revenueGrowth: number;
@@ -29,6 +32,7 @@ const StatsBoxes: React.FC<StatsBoxesProps> = ({
   inventoryValue,
   totalInventoryItems,
 }) => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
 
   const boxBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(249, 250, 251, 1)";
@@ -50,19 +54,19 @@ const StatsBoxes: React.FC<StatsBoxesProps> = ({
             <CircleDollarSign size={scale(20)} strokeWidth={2} color={Colors.tintTabColor} />
             <MoneyAmount amount={Number(totalRevenue) || 0} color={textColor} primarySize={20} />
           </View>
-          <Text style={[Styles.reg14, { color: textColor }]}>Total Revenue</Text>
-          <Text style={[Styles.reg12, { color: statusColor }]}>{displayValue} from last month</Text>
+          <Text style={[Styles.reg14, { color: textColor }]}>{tx("auto.totalRevenue_f3a8")}</Text>
+          <Text style={[Styles.reg12, { color: statusColor }]}>{displayValue}{" "}{tx("auto.fromLastMonth_e945")}</Text>
         </View>
 
         <View style={[styles.box, { backgroundColor: boxBg, borderColor: boxBorder }]}>
           <View style={styles.startRow}>
             <FontAwesome name="users" size={scale(18)} color={Colors.tintTabColor} />
             <Text style={[styles.med24, { color: textColor }]}>{activeClients}</Text>
-            <Text style={[Styles.reg14, { color: subTextColor }]}>clients</Text>
+            <Text style={[Styles.reg14, { color: subTextColor }]}>{tx("auto.clients_93df")}</Text>
           </View>
-          <Text style={[Styles.reg14, { color: textColor }]}>Active Clients</Text>
+          <Text style={[Styles.reg14, { color: textColor }]}>{tx("auto.activeClients_c182")}</Text>
           <Text style={[Styles.reg12, { color: Colors.primary }]}>
-            {newClientsThisMonth} new this month
+            {newClientsThisMonth}{" "}{tx("auto.newThisMonth_9107")}
           </Text>
         </View>
       </View>
@@ -72,10 +76,10 @@ const StatsBoxes: React.FC<StatsBoxesProps> = ({
           <View style={styles.startRow}>
             <FileText size={scale(18)} strokeWidth={2} color={Colors.tintTabColor} />
             <Text style={[styles.med24, { color: textColor }]}>{pendingOrders}</Text>
-            <Text style={[Styles.reg14, { color: subTextColor }]}>orders</Text>
+            <Text style={[Styles.reg14, { color: subTextColor }]}>{tx("auto.orders_9658")}</Text>
           </View>
-          <Text style={[Styles.reg14, { color: textColor }]}>Pending Orders</Text>
-          <Text style={[Styles.reg12, { color: Colors.primary }]}>{ordersThisWeek} due this week</Text>
+          <Text style={[Styles.reg14, { color: textColor }]}>{tx("auto.pendingOrders_2a94")}</Text>
+          <Text style={[Styles.reg12, { color: Colors.primary }]}>{ordersThisWeek}{" "}{tx("auto.dueThisWeek_5fca")}</Text>
         </View>
 
         <View style={[styles.box, { backgroundColor: boxBg, borderColor: boxBorder }]}>
@@ -83,9 +87,9 @@ const StatsBoxes: React.FC<StatsBoxesProps> = ({
             <Box size={scale(20)} strokeWidth={2} color={Colors.tintTabColor} />
             <MoneyAmount amount={Number(inventoryValue) || 0} color={textColor} primarySize={20} />
           </View>
-          <Text style={[Styles.reg14, { color: textColor }]}>Inventory Value</Text>
+          <Text style={[Styles.reg14, { color: textColor }]}>{tx("auto.inventoryValue_d96f")}</Text>
           <Text style={[Styles.reg12, { color: Colors.primary }]}>
-            {totalInventoryItems} items in stock
+            {totalInventoryItems}{" "}{tx("auto.itemsInStock_2b49")}
           </Text>
         </View>
       </View>

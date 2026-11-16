@@ -20,6 +20,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { Colors } from '../../constants/theme';
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 interface Props {
   message:  string;
   storeUrl: string;
@@ -28,6 +31,7 @@ interface Props {
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
 export function ForceUpdateScreen({ message, storeUrl }: Props) {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const insets     = useSafeAreaInsets();
 
@@ -68,7 +72,7 @@ export function ForceUpdateScreen({ message, storeUrl }: Props) {
 
         {/* Title */}
         <Text style={[styles.title, { color: textPri }]}>
-          Update Required
+          {tx("auto.updateRequired_e875")}
         </Text>
 
         {/* Divider */}
@@ -76,13 +80,13 @@ export function ForceUpdateScreen({ message, storeUrl }: Props) {
 
         {/* Message */}
         <Text style={[styles.message, { color: textSec }]}>
-          {message || 'A new version of FashionTally is available. Please update the app to continue.'}
+          {message || tx("auto.aNewVersionOfFashiontally_6238")}
         </Text>
 
         {/* Version badge */}
         <View style={[styles.versionBadge, { backgroundColor: isDark ? '#2d1f1f' : '#fef2f2', borderColor: isDark ? '#7f1d1d' : '#fecaca' }]}>
           <Text style={[styles.versionText, { color: isDark ? '#fca5a5' : '#dc2626' }]}>
-            Your version {APP_VERSION} is no longer supported
+            {tx("auto.yourVersion_67cd")}{" "}{APP_VERSION}{" "}{tx("auto.isNoLongerSupported_a4a4")}
           </Text>
         </View>
 
@@ -95,12 +99,12 @@ export function ForceUpdateScreen({ message, storeUrl }: Props) {
           onPress={handleUpdate}
         >
           <ArrowUpCircle size={18} color="#fff" strokeWidth={2} style={{ marginRight: 8 }} />
-          <Text style={styles.btnText}>Update Now</Text>
+          <Text style={styles.btnText}>{tx("auto.updateNow_7c10")}</Text>
         </Pressable>
 
         {/* Platform hint */}
         <Text style={[styles.hint, { color: textSec }]}>
-          {Platform.OS === 'ios' ? 'Opens App Store' : 'Opens Play Store'}
+          {Platform.OS === 'ios' ? tx("auto.opensAppStore_5f98") : tx("auto.opensPlayStore_f263")}
         </Text>
       </View>
     </View>

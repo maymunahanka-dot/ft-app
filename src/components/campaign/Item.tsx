@@ -12,11 +12,15 @@ import {
   View,
 } from "react-native";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = {
   item: EmailCampaign;
 };
 
 const CampaignItem = ({ item }: Props) => {
+  const { t: tx } = useTranslation();
   const isSent = item.status === "sent";
   const isSchduled = item.status === "scheduled";
 
@@ -53,13 +57,13 @@ const CampaignItem = ({ item }: Props) => {
         await Linking.openURL(url);
       } else {
         Alert.alert(
-          "No email app",
-          "No email application is available to open."
+          tx("auto.noEmailApp_9ebd"),
+          tx("auto.noEmailApplicationIsAvailable_8d90")
         );
       }
     } catch (err) {
       console.warn("Unable to open mail app", err);
-      Alert.alert("Error", "Unable to open email composer.");
+      Alert.alert(tx("auto.error_7f2f"), tx("auto.unableToOpenEmailComposer_5be4"));
     }
   };
 
@@ -92,7 +96,7 @@ const CampaignItem = ({ item }: Props) => {
       <Text
         style={[Styles.med14, { lineHeight: 20, color: Colors.text.black }]}
       >
-        Recipient:{" "}
+        {tx("auto.recipient_ec17")}{" "}
         <Text style={{ color: Colors.text.gray }}> {item.recipientCount}</Text>
       </Text>
 
@@ -104,7 +108,7 @@ const CampaignItem = ({ item }: Props) => {
             { lineHeight: 20, color: "rgba(54, 65, 83, 1)" },
           ]}
         >
-          View
+          {tx("auto.view_69bd")}
         </Text>
       </Pressable>
     </View>

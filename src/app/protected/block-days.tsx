@@ -12,9 +12,14 @@ import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/dat
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { dateLocale } from "@/src/i18n/dateLocale";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const BlockDaysScreen = () => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const { top } = useSafeAreaInsets();
   const { blocked, loading, saving, persist } = useBlockedDays();
@@ -40,7 +45,7 @@ const BlockDaysScreen = () => {
   }, [cursor]);
 
   const todayKey = toDateKey(today);
-  const monthLabel = cursor.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const monthLabel = cursor.toLocaleDateString(dateLocale("en-US"), { month: "long", year: "numeric" });
 
   const toggleDate = async (key: string) => {
     if (blocked.blockWeekends && isWeekendKey(key) && !blocked.dates.includes(key)) return;
@@ -69,7 +74,7 @@ const BlockDaysScreen = () => {
         <HapticTab style={styles.back} onPress={() => router.back()}>
           <ChevronLeft size={scale(20)} color={textColor} strokeWidth={1.5} />
         </HapticTab>
-        <Text style={[styles.title, { color: textColor }]}>Block days</Text>
+        <Text style={[styles.title, { color: textColor }]}>{tx("auto.blockDays_bf76")}</Text>
       </View>
 
       {loading ? (
@@ -83,19 +88,19 @@ const BlockDaysScreen = () => {
           >
             <View style={[styles.box, blocked.blockWeekends && styles.boxOn]} />
             <View style={{ flex: 1 }}>
-              <Text style={[styles.weekendTitle, { color: textColor }]}>Block every weekend</Text>
-              <Text style={[styles.note, { color: subText }]}>Saturday and Sunday cannot be booked</Text>
+              <Text style={[styles.weekendTitle, { color: textColor }]}>{tx("auto.blockEveryWeekend_664f")}</Text>
+              <Text style={[styles.note, { color: subText }]}>{tx("auto.saturdayAndSundayCannotBe_93a0")}</Text>
             </View>
           </Pressable>
 
           <View style={{ gap: spacing(8) }}>
-            <Text style={[styles.label, { color: textColor }]}>Find a day</Text>
+            <Text style={[styles.label, { color: textColor }]}>{tx("auto.findADay_0369")}</Text>
             <Pressable
               style={[styles.search, { borderColor: border, backgroundColor: bg }]}
               onPress={() => setPickerOpen(true)}
             >
               <Text style={{ color: highlight ? textColor : subText, fontFamily: "regular" }}>
-                {highlight || "Search a date"}
+                {highlight || tx("auto.searchADate_e680")}
               </Text>
             </Pressable>
           </View>
@@ -147,7 +152,7 @@ const BlockDaysScreen = () => {
           </View>
 
           <Text style={[styles.note, { color: subText }]}>
-            {saving ? "Saving..." : "Click a day to block it. Click again to open it."}
+            {saving ? tx("auto.saving_ae7e") : tx("auto.clickADayToBlock_9b06")}
           </Text>
         </ScrollView>
       )}

@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { apiFetch } from "../lib/apiClient";
 import { ShowToastMessage } from "../utils/random";
 
+import { t as tx } from "@/src/i18n";
+
 export interface Measurement {
   id: string;
   clientId: string; // client email
@@ -36,7 +38,7 @@ export const useMeasurementStore = create<MeasurementState>((set) => ({
       set({ measurements: res.data ?? [] });
     } catch (error: any) {
       console.error("Error fetching measurements:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to fetch measurements", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchMeasurements_9498"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -60,7 +62,7 @@ export const useMeasurementStore = create<MeasurementState>((set) => ({
       return true;
     } catch (error: any) {
       console.error("Error adding measurements:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to save measurement", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToSaveMeasurement_6c5d"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
@@ -82,11 +84,11 @@ export const useMeasurementStore = create<MeasurementState>((set) => ({
       set((state) => ({
         measurements: state.measurements.map((m) => (m.id === updated.id ? updated : m)),
       }));
-      ShowToastMessage({ title: "Measurement updated", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.measurementUpdated_55cd"), preset: "done", haptic: "success" });
       return true;
     } catch (error: any) {
       console.error("Error editing measurement:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to update measurement", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToUpdateMeasurement_6c89"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });
@@ -103,11 +105,11 @@ export const useMeasurementStore = create<MeasurementState>((set) => ({
       set((state) => ({
         measurements: state.measurements.filter((m) => m.id !== id),
       }));
-      ShowToastMessage({ title: "Measurement deleted", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.measurementDeleted_7f5a"), preset: "done", haptic: "success" });
       return true;
     } catch (error: any) {
       console.error("Error deleting measurement:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to delete measurement", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToDeleteMeasurement_1afd"), preset: "error", haptic: "error" });
       return false;
     } finally {
       set({ loading: false });

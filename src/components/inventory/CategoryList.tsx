@@ -2,6 +2,7 @@ import { Styles } from "@/src/constants/styles";
 import { useTheme } from "@/src/context/ThemeContext";
 import { spacing } from "@/src/utils/random";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { useTranslation } from "react-i18next";
 
 const categories = [
   {
@@ -44,6 +45,7 @@ type Props = {
 };
 
 const CategoryList = ({ selectedCategory, onSelect }: Props) => {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
   const unselectedText = isDark ? "rgba(200,200,200,1)" : "black";
 
@@ -78,7 +80,7 @@ const CategoryList = ({ selectedCategory, onSelect }: Props) => {
                 { color: isSelected ? "white" : unselectedText, textAlign: "center" },
               ]}
             >
-              {category.label}
+              {(category.label.match(/^\S+\s/)?.[0] ?? "") + t(`inventory.categories.${category.value}`, { defaultValue: category.label })}
             </Text>
           </Pressable>
         );

@@ -24,7 +24,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const ClientsScreen = () => {
+  const { t: tx } = useTranslation();
   const [searchValue, setSearchValue] = useState("");
   const [sortBy, setSortBy] = useSavedSort("ft.sort.clients");
   const { isDark } = useTheme();
@@ -71,7 +75,7 @@ const ClientsScreen = () => {
       {/* sticky header */}
       <View style={[styles.header, { backgroundColor: bg }]}>
         <BurgerIcon
-          title="Clients"
+          title={tx("auto.clients_28e2")}
           iconColor={isDark ? "white" : undefined}
           textStyle={{ fontFamily: "medium", fontSize: scaleFontSize(24), color: textColor }}
           viewStyle={{}}
@@ -83,7 +87,7 @@ const ClientsScreen = () => {
             <TextInput
               value={searchValue}
               onChangeText={setSearchValue}
-              placeholder="Search by name, phone or email"
+              placeholder={tx("auto.searchByNamePhoneOr_32a9")}
               placeholderTextColor={placeholderColor}
               style={[styles.searchInput, { color: textColor }]}
             />
@@ -128,7 +132,7 @@ const ClientsScreen = () => {
               <ActivityIndicator size="small" color={Colors.primary} />
             ) : (
               <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
-                No client found.
+                {tx("auto.noClientFound_65ad")}
               </Text>
             )}
           </View>

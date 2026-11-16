@@ -23,7 +23,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const TransactionDetailScreen = () => {
+  const { t: tx } = useTranslation();
   const { id } = useLocalSearchParams();
   const transactionId = id.toString();
 
@@ -69,7 +73,7 @@ const TransactionDetailScreen = () => {
           <HapticTab style={styles.backBtn} onPress={handleBack}>
             <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-          <Text style={[styles.reg24, { color: textColor }]}>Transaction Details</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.transactionDetails_ef1f")}</Text>
         </View>
 
         <ScrollView
@@ -84,11 +88,11 @@ const TransactionDetailScreen = () => {
             {/* meta details */}
             <View style={styles.rowDetails}>
               <View style={styles.row}>
-                <Text style={[styles.reg14, { color: labelColor }]}>Reference Number</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.referenceNumber_7419")}</Text>
                 <Text style={[styles.reg13, { color: valueColor }]}>{transaction?.id}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={[styles.reg14, { color: labelColor }]}>Transaction Time</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.transactionTime_fd82")}</Text>
                 <Text style={[styles.reg13, { color: valueColor }]}>{FormatOrderDate(transaction?.date ?? "")}</Text>
               </View>
               <View style={styles.row}>
@@ -99,13 +103,13 @@ const TransactionDetailScreen = () => {
 
             {/* amount breakdown */}
             <View style={[styles.rowDetails, styles.dashBorder, { borderTopColor: sectionBorder }]}>
-              <Text style={[styles.reg14, { color: labelColor }]}>Amount Breakdown</Text>
+              <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.amountBreakdown_5a1f")}</Text>
               <View style={styles.row}>
-                <Text style={[styles.reg14, { color: labelColor }]}>Subtotal</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.subtotal_97f7")}</Text>
                 <MoneyAmount amount={Number(transaction?.amount) || 0} color={valueColor} align="end" />
               </View>
               <View style={[styles.row, { borderTopWidth: 0.8, borderTopColor: dividerColor, paddingTop: spacing(12) }]}>
-                <Text style={[styles.reg16, { color: valueColor }]}>Total Amount</Text>
+                <Text style={[styles.reg16, { color: valueColor }]}>{tx("auto.totalAmount_490a")}</Text>
                 <MoneyAmount
                   amount={Number(transaction?.amount) || 0}
                   prefix={isExpense ? "-" : "+"}
@@ -127,7 +131,7 @@ const TransactionDetailScreen = () => {
               }}
             >
               <Pencil size={scale(12)} color="white" />
-              <Text style={[styles.reg14, { color: "white" }]}>Edit</Text>
+              <Text style={[styles.reg14, { color: "white" }]}>{tx("auto.edit_5301")}</Text>
             </HapticTab>
             <HapticTab
               style={[styles.btn, { backgroundColor: "rgba(231,0,11,1)" }]}
@@ -138,7 +142,7 @@ const TransactionDetailScreen = () => {
               ) : (
                 <>
                   <Trash2 size={scale(12)} color="white" />
-                  <Text style={[styles.reg14, { color: "white" }]}>Delete</Text>
+                  <Text style={[styles.reg14, { color: "white" }]}>{tx("auto.delete_f6fd")}</Text>
                 </>
               )}
             </HapticTab>

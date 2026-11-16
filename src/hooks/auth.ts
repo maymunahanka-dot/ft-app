@@ -11,6 +11,8 @@ import { useUserStore } from "../stores/userSlice";
 import { RegisterUserData } from "../types/auth";
 import { ShowToastMessage } from "../utils/random";
 
+import { applyAccountLanguage, chosenLanguage, t as tx } from "@/src/i18n";
+
 export function useAuth() {
   const [loading, setLoading] = useState(true);
   const setUserData = useUserStore.getState().updateUser;
@@ -58,6 +60,7 @@ export function useAuth() {
       const { token, user } = data;
 
       await saveSession(token, user);
+      await applyAccountLanguage(user?.language);
       setUserData(user);
       await fetchBrandSettings();
 
@@ -68,7 +71,7 @@ export function useAuth() {
     } catch (error: any) {
       console.error("Error signing in:", error);
       ShowToastMessage({
-        title: error.message || "Error signing in",
+        title: error.message || tx("auto.errorSigningIn_635f"),
         preset: "error",
         haptic: "error",
       });
@@ -138,7 +141,7 @@ export function useAuth() {
           const cloudData = JSON.parse(uploadResult.body);
           if (uploadResult.status < 200 || uploadResult.status >= 300 || !cloudData.secure_url) {
             console.error("[SIGNUP] Cloudinary upload failed:", uploadResult.body);
-            ShowToastMessage({ title: "Logo upload failed. Please try again.", preset: "error", haptic: "error" });
+            ShowToastMessage({ title: tx("auto.logoUploadFailedPleaseTry_95e2"), preset: "error", haptic: "error" });
             return false;
           }
           logoUrl = cloudData.secure_url;
@@ -159,6 +162,8 @@ export function useAuth() {
             phone: userDataInput.phone.trim(),
             password,
             country: (userDataInput.country ?? "Nigeria").trim(),
+            // language picked on the sign-up screen beats the country default
+            language: (await chosenLanguage()) ?? undefined,
             businessName: userDataInput.businessName.trim(),
             category: (userDataInput.role ?? "Designer").trim(),
             logoUrl,
@@ -168,7 +173,7 @@ export function useAuth() {
       } catch (fetchErr: any) {
         // apiFetch throws on !ok — extract message from the error
         console.error("[SIGNUP] Backend error:", fetchErr?.message);
-        ShowToastMessage({ title: fetchErr?.message ?? "Sign up failed", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: fetchErr?.message ?? tx("auto.signUpFailed_a7bd"), preset: "error", haptic: "error" });
         return false;
       }
 
@@ -184,6 +189,7 @@ export function useAuth() {
       );
 
       await saveSession(loginData.token, loginData.user);
+      await applyAccountLanguage(loginData.user?.language);
       setUserData(loginData.user);
       await fetchBrandSettings();
 
@@ -191,7 +197,7 @@ export function useAuth() {
     } catch (error: any) {
       console.error("[SIGNUP] Unexpected error:", error?.message ?? error);
       ShowToastMessage({
-        title: "Error signing up",
+        title: tx("auto.errorSigningUp_003c"),
         message: error.message,
         preset: "error",
         haptic: "error",
@@ -214,7 +220,7 @@ export function useAuth() {
     } catch (error: any) {
       console.error("Error signing out:", error);
       ShowToastMessage({
-        title: "Error signing out",
+        title: tx("auto.errorSigningOut_36d6"),
         preset: "error",
         haptic: "error",
       });
@@ -231,14 +237,14 @@ export function useAuth() {
         body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
       Alert.alert(
-        "Email Sent",
-        "A password reset link has been sent to your email. Please check your inbox and spam folder.",
+        tx("auto.emailSent_9b39"),
+        tx("auto.aPasswordResetLinkHas_0a08"),
         [{ text: "OK" }],
       );
     } catch (error: any) {
       console.error("Error sending reset email:", error);
       ShowToastMessage({
-        title: error.message || "Error sending reset email",
+        title: error.message || tx("auto.errorSendingResetEmail_e944"),
         preset: "error",
         haptic: "error",
       });

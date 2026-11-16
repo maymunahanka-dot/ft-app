@@ -13,6 +13,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -20,6 +24,7 @@ type Props = {
 };
 
 const CountryModal: React.FC<Props> = ({ visible, onClose, handleOption }) => {
+  const { t: tx } = useTranslation();
   const [search, setSearch] = useState("");
   const { bottom } = useSafeAreaInsets();
 
@@ -44,7 +49,7 @@ const CountryModal: React.FC<Props> = ({ visible, onClose, handleOption }) => {
 
         <TextInput
           style={styles.searchInput}
-          placeholder="Search country..."
+          placeholder={tx("auto.searchCountry_c939")}
           placeholderTextColor="#999"
           value={search}
           onChangeText={setSearch}
@@ -64,13 +69,13 @@ const CountryModal: React.FC<Props> = ({ visible, onClose, handleOption }) => {
               }}
             >
               <Text style={styles.countryFlag}>{item.flag}</Text>
-              <Text style={styles.countryName}>{item.name}</Text>
+              <Text style={styles.countryName}>{tl(item.name)}</Text>
               <Text style={styles.countryDialCode}>{item.dialCode}</Text>
             </TouchableOpacity>
           )}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={() => (
-            <Text style={styles.desc}>No countries found</Text>
+            <Text style={styles.desc}>{tx("auto.noCountriesFound_ce57")}</Text>
           )}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}

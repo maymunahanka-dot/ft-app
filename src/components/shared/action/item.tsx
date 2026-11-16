@@ -7,6 +7,8 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { HapticTab } from "../../haptic-tab";
 
+import { tl } from "@/src/i18n";
+import { useTranslation } from "react-i18next";
 type Props = {
   label: string;
   icon: LucideIcon;
@@ -16,6 +18,7 @@ type Props = {
 const WIDTH = CalculateBoxWidth({ gap: 12, padding: 16, boxCount: 3 });
 
 const ActionItem: React.FC<Props> = ({ label, icon, onPress }) => {
+  useTranslation(); // re-render when the language changes
   const Icon = icon;
   const { isDark } = useTheme();
 
@@ -30,7 +33,7 @@ const ActionItem: React.FC<Props> = ({ label, icon, onPress }) => {
         <Icon size={scale(15)} color={Colors.primary} />
       </View>
       <Text style={[Styles.reg12, { color: textColor, lineHeight: 16 }]} numberOfLines={1}>
-        {label}
+        {tl(label)}
       </Text>
     </HapticTab>
   );

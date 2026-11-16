@@ -16,11 +16,15 @@ import { StyleSheet, Text, View } from "react-native";
 import { HapticTab } from "../haptic-tab";
 import { toDate } from "../invoice/util";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = {
   item: LoyaltyMember;
 };
 
 const CrmItem = ({ item }: Props) => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
 
   const isGold = item.level.toLowerCase() === "gold";
@@ -71,7 +75,7 @@ const CrmItem = ({ item }: Props) => {
             <View style={styles.startRow}>
               <AntDesign name="star" size={scale(10)} color="rgba(240, 177, 0, 1)" />
               <Text style={[Styles.reg12, { lineHeight: 16, color: subTextColor }]}>
-                {item.points} pts
+                {item.points}{" "}{tx("auto.pts_4abd")}
               </Text>
             </View>
             <Text style={[Styles.reg12, { lineHeight: 16, color: subTextColor }]}>•</Text>
@@ -94,7 +98,7 @@ const CrmItem = ({ item }: Props) => {
           >
             <View style={{ gap: spacing(4) }}>
               <Text style={[Styles.reg12, { lineHeight: 16, color: subTextColor }]}>
-                Member Since
+                {tx("auto.memberSince_c664")}
               </Text>
               <Text style={[Styles.reg14, { lineHeight: 16, color: textColor }]}>
                 {FormatOrderDate(toDate(item.createdAt).toDateString(), true)}
@@ -102,7 +106,7 @@ const CrmItem = ({ item }: Props) => {
             </View>
             <View style={{ gap: spacing(4) }}>
               <Text style={[Styles.reg12, { lineHeight: 16, color: subTextColor }]}>
-                Last Purchase
+                {tx("auto.lastPurchase_eb4e")}
               </Text>
               <Text style={[Styles.reg14, { lineHeight: 16, color: textColor }]}>
                 {FormatOrderDate(toDate(item.lastActivity).toDateString(), false)}

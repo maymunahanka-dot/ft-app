@@ -46,7 +46,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DatePicker from "react-native-date-picker";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const EditInvoiceScreen = () => {
+  const { t: tx } = useTranslation();
   const { id } = useLocalSearchParams();
   const invoices = useInvoiceStore((state) => state.invoices);
   const foundInvoice = invoices.find((prev) => prev.id === (Array.isArray(id) ? id[0] : id)) ?? null;
@@ -153,7 +157,7 @@ const EditInvoiceScreen = () => {
   };
 
   useEffect(() => {
-    if (converted.current || pricesTouched.current || currency !== "USD" || !usdToNgn || !foundInvoice?.items?.length) return;
+    if (converted.current || pricesTouched.current || currency === "NGN" || !usdToNgn || !foundInvoice?.items?.length) return;
     converted.current = true;
     setInvoiceData((prev) => ({
       ...prev,
@@ -184,18 +188,18 @@ const EditInvoiceScreen = () => {
     const newItemErrors: Record<number, string> = {};
     let isValid = true;
 
-    if (!invoiceData.clientName?.trim()) { newErrors.clientName = "Bill to (client) is required"; isValid = false; }
-    if (!invoiceData.invoiceDate.trim()) { newErrors.invoiceDate = "Invoice date is required"; isValid = false; }
-    if (!invoiceData.dueDate.trim()) { newErrors.dueDate = "Due date is required"; isValid = false; }
+    if (!invoiceData.clientName?.trim()) { newErrors.clientName = tx("auto.billToClientIsRequired_208f"); isValid = false; }
+    if (!invoiceData.invoiceDate.trim()) { newErrors.invoiceDate = tx("auto.invoiceDateIsRequired_083d"); isValid = false; }
+    if (!invoiceData.dueDate.trim()) { newErrors.dueDate = tx("auto.dueDateIsRequired_e0a2"); isValid = false; }
 
     const hasValidItem = invoiceData.items.some((i) => i.description.trim() && i.quantity >= 1 && i.price > 0);
-    if (!hasValidItem) { newErrors.items = "Add at least one item with description, quantity and price"; isValid = false; }
+    if (!hasValidItem) { newErrors.items = tx("auto.addAtLeastOneItem_be34"); isValid = false; }
 
     invoiceData.items.forEach((item, index) => {
       if (!item.description.trim() && (item.quantity > 0 || item.price > 0)) {
-        newItemErrors[index] = "Description is required"; isValid = false;
+        newItemErrors[index] = tx("auto.descriptionIsRequired_b817"); isValid = false;
       } else if (item.description.trim() && (item.quantity < 1 || item.price <= 0)) {
-        newItemErrors[index] = "Quantity must be at least 1 and price greater than 0"; isValid = false;
+        newItemErrors[index] = tx("auto.quantityMustBeAtLeast_3a10"); isValid = false;
       }
     });
 
@@ -261,7 +265,7 @@ const EditInvoiceScreen = () => {
           <HapticTab style={styles.backBtn} onPress={handleBack}>
             <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-          <Text style={[styles.reg24, { color: textColor }]}>Edit Invoice</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.editInvoice_caa9")}</Text>
         </View>
 
         <KeyboardAvoidingView
@@ -279,14 +283,14 @@ const EditInvoiceScreen = () => {
               {/* client */}
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Clients<Text style={styles.red}> *</Text>
+                  {tx("auto.clients_28e2")}<Text style={styles.red}> *</Text>
                 </Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleClientModal}
                 >
                   <Text style={[Styles.reg16, { color: selectedClient ? dropdownActiveColor : dropdownTextColor }]}>
-                    {selectedClient ? selectedClient.name : "Select client"}
+                    {selectedClient ? selectedClient.name : tx("auto.selectClient_34cf")}
                   </Text>
                   <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
@@ -297,14 +301,14 @@ const EditInvoiceScreen = () => {
               <View style={[styles.row, { gap: spacing(20) }]}>
                 <View style={[Styles.inputContainer, { gap: spacing(8), flex: 1 }]}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Invoice Date<Text style={styles.red}> *</Text>
+                    {tx("auto.invoiceDate_8448")}<Text style={styles.red}> *</Text>
                   </Text>
                   <Pressable
                     style={[styles.datePicker, { borderColor: datePickerBorder, backgroundColor: inputBg }]}
                     onPress={() => setDatePickerFor("invoiceDate")}
                   >
                     <Text style={[styles.reg12, { color: invoiceData.invoiceDate ? dateTextColor : subLabelColor }]}>
-                      {invoiceData.invoiceDate ? GetDetailedDate(invoiceData.invoiceDate) : "DD/MM/YYYY"}
+                      {invoiceData.invoiceDate ? GetDetailedDate(invoiceData.invoiceDate) : tx("auto.ddMmYyyy_5d95")}
                     </Text>
                     <Calendar size={scale(15)} color={chevronColor} />
                   </Pressable>
@@ -313,14 +317,14 @@ const EditInvoiceScreen = () => {
 
                 <View style={[Styles.inputContainer, { gap: spacing(8), flex: 1 }]}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Due Date<Text style={styles.red}> *</Text>
+                    {tx("auto.dueDate_a1b3")}<Text style={styles.red}> *</Text>
                   </Text>
                   <Pressable
                     style={[styles.datePicker, { borderColor: datePickerBorder, backgroundColor: inputBg }]}
                     onPress={() => setDatePickerFor("dueDate")}
                   >
                     <Text style={[styles.reg12, { color: invoiceData.dueDate ? dateTextColor : subLabelColor }]}>
-                      {invoiceData.dueDate ? GetDetailedDate(invoiceData.dueDate) : "DD/MM/YYYY"}
+                      {invoiceData.dueDate ? GetDetailedDate(invoiceData.dueDate) : tx("auto.ddMmYyyy_5d95")}
                     </Text>
                     <Calendar size={scale(15)} color={chevronColor} />
                   </Pressable>
@@ -354,11 +358,11 @@ const EditInvoiceScreen = () => {
               <View style={[Styles.inputContainer, { gap: spacing(16) }]}>
                 <View style={styles.row}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Items<Text style={styles.red}> *</Text>
+                    {tx("auto.items_44d2")}<Text style={styles.red}> *</Text>
                   </Text>
                   <HapticTab style={[styles.gapRow, { gap: spacing(5) }]} onPress={handleAddItem}>
                     <Plus size={scale(18)} color={Colors.primary} />
-                    <Text style={[styles.reg14, { color: Colors.primary }]}>Add Item</Text>
+                    <Text style={[styles.reg14, { color: Colors.primary }]}>{tx("auto.addItem_4dba")}</Text>
                   </HapticTab>
                 </View>
                 {error.items ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.items}</Text> : null}
@@ -367,7 +371,7 @@ const EditInvoiceScreen = () => {
                   <View style={{ gap: spacing(4) }} key={index}>
                     {invoiceData.items.length > 1 && (
                       <View style={[styles.gapRow, { gap: spacing(15), justifyContent: "center", paddingVertical: spacing(10) }]}>
-                        <Text style={[Styles.label, { color: labelColor }]}>Item {index + 1}</Text>
+                        <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.item_ecdd")}{" "}{index + 1}</Text>
                         <HapticTab style={styles.removeBtn} onPress={() => removeItem(index)}>
                           <X size={scale(10)} color="white" strokeWidth={3} />
                         </HapticTab>
@@ -376,13 +380,13 @@ const EditInvoiceScreen = () => {
                     <TextInput
                       value={item.description}
                       onChangeText={(text) => handleItemChange(index, "description", text)}
-                      placeholder="Description"
+                      placeholder={tx("auto.description_55f8")}
                       placeholderTextColor={placeholderColor}
                       style={[Styles.input, { paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, color: inputTextColor }]}
                     />
                     <View style={[styles.row, { gap: spacing(20), paddingTop: spacing(8) }]}>
                       <View style={[Styles.inputContainer, { flex: 1 }]}>
-                        <Text style={[Styles.label, { color: labelColor }]}>Quantity<Text style={styles.red}> *</Text></Text>
+                        <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.quantity_44f6")}<Text style={styles.red}> *</Text></Text>
                         <TextInput
                           value={item.quantity === 0 ? "" : item.quantity.toString()}
                           onChangeText={(text) => handleItemChange(index, "quantity", parseInt(text, 10) || 0)}
@@ -393,7 +397,7 @@ const EditInvoiceScreen = () => {
                         />
                       </View>
                       <View style={[Styles.inputContainer, { flex: 1 }]}>
-                        <Text style={[Styles.label, { color: labelColor }]}>Price ({symbol})<Text style={styles.red}> *</Text></Text>
+                        <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.price_40f8")}{symbol})<Text style={styles.red}> *</Text></Text>
                         <TextInput
                           value={formatPrice(item.price === 0 ? "" : item.price.toString())}
                           onChangeText={(text) => handleItemChange(index, "price", parseFloat(text.replace(/[^0-9.]/g, "")) || 0)}
@@ -411,7 +415,7 @@ const EditInvoiceScreen = () => {
 
               {/* theme color */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Invoice Theme Color</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.invoiceThemeColor_b0d1")}</Text>
                 <ColorWheelPicker
                   value={invoiceData.themeColor ?? "#16988D"}
                   onChange={(hex) => handleDetailsChange("themeColor", hex)}
@@ -420,11 +424,11 @@ const EditInvoiceScreen = () => {
 
               {/* notes */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Notes (Optional)</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.notesOptional_2fd5")}</Text>
                 <TextInput
-                  value={invoiceData.notes ? invoiceData.notes.join("\n") : ""}
+                  value={Array.isArray(invoiceData.notes) ? invoiceData.notes.join("\n") : invoiceData.notes ?? ""}
                   onChangeText={(text) => handleDetailsChange("notes", text ? text.split("\n").filter(Boolean) : [])}
-                  placeholder="Add payment terms, delivery notes, etc."
+                  placeholder={tx("auto.addPaymentTermsDeliveryNotes_fe4f")}
                   placeholderTextColor={placeholderColor}
                   multiline
                   numberOfLines={20}
@@ -435,21 +439,21 @@ const EditInvoiceScreen = () => {
               {/* totals */}
               <View style={[styles.box, { backgroundColor: summaryBoxBg }]}>
                 <View style={styles.row}>
-                  <Text style={[Styles.reg14, { color: inputTextColor }]}>Subtotal</Text>
+                  <Text style={[Styles.reg14, { color: inputTextColor }]}>{tx("auto.subtotal_97f7")}</Text>
                   <EntryMoney amount={totals.subTotal} color={inputTextColor} align="end" />
                 </View>
                 <View style={styles.row}>
-                  <Text style={[Styles.reg14, { color: inputTextColor }]}>Tax</Text>
+                  <Text style={[Styles.reg14, { color: inputTextColor }]}>{tx("auto.tax_9be7")}</Text>
                   <EntryMoney amount={totals.tax} color={inputTextColor} align="end" />
                 </View>
                 <View style={[styles.row, { borderTopWidth: 0.5, borderTopColor: summaryDivider, paddingTop: spacing(10) }]}>
-                  <Text style={[Styles.reg14, { color: inputTextColor }]}>Total</Text>
+                  <Text style={[Styles.reg14, { color: inputTextColor }]}>{tx("auto.total_b259")}</Text>
                   <EntryMoney amount={totals.total} color={Colors.primary} align="end" primarySize={scaleFontSize(24)} />
                 </View>
               </View>
 
               <View style={styles.button}>
-                <PrimaryButton title="Edit Invoice" onPress={handleEditInvoice} loading={loading} />
+                <PrimaryButton title={tx("auto.editInvoice_caa9")} onPress={handleEditInvoice} loading={loading} />
               </View>
             </View>
           </ScrollView>

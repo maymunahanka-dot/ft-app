@@ -37,6 +37,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
+
 const orderStatusList = [
   {
     label: "Pending",
@@ -71,6 +76,7 @@ type StandProps = {
 };
 
 const StatusStand = ({ active, title, isDark }: StandProps) => {
+  useTranslation(); // re-render when the language changes
   const iconColor = active ? "#00A63E" : isDark ? "rgba(100,100,100,1)" : "#99A1AF";
   const bgColor = active ? (isDark ? "rgba(0,100,50,0.3)" : "#DCFCE7") : isDark ? "rgba(255,255,255,0.08)" : "#E5E7EB";
   const stickColor = active ? (isDark ? "rgba(0,160,80,0.3)" : "#B9F8CF") : isDark ? "rgba(255,255,255,0.06)" : "#D1D5DC";
@@ -88,12 +94,13 @@ const StatusStand = ({ active, title, isDark }: StandProps) => {
         </View>
         <View style={[styles.stick, { backgroundColor: stickColor }]} />
       </View>
-      <Text style={[styles.reg14, { color: titleColor }]}>{title}</Text>
+      <Text style={[styles.reg14, { color: titleColor }]}>{tl(title)}</Text>
     </View>
   );
 };
 
 const OrderDetailScreen = () => {
+  const { t: tx } = useTranslation();
   const { id } = useLocalSearchParams();
 
   const orderId = id.toString();
@@ -221,7 +228,7 @@ const OrderDetailScreen = () => {
               />
             </HapticTab>
 
-            <Text style={[styles.reg24, { color: textColor }]}>Order Details</Text>
+            <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.orderDetails_abb7")}</Text>
           </View>
 
           <Pressable onPress={handleDeleteOrder}>
@@ -260,7 +267,7 @@ const OrderDetailScreen = () => {
             </View>
 
             <View style={styles.section}>
-              <Text style={[styles.reg14, { color: sectionLabelColor }]}>Client Information</Text>
+              <Text style={[styles.reg14, { color: sectionLabelColor }]}>{tx("auto.clientInformation_9b2e")}</Text>
               <View style={[styles.box, { backgroundColor: boxBg }]}>
                 <View style={[styles.gapRow]}>
                   <View style={styles.bgView}>
@@ -270,14 +277,14 @@ const OrderDetailScreen = () => {
                   </View>
 
                   <Text style={[styles.reg14, { color: sectionLabelColor }]}>
-                    {CapitalizeFirstName(order?.clientName) || "No Client"}
+                    {CapitalizeFirstName(order?.clientName) || tx("auto.noClient_1619")}
                   </Text>
                 </View>
 
                 <View style={styles.gapRow}>
                   <Phone size={scale(18)} color={Colors.primary} />
                   <Text style={[styles.reg14, { color: sectionLabelColor }]}>
-                    {order?.clientPhone || "N/A"}
+                    {order?.clientPhone || tx("auto.nA_08d2")}
                   </Text>
                 </View>
                 {(order?.clientEmail) ? (
@@ -291,7 +298,7 @@ const OrderDetailScreen = () => {
               </View>
 
               <View style={styles.section}>
-                <Text style={[styles.reg14, { color: sectionLabelColor }]}>Order Details</Text>
+                <Text style={[styles.reg14, { color: sectionLabelColor }]}>{tx("auto.orderDetails_abb7")}</Text>
                 <View style={[styles.box, { backgroundColor: boxBg }]}>
                   <View style={[styles.gapRow, { alignItems: "flex-start" }]}>
                     <Package
@@ -301,10 +308,10 @@ const OrderDetailScreen = () => {
                     />
                     <View style={[styles.col, { gap: spacing(4) }]}>
                       <Text style={[styles.reg14, { color: subTextColor }]}>
-                        Item
+                        {tx("auto.item_ecdd")}
                       </Text>
                       <Text style={[styles.reg14, { color: sectionLabelColor }]}>
-                        {order?.name || order?.garmentDescription || "Not Specified"}
+                        {order?.name || order?.garmentDescription || tx("auto.notSpecified_eb89")}
                       </Text>
                       <Text
                         style={[
@@ -328,10 +335,10 @@ const OrderDetailScreen = () => {
                     />
                     <View style={[styles.col, { gap: spacing(4) }]}>
                       <Text style={[styles.reg14, { color: subTextColor }]}>
-                        Fabric
+                        {tx("auto.fabric_a010")}
                       </Text>
                       <Text style={[styles.reg14, { color: sectionLabelColor }]}>
-                        {order?.fabric ? order?.fabric : "Not Specified"}
+                        {order?.fabric ? order?.fabric : tx("auto.notSpecified_eb89")}
                       </Text>
                       <Text
                         style={[
@@ -342,7 +349,7 @@ const OrderDetailScreen = () => {
                           },
                         ]}
                       >
-                        {order?.quantity} pc
+                        {order?.quantity}{" "}{tx("auto.pc_793d")}
                         {(order?.quantity ?? 0) > 1 ? "s" : ""}
                       </Text>
                     </View>
@@ -352,7 +359,7 @@ const OrderDetailScreen = () => {
             </View>
 
             <View style={styles.section}>
-              <Text style={[styles.reg14, { color: sectionLabelColor }]}>Measurements</Text>
+              <Text style={[styles.reg14, { color: sectionLabelColor }]}>{tx("auto.measurements_737b")}</Text>
               <View style={styles.measurements}>
                 {measurementList.map((measure, index) => (
                   <View style={styles.measure} key={index}>
@@ -365,7 +372,7 @@ const OrderDetailScreen = () => {
                         },
                       ]}
                     >
-                      {measure.label}
+                      {tl(measure.label)}
                     </Text>
                     <Text style={[styles.reg14, { color: sectionLabelColor }]}>{measure.value}&quot;</Text>
                   </View>
@@ -373,7 +380,7 @@ const OrderDetailScreen = () => {
               </View>
 
               <View style={styles.section}>
-                <Text style={[styles.reg14, { color: sectionLabelColor }]}>Pricing</Text>
+                <Text style={[styles.reg14, { color: sectionLabelColor }]}>{tx("auto.pricing_a0d9")}</Text>
                 <View
                   style={[
                     styles.box,
@@ -387,13 +394,13 @@ const OrderDetailScreen = () => {
                 >
                   <View style={[styles.row]}>
                     <Text style={[Styles.reg14, { color: pricingText }]}>
-                      Total Amount
+                      {tx("auto.totalAmount_490a")}
                     </Text>
                     <MoneyAmount amount={Number(order?.price) || 0} color={pricingText} align="end" primarySize={16} />
                   </View>
                   <View style={[styles.row]}>
                     <Text style={[Styles.reg14, { color: depositColor }]}>
-                      Deposit Paid
+                      {tx("auto.depositPaid_06f8")}
                     </Text>
                     <MoneyAmount amount={Number(order?.deposit) || 0} color={pricingText} align="end" primarySize={16} />
                   </View>
@@ -408,7 +415,7 @@ const OrderDetailScreen = () => {
                     ]}
                   >
                     <Text style={[Styles.reg14, { color: balanceColor }]}>
-                      Balance Due
+                      {tx("auto.balanceDue_5a6b")}
                     </Text>
                     <MoneyAmount amount={Number(order?.balance) || 0} color={pricingText} align="end" primarySize={16} />
                   </View>
@@ -418,10 +425,10 @@ const OrderDetailScreen = () => {
 
             <View style={styles.section}>
               <View style={styles.row}>
-                <Text style={[styles.reg14, { color: sectionLabelColor }]}>Order Timeline</Text>
+                <Text style={[styles.reg14, { color: sectionLabelColor }]}>{tx("auto.orderTimeline_bfbc")}</Text>
                 <Pressable hitSlop={20} onPress={toggleStatusModal}>
                   <Text style={[styles.reg14, { color: updateLinkColor }]}>
-                    Update timeline
+                    {tx("auto.updateTimeline_37e9")}
                   </Text>
                 </Pressable>
               </View>
@@ -429,7 +436,7 @@ const OrderDetailScreen = () => {
                 <View style={styles.statusStands}>
                   {order?.status === "cancelled" ? (
                     <View style={styles.statusStands}>
-                      <StatusStand title="Order Cancelled" active isDark={isDark} />
+                      <StatusStand title={tx("auto.orderCancelled_1f14")} active isDark={isDark} />
                     </View>
                   ) : (
                     ORDER_FLOW.map((status, index) => (

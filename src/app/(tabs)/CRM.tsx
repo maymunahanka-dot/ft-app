@@ -30,11 +30,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Animated, FlatList, ImageBackground, Pressable, RefreshControl, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
 const CARD_GAP = spacing(8);
 const HEADER_SCROLL_DISTANCE = 100;
 
 // ─── Summary boxes ──────────────────────────────────────────────────────────
 const RowBoxes = () => {
+  const { t: tx } = useTranslation();
   const members = useCrmStore((state) => state.loyaltyMembers);
   const clientFeedbacks = useCrmStore((state) => state.clientFeedbacks);
 
@@ -44,7 +49,7 @@ const RowBoxes = () => {
         <View style={styles.cardInner}>
           <View style={styles.startRow}>
             <UsersIcon size={scale(13)} color={"white"} />
-            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Members</Text>
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>{tx("auto.members_1cb4")}</Text>
           </View>
           <Text style={styles.sm18}>{members.length}</Text>
         </View>
@@ -54,7 +59,7 @@ const RowBoxes = () => {
         <View style={styles.cardInner}>
           <View style={styles.startRow}>
             <Star size={scale(13)} color={"white"} />
-            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Rating</Text>
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>{tx("auto.rating_6437")}</Text>
           </View>
           <Text style={styles.sm18}>{getAverageRating(clientFeedbacks)}</Text>
         </View>
@@ -64,7 +69,7 @@ const RowBoxes = () => {
         <View style={styles.cardInner}>
           <View style={styles.startRow}>
             <Mail size={scale(13)} color={"white"} />
-            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>Reviews</Text>
+            <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>{tx("auto.reviews_b83c")}</Text>
           </View>
           <Text style={styles.sm18}>{clientFeedbacks.length}</Text>
         </View>
@@ -82,6 +87,7 @@ const TabsList = [
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 const CRMScreen = () => {
+  const { t: tx } = useTranslation();
   const [selectedTab, setSelectedTab] = useState<TAB>("loyalty");
   const { isDark } = useTheme();
   const { top, bottom } = useSafeAreaInsets();
@@ -202,7 +208,7 @@ const CRMScreen = () => {
             <View style={{ gap: spacing(4) }}>
               <Text style={styles.heroTitle}>CRM</Text>
               <Text style={[Styles.reg14, { color: "rgba(255,255,255,0.8)", lineHeight: 18 }]}>
-                Manage Your Customer Relationship
+                {tx("auto.manageYourCustomerRelationship_7496")}
               </Text>
             </View>
             <RowBoxes />
@@ -226,7 +232,7 @@ const CRMScreen = () => {
                   >
                     <Icon size={scale(15)} color={isSelected ? "white" : tabInactiveText} />
                     <Text style={isSelected ? [Styles.reg14, styles.selectedText] : [Styles.reg14, { color: tabInactiveText }]}>
-                      {tab.label}
+                      {tl(tab.label)}
                     </Text>
                   </Pressable>
                 );
@@ -246,7 +252,7 @@ const CRMScreen = () => {
                 <TextInput
                   value={searchValue}
                   onChangeText={setSearchValue}
-                  placeholder={`Search ${selectedTab}...`}
+                  placeholder={tx(`tpl.searchTab_${selectedTab}`, { defaultValue: `Search ${selectedTab}...` })}
                   placeholderTextColor={placeholderColor}
                   style={[styles.input, { color: textColor }]}
                 />
@@ -279,8 +285,8 @@ const CRMScreen = () => {
             <View style={{ gap: spacing(24) }}>
               <Text style={[Styles.reg16, { color: textColor }]}>
                 {selectedTab === "feedback"
-                  ? `${clientFeedbacks.length} Reviews`
-                  : `${members.length} Loyalty Members`}
+                  ? tx("crm.reviews", { count: clientFeedbacks.length })
+                  : tx("crm.members", { count: members.length })}
               </Text>
 
               {loading ? (
@@ -301,7 +307,7 @@ const CRMScreen = () => {
                   ListEmptyComponent={() => (
                     <View style={styles.emptyContainer}>
                       <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
-                        {`No ${selectedTab} found.`}
+                        {tx(`tpl.noneTab_${selectedTab}`, { defaultValue: `No ${selectedTab} found.` })}
                       </Text>
                     </View>
                   )}

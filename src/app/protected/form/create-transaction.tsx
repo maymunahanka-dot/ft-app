@@ -39,6 +39,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import DatePicker from "react-native-date-picker";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
 const Types = [
   { label: "Income", value: "income" },
   { label: "Expenses", value: "expense" },
@@ -71,6 +75,7 @@ const parseAmount = (value: string) => {
 };
 
 const CreateTransactionScreen = () => {
+  const { t: tx } = useTranslation();
   const saveTransaction = useFinanceStore((state) => state.saveTransaction);
   const { symbol, toNaira, blockUntilRate } = useDisplayCurrency();
   const loading = useFinanceStore((state) => state.loading);
@@ -114,10 +119,10 @@ const CreateTransactionScreen = () => {
     let isValid = true;
     const newErrors = { amount: "", category: "", source: "", date: "", description: "" };
     const amount = parseAmount(transaction.amount.toString());
-    if (isNaN(amount) || amount <= 0) { newErrors.amount = "Enter a valid amount"; isValid = false; }
-    if (!transaction.description.trim()) { newErrors.description = "Description is required"; isValid = false; }
-    if (selectedType === "income" && !transaction.source) { newErrors.source = "Source is required"; isValid = false; }
-    if (selectedType === "expense" && !transaction.category) { newErrors.category = "Category is required"; isValid = false; }
+    if (isNaN(amount) || amount <= 0) { newErrors.amount = tx("auto.enterAValidAmount_a45a"); isValid = false; }
+    if (!transaction.description.trim()) { newErrors.description = tx("auto.descriptionIsRequired_b817"); isValid = false; }
+    if (selectedType === "income" && !transaction.source) { newErrors.source = tx("auto.sourceIsRequired_c740"); isValid = false; }
+    if (selectedType === "expense" && !transaction.category) { newErrors.category = tx("auto.categoryIsRequired_eb1a"); isValid = false; }
     setError(newErrors);
     return isValid;
   };
@@ -160,7 +165,7 @@ const CreateTransactionScreen = () => {
           <HapticTab style={styles.backBtn} onPress={handleBack}>
             <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-          <Text style={[styles.reg24, { color: textColor }]}>Add Transaction</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.addTransaction_ea77")}</Text>
         </View>
 
         <KeyboardAvoidingView
@@ -177,7 +182,7 @@ const CreateTransactionScreen = () => {
             <View style={styles.content}>
               {/* type toggle */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Type</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.type_3deb")}</Text>
                 <View style={[styles.row, { gap: spacing(12) }]}>
                   {Types.map((type) => {
                     const isSelected = type.value === selectedType;
@@ -194,7 +199,7 @@ const CreateTransactionScreen = () => {
                         style={[styles.tranBox, { backgroundColor: colors.bg, borderColor: colors.stroke }]}
                       >
                         <Icon size={scale(20)} color={colors.text} />
-                        <Text style={[Styles.reg14, { color: colors.text }]}>{type.label}</Text>
+                        <Text style={[Styles.reg14, { color: colors.text }]}>{tl(type.label)}</Text>
                       </Pressable>
                     );
                   })}
@@ -203,11 +208,11 @@ const CreateTransactionScreen = () => {
 
               {/* amount */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Amount ({symbol})<Text style={styles.red}> *</Text></Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.amount_52b1")}{symbol})<Text style={styles.red}> *</Text></Text>
                 <TextInput
                   value={formatPrice(transaction.amount.toString())}
                   onChangeText={(text) => handleDataChange("amount", text)}
-                  placeholder="e.g., 50000"
+                  placeholder={tx("auto.eG50000_d1af")}
                   placeholderTextColor={placeholderColor}
                   keyboardType="number-pad"
                   style={inputStyle}
@@ -218,7 +223,7 @@ const CreateTransactionScreen = () => {
               {/* category or source */}
               {selectedType === "expense" ? (
                 <View style={Styles.inputContainer} key="expense">
-                  <Text style={[Styles.label, { color: labelColor }]}>Category<Text style={styles.red}> *</Text></Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.category_a3c6")}<Text style={styles.red}> *</Text></Text>
                   <Pressable style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]} onPress={toggleCategoryModal}>
                     <Text style={[Styles.reg16, { color: dropdownActiveColor }]}>{CapitalizeFirstName(transaction.category)}</Text>
                     <ChevronDown size={scale(20)} color={chevronColor} />
@@ -226,7 +231,7 @@ const CreateTransactionScreen = () => {
                 </View>
               ) : (
                 <View style={Styles.inputContainer} key="income">
-                  <Text style={[Styles.label, { color: labelColor }]}>Source<Text style={styles.red}> *</Text></Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.source_6da1")}<Text style={styles.red}> *</Text></Text>
                   <Pressable style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]} onPress={toggleSourceModal}>
                     <Text style={[Styles.reg16, { color: dropdownActiveColor }]}>{CapitalizeFirstName(transaction.source)}</Text>
                     <ChevronDown size={scale(20)} color={chevronColor} />
@@ -236,14 +241,14 @@ const CreateTransactionScreen = () => {
 
               {/* date */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Date<Text style={styles.red}> *</Text></Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.date_eb9a")}<Text style={styles.red}> *</Text></Text>
                 <Pressable
                   style={[Styles.input, { ...styles.gapRow, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={() => setShowPicker(true)}
                 >
                   <Calendar size={scale(20)} color={chevronColor} />
                   <Text style={[Styles.reg16, { color: transaction.date ? dropdownActiveColor : "rgba(10,10,10,0.5)" }]}>
-                    {transaction.date ? GetDetailedDate(transaction.date) : "Select date"}
+                    {transaction.date ? GetDetailedDate(transaction.date) : tx("auto.selectDate_b84a")}
                   </Text>
                 </Pressable>
                 {showPicker && (
@@ -259,20 +264,20 @@ const CreateTransactionScreen = () => {
 
               {/* description */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Description<Text style={styles.red}> *</Text></Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.description_55f8")}<Text style={styles.red}> *</Text></Text>
                 <TextInput
                   value={transaction.description}
                   onChangeText={(text) => handleDataChange("description", text)}
-                  placeholder="Add details about this transaction..."
+                  placeholder={tx("auto.addDetailsAboutThisTransaction_e921")}
                   placeholderTextColor={placeholderColor}
                   multiline numberOfLines={20}
                   style={[Styles.input, { height: 90, textAlignVertical: "top", paddingTop: spacing(15), paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
                 />
-                {error.description ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{error.description}</Text> : null}
+                {error.description ? <Text style={{ ...Styles.reg12, color: "red", marginTop: 4 }}>{tl(error.description)}</Text> : null}
               </View>
 
               <View style={styles.button}>
-                <PrimaryButton title="Add Transaction" onPress={handleSaveTransaction} loading={loading} />
+                <PrimaryButton title={tx("auto.addTransaction_ea77")} onPress={handleSaveTransaction} loading={loading} />
               </View>
             </View>
           </ScrollView>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { t as i18nT } from "@/src/i18n";
 export const useTimeSince = () => {
   const [startTime] = useState(Date.now());
 
@@ -16,9 +17,9 @@ export const useTimeSince = () => {
   const secondsElapsed = Math.floor((now - startTime) / 1000);
 
   if (secondsElapsed < 60) {
-    return `Updated ${secondsElapsed}secs ago`;
+    return i18nT("time.updatedSecs", { s: secondsElapsed });
   }
 
   const minutesElapsed = Math.floor(secondsElapsed / 60);
-  return `Updated ${minutesElapsed}m ${secondsElapsed % 60}s ago`;
+  return i18nT("time.updatedMin", { m: minutesElapsed, s: secondsElapsed % 60 });
 };

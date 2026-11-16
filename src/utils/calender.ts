@@ -3,6 +3,8 @@ import { Platform } from "react-native";
 import { Appointment } from "../types/appointment";
 import { ShowToastMessage } from "./random";
 
+import { t as tx } from "@/src/i18n";
+
 // Get or request calendar permission & return editable calendar
 async function getDefaultCalendarId(): Promise<string | null> {
   try {
@@ -11,7 +13,7 @@ async function getDefaultCalendarId(): Promise<string | null> {
     if (status !== "granted") {
       ShowToastMessage({
         preset: "error",
-        title: "Calendar permission not granted",
+        title: tx("auto.calendarPermissionNotGranted_8d3d"),
         from: "top",
       });
       return null;
@@ -26,7 +28,7 @@ async function getDefaultCalendarId(): Promise<string | null> {
     if (!editable) {
       ShowToastMessage({
         preset: "error",
-        title: "No editable calendar found",
+        title: tx("auto.noEditableCalendarFound_c5ac"),
         from: "top",
       });
       return null;
@@ -59,7 +61,7 @@ export async function createCalendarEvent(
       console.log("Invalid dates - startDate:", appointment.date);
       ShowToastMessage({
         preset: "error",
-        title: "Invalid date or time format",
+        title: tx("auto.invalidDateOrTimeFormat_1dd4"),
         from: "top",
       });
       return undefined;
@@ -76,7 +78,7 @@ export async function createCalendarEvent(
     console.log("Calendar event created:", eventId);
     ShowToastMessage({
       preset: "done",
-      title: "Added to calendar",
+      title: tx("auto.addedToCalendar_52a4"),
       from: "top",
     });
     return eventId;
@@ -84,7 +86,7 @@ export async function createCalendarEvent(
     console.error("Error creating calendar event:", error);
     ShowToastMessage({
       preset: "error",
-      title: "Failed to create calendar event",
+      title: tx("auto.failedToCreateCalendarEvent_17bf"),
       from: "top",
     });
     return undefined;
@@ -100,7 +102,7 @@ export async function updateCalendarEvent(
     if (!eventId) {
       ShowToastMessage({
         preset: "error",
-        title: "Event ID is required for updating",
+        title: tx("auto.eventIdIsRequiredFor_891f"),
         from: "top",
       });
       return;
@@ -118,7 +120,7 @@ export async function updateCalendarEvent(
       console.log("Invalid dates - startDate:", appointment.date);
       ShowToastMessage({
         preset: "error",
-        title: "Invalid date or time format",
+        title: tx("auto.invalidDateOrTimeFormat_1dd4"),
         from: "top",
       });
       return;
@@ -134,14 +136,14 @@ export async function updateCalendarEvent(
     console.log("Calendar event updated:", eventId);
     ShowToastMessage({
       preset: "done",
-      title: "Calendar updated",
+      title: tx("auto.calendarUpdated_0b3e"),
       from: "top",
     });
   } catch (error) {
     console.error("Error updating calendar event:", error);
     ShowToastMessage({
       preset: "error",
-      title: "Failed to update calendar event",
+      title: tx("auto.failedToUpdateCalendarEvent_9f9d"),
       from: "top",
     });
   }
@@ -153,7 +155,7 @@ export async function deleteCalendarEvent(eventId: string): Promise<void> {
     if (!eventId) {
       ShowToastMessage({
         preset: "error",
-        title: "Event ID is required for deletion",
+        title: tx("auto.eventIdIsRequiredFor_7a21"),
         from: "top",
       });
       return;
@@ -163,14 +165,14 @@ export async function deleteCalendarEvent(eventId: string): Promise<void> {
     console.log("Calendar event deleted:", eventId);
     ShowToastMessage({
       preset: "done",
-      title: "Removed from calendar",
+      title: tx("auto.removedFromCalendar_5335"),
       from: "top",
     });
   } catch (error) {
     console.error("Error deleting calendar event:", error);
     ShowToastMessage({
       preset: "error",
-      title: "Failed to delete calendar event",
+      title: tx("auto.failedToDeleteCalendarEvent_7002"),
       from: "top",
     });
   }

@@ -21,7 +21,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const SecurityDetailsScreen = () => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
 
   const bg = isDark ? "#0f0f0f" : "white";
@@ -96,9 +100,9 @@ const SecurityDetailsScreen = () => {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setSuccessMessage("Password updated successfully!");
+      setSuccessMessage(tx("auto.passwordUpdatedSuccessfully_c0e2"));
 
-      ShowToastMessage({ title: "Password updated", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.passwordUpdated_1de6"), preset: "done", haptic: "success" });
 
       setTimeout(() => {
         setSuccessMessage("");
@@ -138,9 +142,9 @@ const SecurityDetailsScreen = () => {
           />
         </HapticTab>
         <View style={styles.col}>
-          <Text style={[styles.reg24, { color: textColor }]}>Security</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.security_f25c")}</Text>
           <Text style={[Styles.reg14, { color: headerSubColor }]}>
-            Manage password & authentication
+            {tx("auto.managePasswordAuthentication_6d8a")}
           </Text>
         </View>
       </View>
@@ -180,18 +184,18 @@ const SecurityDetailsScreen = () => {
             {/* ── Change Password section ── */}
             <View style={styles.section}>
               <Text style={[styles.sectionTitle, { color: textColor }]}>
-                Change Password
+                {tx("auto.changePassword_4928")}
               </Text>
 
               <View style={styles.inputs}>
                 {/* Current Password */}
                 <View style={Styles.inputContainer}>
-                  <Text style={[Styles.label, { color: labelColor }]}>Current Password</Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.currentPassword_4d59")}</Text>
                   <View style={[styles.inputRow, { backgroundColor: inputBg, borderColor: inputBorder }]}>
                     <TextInput
                       value={currentPassword}
                       onChangeText={(t) => { setCurrentPassword(t); clearError("currentPassword"); }}
-                      placeholder="Enter current password"
+                      placeholder={tx("auto.enterCurrentPassword_149b")}
                       placeholderTextColor={placeholderColor}
                       secureTextEntry={!showCurrent}
                       autoCorrect={false}
@@ -212,12 +216,12 @@ const SecurityDetailsScreen = () => {
 
                 {/* New Password */}
                 <View style={Styles.inputContainer}>
-                  <Text style={[Styles.label, { color: labelColor }]}>New Password</Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.newPassword_4894")}</Text>
                   <View style={[styles.inputRow, { backgroundColor: inputBg, borderColor: inputBorder }]}>
                     <TextInput
                       value={newPassword}
                       onChangeText={(t) => { setNewPassword(t); clearError("newPassword"); }}
-                      placeholder="Enter new password"
+                      placeholder={tx("auto.enterNewPassword_a8b1")}
                       placeholderTextColor={placeholderColor}
                       secureTextEntry={!showNew}
                       autoCorrect={false}
@@ -238,12 +242,12 @@ const SecurityDetailsScreen = () => {
 
                 {/* Confirm Password */}
                 <View style={Styles.inputContainer}>
-                  <Text style={[Styles.label, { color: labelColor }]}>Confirm New Password</Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.confirmNewPassword_68dc")}</Text>
                   <View style={[styles.inputRow, { backgroundColor: inputBg, borderColor: inputBorder }]}>
                     <TextInput
                       value={confirmPassword}
                       onChangeText={(t) => { setConfirmPassword(t); clearError("confirmPassword"); }}
-                      placeholder="Confirm new password"
+                      placeholder={tx("auto.confirmNewPassword_f850")}
                       placeholderTextColor={placeholderColor}
                       secureTextEntry={!showConfirm}
                       autoCorrect={false}
@@ -265,7 +269,7 @@ const SecurityDetailsScreen = () => {
               </View>
 
               <PrimaryButton
-                title="Update Password"
+                title={tx("auto.updatePassword_61dc")}
                 onPress={handleUpdate}
                 loading={saving}
                 props={{ disabled: saving }}
@@ -276,10 +280,9 @@ const SecurityDetailsScreen = () => {
             <View style={[styles.tip, { backgroundColor: tipBg, borderColor: tipBorder }]}>
               <AlertCircle size={scale(18)} color={Colors.primary} />
               <View style={{ flex: 1, gap: spacing(4) }}>
-                <Text style={[styles.tipTitle, { color: Colors.primary }]}>Security Tip</Text>
+                <Text style={[styles.tipTitle, { color: Colors.primary }]}>{tx("auto.securityTip_8418")}</Text>
                 <Text style={[styles.tipText, { color: subTextColor }]}>
-                  Use a strong password with at least 6 characters, including
-                  uppercase, lowercase, numbers, and symbols.
+                  {tx("auto.useAStrongPasswordWith_79f1")}
                 </Text>
               </View>
             </View>

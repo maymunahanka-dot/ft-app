@@ -10,6 +10,13 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { t as i18nT } from "@/src/i18n";
+import { dateLocale } from "@/src/i18n/dateLocale";
+import { tl } from "@/src/i18n";
+
 type TimeRange = "1W" | "1M" | "6M" | "1Y";
 
 type Order = { id: string; price: number; orderDate: string; status: string };
@@ -17,36 +24,38 @@ type Income = { id: string; amount: number; date: string };
 type Props = { orders: Order[]; income: Income[] };
 type PeriodData = { label: string; currentYear: number; lastYear: number };
 
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+/** Short month names in the app language (computed when used). */
+const monthName = (i: number) => new Date(2020, i, 1).toLocaleDateString(dateLocale("en-US"), { month: "short" });
 
 const getComparisonLabel = (range: TimeRange): string => {
   switch (range) {
-    case "1W": return "vs last Week";
-    case "1M": return "vs last Month";
-    case "6M": return "vs last 6 Months";
-    case "1Y": return "vs last Year";
+    case "1W": return i18nT("chart.vs1W");
+    case "1M": return i18nT("chart.vs1M");
+    case "6M": return i18nT("chart.vs6M");
+    case "1Y": return i18nT("chart.vs1Y");
   }
 };
 
 const getCurrentPeriodLabel = (range: TimeRange): string => {
   switch (range) {
-    case "1W": return "This Week";
-    case "1M": return "This Month";
-    case "6M": return "Last 6 Months";
-    case "1Y": return "This Year";
+    case "1W": return i18nT("chart.cur1W");
+    case "1M": return i18nT("chart.cur1M");
+    case "6M": return i18nT("chart.cur6M");
+    case "1Y": return i18nT("chart.cur1Y");
   }
 };
 
 const getLastPeriodLabel = (range: TimeRange): string => {
   switch (range) {
-    case "1W": return "Last Week";
-    case "1M": return "Last Month";
-    case "6M": return "Previous 6 Months";
-    case "1Y": return "Last Year";
+    case "1W": return i18nT("chart.last1W");
+    case "1M": return i18nT("chart.last1M");
+    case "6M": return i18nT("chart.last6M");
+    case "1Y": return i18nT("chart.last1Y");
   }
 };
 
 export const OverallSalesChart: React.FC<Props> = ({ orders, income }) => {
+  const { t: tx } = useTranslation();
   const [selectedRange, setSelectedRange] = useState<TimeRange>("1Y");
   const { isDark } = useTheme();
 
@@ -119,7 +128,7 @@ export const OverallSalesChart: React.FC<Props> = ({ orders, income }) => {
         const cm = now.getMonth();
         const sm = cm - 5;
         for (let i = 0; i < 6; i++) {
-          periodsToShow.push({ label: MONTHS[(sm + i + 12) % 12], currentYear: 0, lastYear: 0 });
+          periodsToShow.push({ label: monthName((sm + i + 12) % 12), currentYear: 0, lastYear: 0 });
         }
         allTransactions.forEach((t) => {
           const date = new Date(t.date);
@@ -138,7 +147,7 @@ export const OverallSalesChart: React.FC<Props> = ({ orders, income }) => {
         break;
       }
       case "1Y": {
-        periodsToShow = MONTHS.map((m) => ({ label: m, currentYear: 0, lastYear: 0 }));
+        periodsToShow = Array.from({ length: 12 }, (_, i) => ({ label: monthName(i), currentYear: 0, lastYear: 0 }));
         allTransactions.forEach((t) => {
           const date = new Date(t.date);
           const year = date.getFullYear();
@@ -204,7 +213,7 @@ export const OverallSalesChart: React.FC<Props> = ({ orders, income }) => {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={[styles.title, { color: textColor }]}>Overall Sales</Text>
+            <Text style={[styles.title, { color: textColor }]}>{tx("auto.overallSales_11b6")}</Text>
             <View style={styles.changeContainer}>
               <Text style={[styles.changeIcon, percentageChange >= 0 && styles.positive]}>
                 {percentageChange >= 0 ? "\u2191" : "\u2193"}
@@ -246,7 +255,7 @@ export const OverallSalesChart: React.FC<Props> = ({ orders, income }) => {
       <View style={styles.chartContainer}>
         <View style={styles.yAxis}>
           {yAxisLabels.map((label, i) => (
-            <Text key={i} style={[styles.yAxisLabel, { color: subTextColor }]}>{label}</Text>
+            <Text key={i} style={[styles.yAxisLabel, { color: subTextColor }]}>{tl(label)}</Text>
           ))}
         </View>
 
@@ -268,7 +277,7 @@ export const OverallSalesChart: React.FC<Props> = ({ orders, income }) => {
 
           <View style={styles.xAxis}>
             {chartData.map((data, index) => (
-              <Text key={`${data.label}-${index}`} style={[styles.xAxisLabel, { color: subTextColor }]}>{data.label}</Text>
+              <Text key={`${data.label}-${index}`} style={[styles.xAxisLabel, { color: subTextColor }]}>{tl(data.label)}</Text>
             ))}
           </View>
         </View>

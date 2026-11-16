@@ -37,6 +37,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const PurposeList = [
   { label: "Consultation", value: "consultation" },
   { label: "Measurement", value: "measurement" },
@@ -52,6 +55,7 @@ const apptStatusList = [
 ];
 
 const CreateAppoinmentScreen = () => {
+  const { t: tx } = useTranslation();
   const { clientId } = useLocalSearchParams<{ clientId?: string }>();
   const clients = useClientStore((state) => state.clients);
   const foundClient = clients.find((prev) => prev.id === clientId?.toString());
@@ -125,15 +129,15 @@ const CreateAppoinmentScreen = () => {
   const validateAppointmentForm = () => {
     const newErrors = { clientName: "", clientPhone: "", clientId: "", date: "", type: "", status: "", notes: "", duration: "" };
     let isValid = true;
-    if (!data.clientId) { newErrors.clientId = "Client is required"; isValid = false; }
-    if (!data.clientName.trim()) { newErrors.clientName = "Client name is required"; isValid = false; }
-    if (!data.clientPhone.trim()) { newErrors.clientPhone = "Client phone is required"; isValid = false; }
-    if (!data.date) { newErrors.date = "Appointment date is required"; isValid = false; }
+    if (!data.clientId) { newErrors.clientId = tx("auto.clientIsRequired_1c82"); isValid = false; }
+    if (!data.clientName.trim()) { newErrors.clientName = tx("auto.clientNameIsRequired_2cf1"); isValid = false; }
+    if (!data.clientPhone.trim()) { newErrors.clientPhone = tx("auto.clientPhoneIsRequired_85e2"); isValid = false; }
+    if (!data.date) { newErrors.date = tx("auto.appointmentDateIsRequired_4832"); isValid = false; }
     else {
       const blockedText = blockedMessage(data.date, blocked);
       if (blockedText) { newErrors.date = blockedText; isValid = false; }
     }
-    if (!data.duration || data.duration < 1) { newErrors.duration = "Duration must be at least 1 hour"; isValid = false; }
+    if (!data.duration || data.duration < 1) { newErrors.duration = tx("auto.durationMustBeAtLeast_ffc2"); isValid = false; }
     setError(newErrors);
     return isValid;
   };
@@ -161,7 +165,7 @@ const CreateAppoinmentScreen = () => {
           <HapticTab style={styles.backBtn} onPress={handleBack}>
             <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-          <Text style={[styles.reg24, { color: textColor }]}>Create Appointment</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.createAppointment_b786")}</Text>
         </View>
 
         <KeyboardAvoidingView
@@ -178,13 +182,13 @@ const CreateAppoinmentScreen = () => {
             <View style={styles.content}>
               {/* client */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Clients</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.clients_28e2")}</Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleClientModal}
                 >
                   <Text style={[Styles.reg16, { color: selectedClient ? dropdownActiveColor : dropdownTextColor }]}>
-                    {selectedClient ? selectedClient.name : "Select a Client"}
+                    {selectedClient ? selectedClient.name : tx("auto.selectAClient_b222")}
                   </Text>
                   <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
@@ -193,13 +197,13 @@ const CreateAppoinmentScreen = () => {
               {/* date + time */}
               <View style={[styles.row, { gap: spacing(20) }]}>
                 <View style={[Styles.inputContainer, { gap: spacing(8), flex: 1 }]}>
-                  <Text style={[Styles.label, { color: labelColor }]}>Date<Text style={styles.red}> *</Text></Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.date_eb9a")}<Text style={styles.red}> *</Text></Text>
                   <Pressable
                     style={[styles.datePicker, { borderColor: inputBorder, backgroundColor: inputBg }]}
                     onPress={() => setDatePickerFor("date")}
                   >
                     <Text style={[styles.reg12, { color: data.date ? dropdownActiveColor : subLabelColor }]}>
-                      {data.date ? GetDetailedDate(data.date) : "DD/MM/YYYY"}
+                      {data.date ? GetDetailedDate(data.date) : tx("auto.ddMmYyyy_5d95")}
                     </Text>
                     <Calendar size={scale(15)} color={chevronColor} />
                   </Pressable>
@@ -207,7 +211,7 @@ const CreateAppoinmentScreen = () => {
                 </View>
 
                 <View style={[Styles.inputContainer, { gap: spacing(8), flex: 1 }]}>
-                  <Text style={[Styles.label, { color: labelColor }]}>Time<Text style={styles.red}> *</Text></Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.time_6c82")}<Text style={styles.red}> *</Text></Text>
                   <Pressable
                     style={[styles.datePicker, { borderColor: inputBorder, backgroundColor: inputBg }]}
                     onPress={() => setDatePickerFor("time")}
@@ -240,7 +244,7 @@ const CreateAppoinmentScreen = () => {
 
               {/* purpose */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Purpose<Text style={styles.red}> *</Text></Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.purpose_a0fb")}<Text style={styles.red}> *</Text></Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={togglePurposeModal}
@@ -253,7 +257,7 @@ const CreateAppoinmentScreen = () => {
               {/* duration + status */}
               <View style={[styles.row, { gap: spacing(20) }]}>
                 <View style={[Styles.inputContainer, { flex: 1 }]}>
-                  <Text style={[Styles.label, { color: labelColor }]}>Duration (hr)<Text style={styles.red}> *</Text></Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.durationHr_44bd")}<Text style={styles.red}> *</Text></Text>
                   <TextInput
                     value={data.duration === 0 ? "" : data.duration.toString()}
                     onChangeText={(text) => handleDataChange("duration", numberize(text))}
@@ -266,7 +270,7 @@ const CreateAppoinmentScreen = () => {
                 </View>
 
                 <View style={[Styles.inputContainer, { flex: 1 }]}>
-                  <Text style={[Styles.label, { color: labelColor }]}>Status</Text>
+                  <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.status_bae7")}</Text>
                   <Pressable
                     style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                     onPress={toggleStatusModal}
@@ -279,11 +283,11 @@ const CreateAppoinmentScreen = () => {
 
               {/* notes */}
               <View style={Styles.inputContainer}>
-                <Text style={[Styles.label, { color: labelColor }]}>Notes</Text>
+                <Text style={[Styles.label, { color: labelColor }]}>{tx("auto.notes_7044")}</Text>
                 <TextInput
                   value={data.notes}
                   onChangeText={(text) => handleDataChange("notes", text)}
-                  placeholder="Add any additional notes..."
+                  placeholder={tx("auto.addAnyAdditionalNotes_e8d8")}
                   placeholderTextColor={placeholderColor}
                   multiline
                   numberOfLines={20}
@@ -292,7 +296,7 @@ const CreateAppoinmentScreen = () => {
               </View>
 
               <View style={styles.button}>
-                <PrimaryButton title="Create Appointment" onPress={handleCreateAppt} loading={loading} />
+                <PrimaryButton title={tx("auto.createAppointment_b786")} onPress={handleCreateAppt} loading={loading} />
               </View>
             </View>
           </ScrollView>

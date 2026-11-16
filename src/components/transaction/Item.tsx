@@ -13,12 +13,17 @@ import { router } from "expo-router";
 import { ArrowUpCircle, Calendar, ChevronRight } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
 type Props = {
   item: Income | Expense;
   pressable?: boolean;
 };
 
 const TransactionItem = ({ item, pressable = true }: Props) => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
 
   const isExpense = item.type !== "income";
@@ -48,7 +53,7 @@ const TransactionItem = ({ item, pressable = true }: Props) => {
       <View style={styles.details}>
         <View style={[styles.row, { flexShrink: 1 }]}>
           <Text style={[Styles.reg14, { color: textColor }]} numberOfLines={1}>
-            {item.description}
+            {tl(item.description)}
           </Text>
           <Pressable hitSlop={20}>
             <ChevronRight size={scale(16)} color={chevronColor} />
@@ -67,7 +72,7 @@ const TransactionItem = ({ item, pressable = true }: Props) => {
 
         <View style={[styles.row, { flexShrink: 1 }]}>
           <Text style={[Styles.reg16, { color: subTextColor }]} numberOfLines={1}>
-            {item.notes ? item.notes : "No notes"}
+            {item.notes ? item.notes : tx("auto.noNotes_f03e")}
           </Text>
           <MoneyAmount
             amount={Number(item.amount) || 0}

@@ -1,5 +1,5 @@
 import { generateInvoiceId } from "@/src/lib/invoice";
-import { formatDollars, formatNaira, peekUsdToNgn } from "@/src/utils/exchangeRate";
+import { formatForeign, formatNaira, peekNgnPerUnit } from "@/src/utils/exchangeRate";
 import { useUserStore } from "@/src/stores/userSlice";
 import { InvoiceData } from "@/src/types/Invoice";
 
@@ -8,6 +8,8 @@ import * as Sharing from "expo-sharing";
 
 import { Timestamp } from "firebase/firestore";
 
+import { dateLocale } from "@/src/i18n/dateLocale";
+import { tl } from "@/src/i18n";
 type AnyDate =
   | string
   | number
@@ -45,7 +47,7 @@ export const toDate = (input: AnyDate): Date => {
 
 // ALWAYS return display
 const toDisplay = (input: AnyDate): string => {
-  return new Intl.DateTimeFormat("en-GB", {
+  return new Intl.DateTimeFormat(dateLocale("en-GB"), {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -71,7 +73,7 @@ export function formatFirestoreTimestamp(ts?: {
 
   const date = new Date(ts.seconds * 1000);
 
-  return date.toLocaleDateString("en-GB", {
+  return date.toLocaleDateString(dateLocale("en-GB"), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -90,20 +92,29 @@ export function formatFirestoreTimestampToISO(ts?: {
 export const generateInvoiceHTML = (data: InvoiceData) => {
   const brandSetting = useUserStore.getState().brandSetting;
 
-  const subtotal = data.items.reduce((sum, i) => sum + (Number(i.quantity) || 0) * (Number(i.price) || 0), 0);
-  const total = subtotal;
-  const balanceDue = total;
+  const itemsTotal = data.items.reduce((sum, i) => sum + (Number(i.quantity) || 0) * (Number(i.price) || 0), 0);
+  const subtotal = Number(data.subtotal) || itemsTotal;
+  const discountAmount = Number(data.discountAmount) || 0;
+  const taxAmount = Number(data.taxAmount) || 0;
+  const total = Number(data.amount) || subtotal - discountAmount + taxAmount;
+  // Paid = whole total, Partially Paid = what was entered, Unpaid = nothing
+  const amountPaid =
+    data.status === "Paid"
+      ? total
+      : data.status === "Partially Paid"
+        ? Math.min(Number(data.amountPaid) || 0, total)
+        : 0;
+  const balanceDue = Math.max(0, total - amountPaid);
+  const notesText = Array.isArray(data.notes) ? data.notes.join("<br/>") : String(data.notes ?? "").trim();
 
-  const formatMoney = (n: number) => {
+  const formatMoney = (n: number, prefix = "") => {
     const naira = Number(n) || 0;
     const nairaText = formatNaira(naira);
-    const rate = peekUsdToNgn();
-    if (!rate) return nairaText;
-    const dollars = formatDollars(naira, rate);
-    const useDollars = brandSetting?.inventoryCurrency === "USD";
-    const primary = useDollars ? dollars : nairaText;
-    const secondary = useDollars ? nairaText : dollars;
-    return `<div><div style="font-weight:700">${primary}</div><div style="font-size:11px;opacity:.7">${secondary}</div></div>`;
+    // One currency only: the Brand currency (Naira if its rate isn't loaded yet)
+    const cur = String(brandSetting?.inventoryCurrency || "NGN").toUpperCase();
+    const rate = cur !== "NGN" ? peekNgnPerUnit(cur) : null;
+    const text = rate ? formatForeign(naira, rate, cur) : nairaText;
+    return `<div style="font-weight:700">${prefix}${text}</div>`;
   };
 
   const invoiceNumber =
@@ -348,7 +359,7 @@ export const generateInvoiceHTML = (data: InvoiceData) => {
 
       <!-- BALANCE DUE (top right, below header) -->
       <div class="balance-due-header">
-        <div class="label">Balance Due</div>
+        <div class="label">${tl("Balance Due")}</div>
         <div class="amount">${formatMoney(balanceDue)}</div>
       </div>
 
@@ -417,25 +428,49 @@ export const generateInvoiceHTML = (data: InvoiceData) => {
       <!-- TOTALS -->
       <div class="totals">
         <div class="totals-row">
-          <span class="totals-label">Sub Total</span>
+          <span class="totals-label">${tl("Sub Total")}</span>
           <span class="totals-value">${formatMoney(subtotal)}</span>
         </div>
+        ${
+          discountAmount > 0
+            ? `<div class="totals-row">
+          <span class="totals-label">${tl("Discount")} (${Number(data.discount) || 0}%)</span>
+          <span class="totals-value">${formatMoney(discountAmount, "-")}</span>
+        </div>`
+            : ""
+        }
+        ${
+          taxAmount > 0
+            ? `<div class="totals-row">
+          <span class="totals-label">${tl("Tax")} (${Number(data.taxRate) || 0}%)</span>
+          <span class="totals-value">${formatMoney(taxAmount)}</span>
+        </div>`
+            : ""
+        }
         <div class="totals-row grand-total">
-          <span>Total</span>
+          <span>${tl("Total")}</span>
           <span class="totals-value">${formatMoney(total)}</span>
         </div>
+        ${
+          amountPaid > 0
+            ? `<div class="totals-row">
+          <span class="totals-label">${tl("Amount Paid")}</span>
+          <span class="totals-value">${formatMoney(amountPaid, "-")}</span>
+        </div>`
+            : ""
+        }
         <div class="balance-box">
-          <span class="totals-label">Balance Due</span>
+          <span class="totals-label">${tl("Balance Due")}</span>
           <span class="totals-value">${formatMoney(balanceDue)}</span>
         </div>
       </div>
 
       ${
-        data.notes?.length
+        notesText
           ? `
       <div class="notes">
         <h4>Notes</h4>
-        <p>${data.notes.join("\n")}</p>
+        <p>${notesText}</p>
       </div>`
           : ""
       }

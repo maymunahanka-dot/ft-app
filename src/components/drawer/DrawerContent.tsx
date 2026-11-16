@@ -17,12 +17,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HapticTab } from "../haptic-tab";
 import ImagePlaceholder from "../shared/ImagePlaceholder";
 import { DrawerListItem } from "./drawer-list-item";
+import { useTranslation } from "react-i18next";
+
+import { t as tx } from "@/src/i18n";
 
 const keyExtractor = (item: DrawerItem) => item?.id || "";
 const LIST_ITEM_HEIGHT = 44;
 export const DrawerContentWidth = Dimensions.get("window").width * 0.35;
 
 export function DrawerContent(props: DrawerContentComponentProps) {
+  const { t: tx } = useTranslation();
+  const { t } = useTranslation();
   const { signOut, loading } = useAuth();
   const { isDark } = useTheme();
   const brandSetting = useUserStore((state) => state.brandSetting);
@@ -90,14 +95,14 @@ export function DrawerContent(props: DrawerContentComponentProps) {
           <Text style={[styles.userName, { color: textColor }]} numberOfLines={1}>{name}</Text>
           <View style={[styles.rolePill, { backgroundColor: isDark ? "rgba(22,152,141,0.18)" : "rgba(22,152,141,0.12)" }]}>
             <Text style={[styles.userRole, { color: isDark ? "#5fd3c8" : Colors.primary }]} numberOfLines={1}>
-              {user?.role ?? "Designer"}
+              {user?.role ?? tx("auto.designer_639d")}
             </Text>
           </View>
         </View>
       </View>
 
       {/* Nav items */}
-      <Text style={[styles.sectionLabel, { color: subTextColor }]}>MENU</Text>
+      <Text style={[styles.sectionLabel, { color: subTextColor }]}>{t("nav.menu")}</Text>
 
       <View style={styles.listContainer}>
         <PressablesGroup>
@@ -133,7 +138,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
           }}
         >
           <Headphones size={scale(16)} color={Colors.primary} />
-          <Text style={[styles.ticketText, { color: Colors.primary }]}>Support</Text>
+          <Text style={[styles.ticketText, { color: Colors.primary }]}>{t("nav.support")}</Text>
         </HapticTab>
 
         {/* Logout — icon only with confirm alert */}
@@ -142,11 +147,11 @@ export function DrawerContent(props: DrawerContentComponentProps) {
           hitSlop={20}
           onPress={() => {
             Alert.alert(
-              "Log Out",
-              "Are you sure you want to log out?",
+              tx("auto.logOut_4e81"),
+              tx("auto.areYouSureYouWant_97c2"),
               [
-                { text: "Cancel", style: "cancel" },
-                { text: "Log Out", style: "destructive", onPress: signOut },
+                { text: tx("auto.cancel_77df"), style: "cancel" },
+                { text: tx("auto.logOut_4e81"), style: "destructive", onPress: signOut },
               ],
             );
           }}

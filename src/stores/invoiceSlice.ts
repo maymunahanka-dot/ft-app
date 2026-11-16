@@ -3,7 +3,9 @@ import { apiFetch } from "../lib/apiClient";
 import { generateInvoiceNumber } from "../lib/invoice";
 import { Invoice, InvoiceData } from "../types/Invoice";
 import { readCache, writeCache } from "../utils/storeCache";
-import { ShowToastMessage } from "../utils/random";
+import { formatInvoiceDate, ShowToastMessage } from "../utils/random";
+
+import { t as tx } from "@/src/i18n";
 
 const CACHE_KEY = "store_invoices";
 
@@ -39,7 +41,7 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
       set((state) => ({ invoices: [saved, ...state.invoices] }));
     } catch (error: any) {
       console.error("Error creating invoice:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to create invoice", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToCreateInvoice_940d"), preset: "error", haptic: "error" });
       // Let the form know it failed so it stays open (e.g. free-plan limit of 10 invoices)
       throw error;
     } finally {
@@ -60,13 +62,15 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
       const fresh = (res.data ?? []).map((inv: any) => ({
         ...inv,
         id: inv.id || inv._id?.toString() || "",
+        // invoices made on the web (and the backend) keep the date in createdDate
+        invoiceDate: inv.invoiceDate || (inv.createdDate ? formatInvoiceDate(inv.createdDate) : ""),
       }));
       set({ invoices: fresh });
       await writeCache(CACHE_KEY, fresh);
     } catch (error: any) {
       console.error("Error getting invoices:", error);
       if (!cached) {
-        ShowToastMessage({ title: error.message ?? "Failed to fetch invoices", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchInvoices_58b7"), preset: "error", haptic: "error" });
       }
     } finally {
       set({ loading: false });
@@ -90,10 +94,10 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
           i.id === updated.id ? updated : i,
         ),
       }));
-      ShowToastMessage({ title: "Invoice updated successfully", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.invoiceUpdatedSuccessfully_e4ab"), preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error updating invoice:", error);
-      ShowToastMessage({ title: error.message ?? "Update failed", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.updateFailed_4de0"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -111,7 +115,7 @@ export const useInvoiceStore = create<InvoiceState>((set) => ({
       }));
     } catch (error: any) {
       console.error("Error deleting invoice:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to delete invoice", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToDeleteInvoice_c5e5"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

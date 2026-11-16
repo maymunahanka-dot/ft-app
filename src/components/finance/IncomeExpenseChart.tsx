@@ -19,6 +19,11 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { dateLocale } from "@/src/i18n/dateLocale";
+import { tl } from "@/src/i18n";
 const screenWidth = Dimensions.get("window").width;
 
 interface IncomeExpenseChartProps {
@@ -45,7 +50,7 @@ const generateMonthOptions = (): { label: string; value: TimeFilter }[] => {
   for (let i = 0; i <= currentMonth; i++) {
     const date = new Date(currentDate.getFullYear(), i, 1);
     months.push({
-      label: date.toLocaleDateString("en-US", {
+      label: date.toLocaleDateString(dateLocale("en-US"), {
         month: "long",
         year: "numeric",
       }),
@@ -65,6 +70,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
   incomes,
   expenses,
 }) => {
+  const { t: tx } = useTranslation();
   const [selectedFilter, setSelectedFilter] = useState<TimeFilter>("alltime");
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
@@ -197,7 +203,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         });
 
         aggregatedData.push({
-          label: earliestDate.toLocaleDateString("en-US", {
+          label: earliestDate.toLocaleDateString(dateLocale("en-US"), {
             month: "short",
             day: "numeric",
           }),
@@ -246,12 +252,12 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
 
           let label: string;
           if (totalDays > 365) {
-            label = chunkStartDate.toLocaleDateString("en-US", {
+            label = chunkStartDate.toLocaleDateString(dateLocale("en-US"), {
               month: "short",
               year: "2-digit",
             });
           } else {
-            label = chunkStartDate.toLocaleDateString("en-US", {
+            label = chunkStartDate.toLocaleDateString(dateLocale("en-US"), {
               month: "short",
               day: "numeric",
             });
@@ -380,7 +386,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Income vs Expenses</Text>
+        <Text style={styles.title}>{tx("auto.incomeVsExpenses_800c")}</Text>
         <TouchableOpacity
           style={styles.filterButton}
           onPress={() => setShowFilterDropdown(!showFilterDropdown)}
@@ -414,7 +420,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
                     styles.selectedDropdownText,
                 ]}
               >
-                {option.label}
+                {tl(option.label)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -425,7 +431,7 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         <View style={styles.yAxisLabels}>
           {[...yAxisLabels].reverse().map((label, index) => (
             <Text key={index} style={styles.yAxisLabel}>
-              {label.label}
+              {tl(label.label)}
             </Text>
           ))}
         </View>
@@ -504,11 +510,11 @@ const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: "#22c55e" }]} />
-          <Text style={styles.legendText}>Income</Text>
+          <Text style={styles.legendText}>{tx("auto.income_1c89")}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: "#ef4444" }]} />
-          <Text style={styles.legendText}>Expenses</Text>
+          <Text style={styles.legendText}>{tx("auto.expenses_8d43")}</Text>
         </View>
       </View>
     </View>

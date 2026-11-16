@@ -20,6 +20,8 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import SelectFilterModal from "@/src/components/shared/modal/SelectFilterModal";
 import { ChevronDown, ChevronLeft, Pencil } from "lucide-react-native";
+import { CURRENCY_OPTIONS, currencySymbol } from "@/src/utils/exchangeRate";
+
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -35,23 +37,33 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+
+import { tl } from "@/src/i18n";
+const currencyLabel = (code: string) => {
+  const found = CURRENCY_OPTIONS.find((c) => c.code === code);
+  return `${found?.name ?? code} (${currencySymbol(code)}) · ${code}`;
+};
+
 // ─── Validation ───────────────────────────────────────────────────────────────
 const validateBrandSettings = (data: BrandSettings) => {
   const nextError = emptyBrandSettings("");
 
   if (!data.businessName.trim())
-    nextError.businessName = "Business name is required";
+    nextError.businessName = tx("auto.businessNameIsRequired_b048");
 
   if (!data.businessAddress?.trim())
-    nextError.businessAddress = "Business address is required";
+    nextError.businessAddress = tx("auto.businessAddressIsRequired_f139");
 
   if (!data.businessPhone?.trim())
-    nextError.businessPhone = "Phone number is required";
+    nextError.businessPhone = tx("auto.phoneNumberIsRequired_f845");
 
   if (!data.businessEmail?.trim()) {
-    nextError.businessEmail = "Email address is required";
+    nextError.businessEmail = tx("auto.emailAddressIsRequired_e7f0");
   } else if (!/\S+@\S+\.\S+/.test(data.businessEmail)) {
-    nextError.businessEmail = "Email address is invalid";
+    nextError.businessEmail = tx("auto.emailAddressIsInvalid_85f8");
   }
 
   const website = data.businessWebsite?.trim();
@@ -61,7 +73,7 @@ const validateBrandSettings = (data: BrandSettings) => {
       website,
     )
   ) {
-    nextError.businessWebsite = "Enter a valid website (e.g. www.example.com)";
+    nextError.businessWebsite = tx("auto.enterAValidWebsiteE_b576");
   }
 
   return nextError;
@@ -76,6 +88,7 @@ const hasErrors = (err: BrandSettings) =>
 
 // ─── Component ────────────────────────────────────────────────────────────────
 const BrandDetailsScreen = () => {
+  const { t: tx } = useTranslation();
   const user = useUserStore((state) => state.user);
   const storeBrandSetting = useUserStore((state) => state.brandSetting);
   const setStoreBrand = useUserStore((state) => state.editBrandSettings);
@@ -162,7 +175,7 @@ const BrandDetailsScreen = () => {
     const nextError = validateBrandSettings(clean);
     setError(nextError);
     if (hasErrors(nextError)) {
-      ShowToastMessage({ title: "Please fix the errors", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: tx("auto.pleaseFixTheErrors_754b"), preset: "error", haptic: "error" });
       return;
     }
 
@@ -209,14 +222,14 @@ const BrandDetailsScreen = () => {
       if (success) {
         // Sync the Zustand store so the rest of the app is up to date
         await setStoreBrand(payload);
-        ShowToastMessage({ title: "Brand settings saved", preset: "done", haptic: "success" });
+        ShowToastMessage({ title: tx("auto.brandSettingsSaved_419c"), preset: "done", haptic: "success" });
         router.replace("/(tabs)/More");
       } else {
-        ShowToastMessage({ title: "Update failed", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: tx("auto.updateFailed_4de0"), preset: "error", haptic: "error" });
       }
     } catch (err: any) {
       ShowToastMessage({
-        title: "Update failed",
+        title: tx("auto.updateFailed_4de0"),
         message: err.message,
         preset: "error",
         haptic: "error",
@@ -250,7 +263,7 @@ const BrandDetailsScreen = () => {
       >
         <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={[styles.reg14, { color: subTextColor, marginTop: spacing(12) }]}>
-          Loading brand settings...
+          {tx("auto.loadingBrandSettings_fb73")}
         </Text>
       </SafeAreaView>
     );
@@ -277,9 +290,9 @@ const BrandDetailsScreen = () => {
           />
         </HapticTab>
         <View style={styles.col}>
-          <Text style={[styles.reg24, { color: textColor }]}>Brand</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.brand_62b4")}</Text>
           <Text style={[Styles.reg14, { color: subTextColor }]}>
-            Manage your business details
+            {tx("auto.manageYourBusinessDetails_3c5f")}
           </Text>
         </View>
       </View>
@@ -300,7 +313,7 @@ const BrandDetailsScreen = () => {
             {/* ── Logo ── */}
             <View style={styles.logoSection}>
               <Text style={[styles.sectionLabel, { color: sectionLabelColor }]}>
-                Brand Logo
+                {tx("auto.brandLogo_25dd")}
               </Text>
               <View style={styles.logoRow}>
                 <View style={styles.logoDisplayWrapper}>
@@ -336,10 +349,10 @@ const BrandDetailsScreen = () => {
             {/* ── Business info ── */}
             <View style={styles.inputs}>
               <Field
-                label="Brand Name"
+                label={tx("auto.brandName_45fb")}
                 value={form.businessName}
                 onChangeText={(t) => handleChange("businessName", t)}
-                placeholder="M&S Design"
+                placeholder={tx("auto.mSDesign_4759")}
                 error={error.businessName}
                 labelColor={labelColor}
                 inputBg={inputBg}
@@ -349,10 +362,10 @@ const BrandDetailsScreen = () => {
               />
 
               <Field
-                label="Business Address"
+                label={tx("auto.businessAddress_6a24")}
                 value={form.businessAddress}
                 onChangeText={(t) => handleChange("businessAddress", t)}
-                placeholder="12 Fashion Street, Victoria Island, Lagos"
+                placeholder={tx("auto.12FashionStreetVictoriaIsland_f97b")}
                 error={error.businessAddress}
                 multiline
                 numberOfLines={3}
@@ -364,7 +377,7 @@ const BrandDetailsScreen = () => {
               />
 
               <Field
-                label="Phone Number"
+                label={tx("auto.phoneNumber_ab25")}
                 value={form.businessPhone}
                 onChangeText={(t) => handleChange("businessPhone", t)}
                 placeholder="+234 803 456 7890"
@@ -378,7 +391,7 @@ const BrandDetailsScreen = () => {
               />
 
               <Field
-                label="Email"
+                label={tx("auto.email_84ad")}
                 value={form.businessEmail}
                 onChangeText={(t) => handleChange("businessEmail", t)}
                 placeholder="hello@mybrand.com"
@@ -392,7 +405,7 @@ const BrandDetailsScreen = () => {
               />
 
               <Field
-                label="Website"
+                label={tx("auto.website_2e8a")}
                 value={form.businessWebsite}
                 onChangeText={(t) => handleChange("businessWebsite", t)}
                 placeholder="www.mybrand.com"
@@ -406,7 +419,7 @@ const BrandDetailsScreen = () => {
               />
 
               <Field
-                label="Instagram Handle"
+                label={tx("auto.instagramHandle_9925")}
                 value={form.instagramHandle}
                 onChangeText={(t) => handleChange("instagramHandle", t)}
                 placeholder="@mybrand"
@@ -421,11 +434,11 @@ const BrandDetailsScreen = () => {
             {/* ── Brand Colors ── */}
             <View style={[styles.section, { borderTopColor: dividerColor }]}>
               <Text style={[styles.sectionLabel, { color: sectionLabelColor }]}>
-                Brand Colors
+                {tx("auto.brandColors_d071")}
               </Text>
               <View style={styles.inputs}>
                 <ColorField
-                  label="Primary Color"
+                  label={tx("auto.primaryColor_d3dc")}
                   value={form.primaryColor ?? "#000000"}
                   onChangeText={(t) => handleChange("primaryColor", t)}
                   labelColor={labelColor}
@@ -435,7 +448,7 @@ const BrandDetailsScreen = () => {
                   placeholderColor={placeholderColor}
                 />
                 <ColorField
-                  label="Secondary Color"
+                  label={tx("auto.secondaryColor_7a87")}
                   value={form.secondaryColor ?? "#666666"}
                   onChangeText={(t) => handleChange("secondaryColor", t)}
                   labelColor={labelColor}
@@ -450,14 +463,14 @@ const BrandDetailsScreen = () => {
             {/* ── Invoice settings ── */}
             <View style={[styles.section, { borderTopColor: dividerColor }]}>
               <Text style={[styles.sectionLabel, { color: sectionLabelColor }]}>
-                Invoice Settings
+                {tx("auto.invoiceSettings_1a0e")}
               </Text>
               <View style={styles.inputs}>
                 <Field
-                  label="Invoice Footer Text"
+                  label={tx("auto.invoiceFooterText_ea73")}
                   value={form.footerText}
                   onChangeText={(t) => handleChange("footerText", t)}
-                  placeholder="Thank you for your business! Payment terms: Net 30 days."
+                  placeholder={tx("auto.thankYouForYourBusiness_80f9")}
                   multiline
                   numberOfLines={3}
                   labelColor={labelColor}
@@ -467,10 +480,10 @@ const BrandDetailsScreen = () => {
                   placeholderColor={placeholderColor}
                 />
                 <Field
-                  label="Terms & Conditions"
+                  label={tx("auto.termsConditions_d35f")}
                   value={form.termsAndConditions}
                   onChangeText={(t) => handleChange("termsAndConditions", t)}
-                  placeholder="A minimum of 60% is required before sewing commences"
+                  placeholder={tx("auto.aMinimumOf60Is_b509")}
                   multiline
                   numberOfLines={4}
                   labelColor={labelColor}
@@ -483,32 +496,32 @@ const BrandDetailsScreen = () => {
             </View>
 
             <View style={[styles.section, { borderTopColor: dividerColor }]}>
-              <Text style={[styles.sectionLabel, { color: sectionLabelColor }]}>Currency</Text>
+              <Text style={[styles.sectionLabel, { color: sectionLabelColor }]}>{tx("auto.currency_e070")}</Text>
               <Pressable
                 style={[styles.currencyRow, { backgroundColor: inputBg, borderColor: inputBorder }]}
                 onPress={() => setCurrencyModal(true)}
               >
                 <Text style={[Styles.reg16, { color: inputTextColor, flex: 1 }]}>
-                  {form.inventoryCurrency === "USD" ? "Dollar ($)" : "Naira (₦)"}
+                  {currencyLabel(form.inventoryCurrency || "NGN")}
                 </Text>
                 <ChevronDown size={scale(18)} color={labelColor} />
               </Pressable>
               <Text style={[styles.currencyHint, { color: labelColor }]}>
-                Used for inventory, designs, orders, invoices, and finances. Dollar amounts are converted to naira with the live exchange rate before they are saved.
+                {tx("auto.moneyIsShownInThis_bc0b")}
               </Text>
             </View>
 
             {/* ── Bank Details ── */}
             <View style={[styles.section, { borderTopColor: dividerColor }]}>
               <Text style={[styles.sectionLabel, { color: sectionLabelColor }]}>
-                Bank Details
+                {tx("auto.bankDetails_7bc4")}
               </Text>
               <View style={styles.inputs}>
                 <Field
-                  label="Bank Name"
+                  label={tx("auto.bankName_3126")}
                   value={form.bankName}
                   onChangeText={(t) => handleChange("bankName", t)}
-                  placeholder="GTBank"
+                  placeholder={tx("auto.gtbank_169d")}
                   labelColor={labelColor}
                   inputBg={inputBg}
                   inputBorder={inputBorder}
@@ -516,7 +529,7 @@ const BrandDetailsScreen = () => {
                   placeholderColor={placeholderColor}
                 />
                 <Field
-                  label="Account Number"
+                  label={tx("auto.accountNumber_0bd6")}
                   value={form.accountNumber}
                   onChangeText={(t) => handleChange("accountNumber", t)}
                   placeholder="0123456789"
@@ -528,10 +541,10 @@ const BrandDetailsScreen = () => {
                   placeholderColor={placeholderColor}
                 />
                 <Field
-                  label="Account Name"
+                  label={tx("auto.accountName_db3b")}
                   value={form.accountName}
                   onChangeText={(t) => handleChange("accountName", t)}
-                  placeholder="M&S Design"
+                  placeholder={tx("auto.mSDesign_4759")}
                   labelColor={labelColor}
                   inputBg={inputBg}
                   inputBorder={inputBorder}
@@ -543,7 +556,7 @@ const BrandDetailsScreen = () => {
 
             <View style={styles.button}>
               <PrimaryButton
-                title="Save Changes"
+                title={tx("auto.saveChanges_fa29")}
                 onPress={handleSave}
                 loading={saving || logoUploading}
                 props={{ disabled: saving || logoUploading }}
@@ -555,12 +568,11 @@ const BrandDetailsScreen = () => {
     </SafeAreaView>
       {currencyModal && (
         <SelectFilterModal
-          data={[
-            { label: "Naira (₦)", value: "NGN" },
-            { label: "Dollar ($)", value: "USD" },
-          ]}
+          data={CURRENCY_OPTIONS.map((c) => ({ label: currencyLabel(c.code), value: c.code }))}
           visible={currencyModal}
-          selected={form.inventoryCurrency === "USD" ? "USD" : "NGN"}
+          selected={form.inventoryCurrency || "NGN"}
+          searchable
+          searchPlaceholder={tx("auto.searchCurrencyEGYuan_ff91")}
           handleOption={(option) => handleChange("inventoryCurrency", option)}
           onClose={() => setCurrencyModal(false)}
         />
@@ -604,11 +616,11 @@ const Field = ({
   placeholderColor,
 }: FieldProps) => (
   <View style={Styles.inputContainer}>
-    <Text style={[Styles.label, { color: labelColor }]}>{label}</Text>
+    <Text style={[Styles.label, { color: labelColor }]}>{tl(label)}</Text>
     <TextInput
       value={value}
       onChangeText={onChangeText}
-      placeholder={placeholder}
+      placeholder={tl(placeholder)}
       placeholderTextColor={placeholderColor}
       keyboardType={keyboardType}
       returnKeyType={multiline ? "default" : "next"}
@@ -642,7 +654,7 @@ type ColorFieldProps = Omit<FieldProps, "multiline" | "numberOfLines"> & {
 
 const ColorField = ({ label, value, onChangeText, labelColor, inputBg, inputBorder, inputTextColor, placeholderColor }: ColorFieldProps) => (
   <View style={Styles.inputContainer}>
-    <Text style={[Styles.label, { color: labelColor }]}>{label}</Text>
+    <Text style={[Styles.label, { color: labelColor }]}>{tl(label)}</Text>
     <View style={[Styles.inputRow ?? {}, { flexDirection: "row", alignItems: "center", gap: spacing(8) }]}>
       {/* Color swatch */}
       <View

@@ -4,6 +4,8 @@ import { Design } from "../types/designs";
 import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
 
+import { t as tx } from "@/src/i18n";
+
 const CACHE_KEY = "store_designs";
 
 interface DesignState {
@@ -61,7 +63,7 @@ export const useDesignStore = create<DesignState>((set) => ({
   // ─── CREATE ────────────────────────────────────────────────────────────────
   async createDesign(payload) {
     if (!payload.imageUrl) {
-      ShowToastMessage({ title: "Please add a design image", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: tx("auto.pleaseAddADesignImage_a84d"), preset: "error", haptic: "error" });
       return;
     }
     set({ loading: true });
@@ -86,7 +88,7 @@ export const useDesignStore = create<DesignState>((set) => ({
       set((state) => ({ designs: [json.data, ...state.designs] }));
     } catch (error: any) {
       console.error("Error creating design:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to create design", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToCreateDesign_98b5"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -110,7 +112,7 @@ export const useDesignStore = create<DesignState>((set) => ({
     } catch (error: any) {
       console.error("Error getting designs:", error);
       if (!cached) {
-        ShowToastMessage({ title: error.message ?? "Failed to fetch designs", preset: "error", haptic: "error" });
+        ShowToastMessage({ title: error.message ?? tx("auto.failedToFetchDesigns_6939"), preset: "error", haptic: "error" });
       }
     } finally {
       set({ loading: false });
@@ -139,10 +141,10 @@ export const useDesignStore = create<DesignState>((set) => ({
       set((state) => ({
         designs: state.designs.map((d) => (d.id === json.data.id ? json.data : d)),
       }));
-      ShowToastMessage({ title: "Design updated successfully", preset: "done", haptic: "success" });
+      ShowToastMessage({ title: tx("auto.designUpdatedSuccessfully_2e5c"), preset: "done", haptic: "success" });
     } catch (error: any) {
       console.error("Error updating design:", error);
-      ShowToastMessage({ title: error.message ?? "Update failed", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.updateFailed_4de0"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }
@@ -160,7 +162,7 @@ export const useDesignStore = create<DesignState>((set) => ({
       }));
     } catch (error: any) {
       console.error("Error deleting design:", error);
-      ShowToastMessage({ title: error.message ?? "Failed to delete design", preset: "error", haptic: "error" });
+      ShowToastMessage({ title: error.message ?? tx("auto.failedToDeleteDesign_047d"), preset: "error", haptic: "error" });
     } finally {
       set({ loading: false });
     }

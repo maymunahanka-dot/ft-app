@@ -29,6 +29,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type DesignDetails = {
   imageUrl: string;
   clientId: string;
@@ -39,6 +42,7 @@ type DesignDetails = {
 };
 
 const EditDesignScreen = () => {
+  const { t: tx } = useTranslation();
   const { id } = useLocalSearchParams();
   const designs = useDesignStore((state) => state.designs);
   const foundDesign = designs.find((prev) => prev.id === id.toString())!;
@@ -114,7 +118,7 @@ const EditDesignScreen = () => {
   });
 
   useEffect(() => {
-    if (converted.current || priceTouched.current || currency !== "USD" || !usdToNgn) return;
+    if (converted.current || priceTouched.current || currency === "NGN" || !usdToNgn) return;
     converted.current = true;
     const naira = Number(foundDesign?.price) || 0;
     setDesignDetails((prev) => ({ ...prev, price: (naira / usdToNgn).toFixed(2) }));
@@ -165,7 +169,7 @@ const EditDesignScreen = () => {
           <HapticTab style={styles.backBtn} onPress={handleBack}>
             <ChevronLeft size={scale(20)} color={isDark ? "rgba(200,200,200,1)" : "rgba(54, 65, 83, 1)"} strokeWidth={1.5} />
           </HapticTab>
-          <Text style={[styles.reg24, { color: textColor }]}>Edit Design</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.editDesign_1317")}</Text>
         </View>
 
         <KeyboardAvoidingView
@@ -183,14 +187,14 @@ const EditDesignScreen = () => {
               {/* client selector */}
               <View style={Styles.inputContainer}>
                 <Text style={[Styles.label, { color: labelColor }]}>
-                  Clients<Text style={styles.red}> *</Text>
+                  {tx("auto.clients_28e2")}<Text style={styles.red}> *</Text>
                 </Text>
                 <Pressable
                   style={[Styles.input, { ...styles.row, paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder }]}
                   onPress={toggleClientModal}
                 >
                   <Text style={[Styles.reg16, { color: dropdownTextColor }]}>
-                    {selectedClient ? selectedClient.name : "Select a Client"}
+                    {selectedClient ? selectedClient.name : tx("auto.selectAClient_b222")}
                   </Text>
                   <ChevronDown size={scale(20)} color={chevronColor} />
                 </Pressable>
@@ -199,7 +203,7 @@ const EditDesignScreen = () => {
               {/* image picker */}
               <View style={[Styles.inputContainer, { gap: spacing(12) }]}>
                 <Text style={[styles.reg14, { color: labelColor }]}>
-                  Style Image<Text style={styles.red}> *</Text>
+                  {tx("auto.styleImage_bae5")}<Text style={styles.red}> *</Text>
                 </Text>
                 <HapticTab
                   style={[styles.imagePicker, { borderColor: imagePickerBorder }]}
@@ -220,8 +224,8 @@ const EditDesignScreen = () => {
                         <Upload size={scale(25)} color={iconColor} />
                       </View>
                       <View style={[styles.col, { justifyContent: "center", alignItems: "center" }]}>
-                        <Text style={[styles.reg14, { color: labelColor }]}>Click to upload design image</Text>
-                        <Text style={[styles.reg12, { color: subLabelColor }]}>PNG, JPG up to 10MB</Text>
+                        <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.clickToUploadDesignImage_083c")}</Text>
+                        <Text style={[styles.reg12, { color: subLabelColor }]}>{tx("auto.pngJpgUpTo10mb_951d")}</Text>
                       </View>
                     </>
                   )}
@@ -234,12 +238,12 @@ const EditDesignScreen = () => {
               {/* name */}
               <View style={Styles.inputContainer}>
                 <Text style={[styles.reg14, { color: labelColor }]}>
-                  Design Name<Text style={styles.red}> *</Text>
+                  {tx("auto.designName_32f6")}<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={designDetails.name}
                   onChangeText={(text) => handleDetailsChange("name", text)}
-                  placeholder="e.g., Ankara Maxi Dress"
+                  placeholder={tx("auto.eGAnkaraMaxiDress_dc17")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
@@ -253,12 +257,12 @@ const EditDesignScreen = () => {
               {/* price */}
               <View style={Styles.inputContainer}>
                 <Text style={[styles.reg14, { color: labelColor }]}>
-                  Price ({symbol})<Text style={styles.red}> *</Text>
+                  {tx("auto.price_40f8")}{symbol})<Text style={styles.red}> *</Text>
                 </Text>
                 <TextInput
                   value={formatPrice(designDetails.price)}
                   onChangeText={(text) => handleDetailsChange("price", text)}
-                  placeholder="e.g., 85000"
+                  placeholder={tx("auto.eG85000_f1bb")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="numeric"
@@ -272,11 +276,11 @@ const EditDesignScreen = () => {
 
               {/* description */}
               <View style={Styles.inputContainer}>
-                <Text style={[styles.reg14, { color: labelColor }]}>Description</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.description_55f8")}</Text>
                 <TextInput
                   value={designDetails.description}
                   onChangeText={(text) => handleDetailsChange("description", text)}
-                  placeholder="Brief description of the design..."
+                  placeholder={tx("auto.briefDescriptionOfTheDesign_7ce0")}
                   placeholderTextColor={placeholderColor}
                   returnKeyType="next"
                   keyboardType="default"
@@ -286,11 +290,11 @@ const EditDesignScreen = () => {
 
               {/* notes */}
               <View style={Styles.inputContainer}>
-                <Text style={[styles.reg14, { color: labelColor }]}>Notes</Text>
+                <Text style={[styles.reg14, { color: labelColor }]}>{tx("auto.notes_7044")}</Text>
                 <TextInput
                   value={designDetails.notes}
                   onChangeText={(text) => handleDetailsChange("notes", text)}
-                  placeholder="Additional notes, client preferences, special requirements..."
+                  placeholder={tx("auto.additionalNotesClientPreferences_5f9c")}
                   placeholderTextColor={placeholderColor}
                   keyboardType="default"
                   style={[Styles.input, { height: 100, textAlignVertical: "top", paddingTop: spacing(15), paddingVertical: 0, backgroundColor: inputBg, borderColor: inputBorder, paddingHorizontal: spacing(16), color: inputTextColor }]}
@@ -298,7 +302,7 @@ const EditDesignScreen = () => {
               </View>
 
               <View style={[styles.button, { marginTop: spacing(30) }]}>
-                <PrimaryButton title="Edit Design" onPress={handleEditDesign} loading={loading} />
+                <PrimaryButton title={tx("auto.editDesign_1317")} onPress={handleEditDesign} loading={loading} />
               </View>
             </View>
           </ScrollView>

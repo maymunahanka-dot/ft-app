@@ -1,3 +1,4 @@
+import { t as tx } from "@/src/i18n";
 /**
  * Form validation utilities.
  * Mandatory fields are required; optional fields are validated only when present.
@@ -33,22 +34,22 @@ export function validateDesignForm(data: DesignFormData): ValidationResult<keyof
   let isValid = true;
 
   if (!data.imageUrl?.trim()) {
-    errors.imageUrl = "Design image is required";
+    errors.imageUrl = tx("auto.designImageIsRequired_5667");
     isValid = false;
   }
 
   if (!data.name?.trim()) {
-    errors.name = "Design name is required";
+    errors.name = tx("auto.designNameIsRequired_b254");
     isValid = false;
   }
 
   if (!data.price?.trim()) {
-    errors.price = "Price is required";
+    errors.price = tx("auto.priceIsRequired_2fa9");
     isValid = false;
   } else {
     const num = parseFloat(data.price.replace(/[^0-9.]/g, ""));
     if (Number.isNaN(num) || num <= 0) {
-      errors.price = "Enter a valid price (greater than 0)";
+      errors.price = tx("auto.enterAValidPriceGreater_ed90");
       isValid = false;
     }
   }

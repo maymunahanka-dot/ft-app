@@ -24,7 +24,11 @@ import { useCallback, useEffect, useState } from "react";import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const NotificationDetailsScreen = () => {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
 
   const bg         = isDark ? "#0f0f0f" : "white";
@@ -125,9 +129,9 @@ const NotificationDetailsScreen = () => {
           />
         </HapticTab>
         <View style={styles.col}>
-          <Text style={[styles.reg24, { color: textColor }]}>Notifications</Text>
+          <Text style={[styles.reg24, { color: textColor }]}>{tx("auto.notifications_753a")}</Text>
           <Text style={[Styles.reg14, { color: subColor }]}>
-            Manage push notifications
+            {tx("auto.managePushNotifications_2f6f")}
           </Text>
         </View>
       </View>
@@ -141,12 +145,12 @@ const NotificationDetailsScreen = () => {
         ) : !isPushAvailable() ? (
           <View style={[styles.msgBox, { backgroundColor: warnBg, borderColor: "transparent" }]}>
             <Text style={[Styles.reg12, { color: warnColor }]}>
-              Push notifications are not available in Expo Go.{"\n\n"}
-              Build the app with{" "}
-              <Text style={{ fontFamily: "semibold" }}>npx expo run:android</Text>
-              {" "}or{" "}
-              <Text style={{ fontFamily: "semibold" }}>eas build --profile development</Text>
-              {" "}to enable push notifications.
+              {tx("auto.pushNotificationsAreNotAvailable_d961")}{"\n\n"}
+              {tx("auto.buildTheAppWith_c2c3")}{" "}
+              <Text style={{ fontFamily: "semibold" }}>{tx("auto.npxExpoRunAndroid_4ec6")}</Text>
+              {" "}{tx("auto.or_1758")}{" "}
+              <Text style={{ fontFamily: "semibold" }}>{tx("auto.easBuildProfileDevelopment_37a9")}</Text>
+              {" "}{tx("auto.toEnablePushNotifications_f869")}
             </Text>
           </View>
         ) : (
@@ -160,7 +164,7 @@ const NotificationDetailsScreen = () => {
               >
                 <Settings size={scale(14)} color={warnColor} />
                 <Text style={[Styles.reg12, { color: warnColor, flex: 1 }]}>
-                  Notifications are blocked by your device. Tap to open settings and allow them for FashionTally.
+                  {tx("auto.notificationsAreBlockedByYour_8b8e")}
                 </Text>
               </TouchableOpacity>
             )}
@@ -200,10 +204,10 @@ const NotificationDetailsScreen = () => {
 
                 <View style={styles.col}>
                   <Text style={[styles.cardTitle, { color: textColor }]}>
-                    Push Notifications
+                    {tx("auto.pushNotifications_b8fe")}
                   </Text>
                   <Text style={[Styles.reg12, { color: subColor }]}>
-                    {enabled ? "Enabled for this device" : "Tap to enable"}
+                    {enabled ? tx("auto.enabledForThisDevice_351e") : tx("auto.tapToEnable_ce2c")}
                   </Text>
                 </View>
               </View>
@@ -222,7 +226,7 @@ const NotificationDetailsScreen = () => {
               <View style={[styles.deviceRow, { borderColor: cardBorder }]}>
                 <Smartphone size={scale(14)} color={subColor} />
                 <Text style={[Styles.reg12, { color: subColor }]}>
-                  Notifications active on this device
+                  {tx("auto.notificationsActiveOnThisDevice_96bf")}
                 </Text>
               </View>
             )}
@@ -239,7 +243,7 @@ const NotificationDetailsScreen = () => {
             ) : !enabled && permStatus !== "denied" ? (
               <View style={[styles.msgBox, { backgroundColor: infoBg, borderColor: "transparent" }]}>
                 <Text style={[Styles.reg12, { color: subColor }]}>
-                  Enable to receive login alerts, order updates, and daily business summaries from FashionTally.
+                  {tx("auto.enableToReceiveLoginAlerts_458d")}
                 </Text>
               </View>
             ) : null}

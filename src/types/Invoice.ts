@@ -1,4 +1,6 @@
 export type InvoiceItem = {
+  itemType?: string;
+  category?: string;
   description: string;
   quantity: number;
   price: number;
@@ -22,11 +24,25 @@ export type InvoiceData = {
 
   items: InvoiceItem[];
 
-  notes?: string[];
+  notes?: string[] | string;
   termsAndConditions?: string;
   currency?: string; // "NGN"
 
   themeColor?: string;
+
+  // Same fields as invoices made on the web (amounts in Naira)
+  clientAddress?: string;
+  createdDate?: string;
+  status?: "Unpaid" | "Paid" | "Partially Paid" | string;
+  paymentMethod?: string;
+  discount?: number;
+  taxRate?: number;
+  subtotal?: number;
+  discountAmount?: number;
+  taxAmount?: number;
+  amount?: number;
+  /** Full total when Paid, typed in when Partially Paid, 0 when Unpaid */
+  amountPaid?: number;
 };
 
 /** Invoice document stored in Firestore (fashiontally_invoices) */

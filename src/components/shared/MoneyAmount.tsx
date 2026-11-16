@@ -1,80 +1,59 @@
 import { useDisplayCurrency } from "@/src/hooks/useDisplayCurrency";
-import { Text, View } from "react-native";
-
-function nairaText(amount: number) {
-  const value = Number(amount) || 0;
-  const sign = value < 0 ? "-" : "";
-  const digits = Math.abs(value).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `${sign}₦${digits}`;
-}
-
-function dollarText(amount: number, usdToNgn: number) {
-  const value = Number(amount) || 0;
-  const sign = value < 0 ? "-" : "";
-  const dollars = Math.abs(value) / usdToNgn;
-  const digits = dollars.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `${sign}$${digits}`;
-}
+import { formatForeign, formatMoney } from "@/src/utils/exchangeRate";
+import { Text } from "react-native";
 
 type MoneyAmountProps = {
   amount: number;
   color?: string;
+  /** No longer used (amounts show one currency only); kept so callers don't change. */
   secondaryColor?: string;
   align?: "start" | "end" | "center";
   prefix?: string;
   primarySize?: number;
 };
 
-const alignItems = {
-  start: "flex-start",
-  end: "flex-end",
-  center: "center",
-} as const;
+const textAlign = { start: "left", end: "right", center: "center" } as const;
 
+/**
+ * A saved (Naira) amount, shown only in the business's Brand currency.
+ * Naira businesses see ₦; others see their currency at today's rate.
+ */
 export default function MoneyAmount({
   amount,
   color,
-  secondaryColor,
   align = "start",
   prefix = "",
   primarySize = 14,
 }: MoneyAmountProps) {
-  const { showDollars, usdToNgn } = useDisplayCurrency();
-  const naira = `${prefix}${nairaText(amount)}`;
-
-  if (!usdToNgn) {
-    return (
-      <Text style={{ color, fontFamily: "medium", fontSize: primarySize }}>{naira}</Text>
-    );
-  }
-
-  const dollars = `${prefix}${dollarText(amount, usdToNgn)}`;
+  const { isForeign, currency, ngnPerUnit, rateFailed } = useDisplayCurrency();
+  const text =
+    isForeign && ngnPerUnit
+      ? formatForeign(amount, ngnPerUnit, currency)
+      : isForeign && !rateFailed
+        ? "…" // rate still loading: don't flash the wrong currency
+        : formatMoney(amount, "NGN"); // Naira business, or no rate available
 
   return (
-    <View style={{ alignItems: alignItems[align] }}>
-      <Text style={{ color, fontFamily: "medium", fontSize: primarySize }}>
-        {showDollars ? dollars : naira}
-      </Text>
-      <Text style={{ color: secondaryColor ?? color, opacity: secondaryColor ? 1 : 0.65, fontFamily: "regular", fontSize: 11 }}>
-        {showDollars ? naira : dollars}
-      </Text>
-    </View>
+    <Text style={{ color, fontFamily: "medium", fontSize: primarySize, textAlign: textAlign[align] }}>
+      {prefix}
+      {text}
+    </Text>
   );
 }
 
-/** Amount the user is typing, already in the selected currency. */
+/** Amount the user is typing, already in the Brand currency. */
 export function EntryMoney(props: MoneyAmountProps) {
-  const { currency, usdToNgn } = useDisplayCurrency();
-  const entered = Number(props.amount) || 0;
-
-  if (currency === "USD" && !usdToNgn) {
-    return (
-      <Text style={{ color: props.color, fontFamily: "medium", fontSize: props.primarySize ?? 14 }}>
-        {`${props.prefix ?? ""}$${entered.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-      </Text>
-    );
-  }
-
-  const naira = currency === "USD" && usdToNgn ? Math.round(entered * usdToNgn * 100) / 100 : entered;
-  return <MoneyAmount {...props} amount={naira} />;
+  const { currency } = useDisplayCurrency();
+  return (
+    <Text
+      style={{
+        color: props.color,
+        fontFamily: "medium",
+        fontSize: props.primarySize ?? 14,
+        textAlign: textAlign[props.align ?? "start"],
+      }}
+    >
+      {`${props.prefix ?? ""}${formatMoney(Number(props.amount) || 0, currency)}`}
+    </Text>
+  );
 }

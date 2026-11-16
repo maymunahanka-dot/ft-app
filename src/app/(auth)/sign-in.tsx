@@ -21,22 +21,27 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
+import { t as tx } from "@/src/i18n";
+
+import LanguageSwitch from "@/src/components/shared/LanguageSwitch";
 export const redirectToExternalURL = async (url: string) => {
   try {
     const supported = await Linking.canOpenURL(url);
     if (supported) {
       await Linking.openURL(url);
     } else {
-      Alert.alert("Error", `Don't know how to open this URL: ${url}`);
+      Alert.alert(tx("auto.error_7f2f"), `Don't know how to open this URL: ${url}`);
     }
   } catch (error) {
     console.error("An error occurred", error);
-    Alert.alert("Error", "Failed to open the link. Please try again later.");
+    Alert.alert(tx("auto.error_7f2f"), tx("auto.failedToOpenTheLink_62f5"));
   }
 };
 
 const SignInScreen = () => {
+  const { t } = useTranslation();
   const { top: statusBarHeight } = useSafeAreaInsets();
   const { signIn, loading } = useAuth();
   const { isDark } = useTheme();
@@ -56,9 +61,9 @@ const SignInScreen = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setLoginData((prev) => ({ ...prev, email: text }));
     if (!text) {
-      setLoginError((prev) => ({ ...prev, email: "Email is required" }));
+      setLoginError((prev) => ({ ...prev, email: t("signIn.errors.emailRequired") }));
     } else if (!emailRegex.test(text)) {
-      setLoginError((prev) => ({ ...prev, email: "Email address is invalid" }));
+      setLoginError((prev) => ({ ...prev, email: t("signIn.errors.emailInvalid") }));
     } else {
       setLoginError((prev) => ({ ...prev, email: "" }));
     }
@@ -67,11 +72,11 @@ const SignInScreen = () => {
   const handlePasswordChange = (text: string) => {
     setLoginData((prev) => ({ ...prev, password: text }));
     if (!text) {
-      setLoginError((prev) => ({ ...prev, password: "Password is required" }));
+      setLoginError((prev) => ({ ...prev, password: t("signIn.errors.passwordRequired") }));
     } else if (text.length < 6) {
       setLoginError((prev) => ({
         ...prev,
-        password: "Password must be at least 8 characters long",
+        password: t("signIn.errors.passwordShort"),
       }));
     } else {
       setLoginError((prev) => ({ ...prev, password: "" }));
@@ -84,15 +89,15 @@ const SignInScreen = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!loginData.email?.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = t("signIn.errors.emailRequired");
       isValid = false;
     } else if (!emailRegex.test(loginData.email.trim())) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = t("signIn.errors.emailInvalid");
       isValid = false;
     }
 
     if (!loginData.password?.trim() && loginData.password.length < 6) {
-      newErrors.password = "Password is required";
+      newErrors.password = t("signIn.errors.passwordRequired");
       isValid = false;
     }
 
@@ -128,16 +133,17 @@ const SignInScreen = () => {
           source={require("@/assets/images/screen_bg.png")}
           style={[styles.headerBg, { paddingTop: statusBarHeight + spacing(20) }]}
         >
+          <LanguageSwitch style={{ marginTop: -spacing(8), marginBottom: spacing(10) }} />
           <View style={styles.headerContent}>
             <View style={styles.col}>
-              <Text style={Styles.bold32}>Welcome Back To Business</Text>
+              <Text style={Styles.bold32}>{t("signIn.title")}</Text>
               <Text style={Styles.reg14}>
-                Access your dashboard and continue where you left off
+                {t("signIn.subtitle")}
               </Text>
             </View>
 
             <Text style={Styles.bold12}>
-              Don't have an account?{"  "}
+              {t("signIn.noAccount")}{"  "}
               <Text
                 style={[
                   Styles.med16,
@@ -145,7 +151,7 @@ const SignInScreen = () => {
                 ]}
                 onPress={() => router.replace("/sign-up")}
               >
-                Sign up
+                {t("signIn.signUp")}
               </Text>
             </Text>
           </View>
@@ -166,12 +172,12 @@ const SignInScreen = () => {
               <View style={styles.inputs}>
                 <View style={Styles.inputContainer}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Email
+                    {t("signIn.email")}
                   </Text>
                   <TextInput
                     value={loginData.email}
                     onChangeText={handleEmailChange}
-                    placeholder="Email"
+                    placeholder={t("signIn.email")}
                     placeholderTextColor={placeholderColor}
                     textContentType="emailAddress"
                     returnKeyType="next"
@@ -198,7 +204,7 @@ const SignInScreen = () => {
 
                 <View style={Styles.inputContainer}>
                   <Text style={[Styles.label, { color: labelColor }]}>
-                    Password
+                    {t("signIn.password")}
                   </Text>
                   <View
                     style={[
@@ -247,20 +253,20 @@ const SignInScreen = () => {
                 style={[Styles.med12, { textAlign: "right", color: textColor }]}
                 onPress={() => router.replace("/(auth)/screen/forget-password")}
               >
-                Forgot Password ?
+                {t("signIn.forgot")}
               </Text>
             </View>
 
             <View style={styles.footer}>
               <PrimaryButton
-                title="Log In"
+                title={t("signIn.logIn")}
                 onPress={handleContinue}
                 loading={loading}
               />
               <Text
                 style={[Styles.med12, { textAlign: "center", color: textColor }]}
               >
-                By signing up, you agree to the{" "}
+                {t("signIn.termsPrefix")}{" "}
                 <Text
                   style={{ ...Styles.bold12, color: textColor }}
                   onPress={() =>
@@ -269,9 +275,9 @@ const SignInScreen = () => {
                     )
                   }
                 >
-                  Terms of Service
+                  {t("signIn.terms")}
                 </Text>{" "}
-                and{" "}
+                {t("signIn.and")}{" "}
                 <Text
                   style={{ ...Styles.bold12, color: textColor }}
                   onPress={() =>
@@ -280,7 +286,7 @@ const SignInScreen = () => {
                     )
                   }
                 >
-                  Data Processing Agreement
+                  {t("signIn.dpa")}
                 </Text>
               </Text>
             </View>

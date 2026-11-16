@@ -22,6 +22,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
+
+import { dateLocale } from "@/src/i18n/dateLocale";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type SubIssue = { id: string; title: string };
@@ -180,7 +186,7 @@ async function postMessage(id: string, text: string): Promise<{ data: Ticket }> 
 function formatDate(iso?: string) {
   if (!iso) return "";
   const d = new Date(iso);
-  return `${d.getDate()} ${d.toLocaleString("en", { month: "short" })}, ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+  return `${d.getDate()} ${d.toLocaleString(dateLocale("en-GB"), { month: "short" })}, ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
 }
 
 function statusLabel(s: string) {
@@ -213,6 +219,7 @@ function Badge({ status, isDark }: { status: string; isDark: boolean }) {
 }
 
 function Tabs({ active, onChange, isDark }: { active: "new"|"my"; onChange: (t: "new"|"my") => void; isDark: boolean; borderColor: string }) {
+  const { t: tx } = useTranslation();
   const tabBg  = isDark ? "#1a1a1a" : "#f3f4f6";
   const active_ = isDark ? "#2a2a2a" : "#fff";
   const tc      = isDark ? Colors.text.white : Colors.primaryDark;
@@ -222,7 +229,7 @@ function Tabs({ active, onChange, isDark }: { active: "new"|"my"; onChange: (t: 
       {(["new","my"] as const).map(t => (
         <TouchableOpacity key={t} style={[ss.tab, active === t && { backgroundColor: active_ }]} onPress={() => onChange(t)}>
           <Text style={[ss.tabText, { color: active === t ? tc : tc2, fontFamily: active === t ? "medium" : "regular" }]}>
-            {t === "new" ? "New ticket" : "My tickets"}
+            {t === "new" ? tx("auto.newTicket_b8bf") : tx("auto.myTickets_5394")}
           </Text>
         </TouchableOpacity>
       ))}
@@ -233,11 +240,12 @@ function Tabs({ active, onChange, isDark }: { active: "new"|"my"; onChange: (t: 
 // ── VIEW: Home (category list + my tickets) ───────────────────────────────────
 
 function ViewHome({ isDark, textColor, subColor, borderColor, cardBg, activeTab, onTabChange, onSelect, tickets, ticketsLoading, onTicketClick }: any) {
+  const { t: tx } = useTranslation();
   const renderCat = (cat: Category) => (
     <TouchableOpacity key={cat.id} style={[ss.catCard, { backgroundColor: cardBg, borderColor }]} onPress={() => onSelect(cat)} activeOpacity={0.7}>
       <View style={ss.catCardInner}>
-        <Text style={[ss.catTitle, { color: textColor }]}>{cat.title}</Text>
-        <Text style={[ss.catDesc,  { color: subColor  }]} numberOfLines={2}>{cat.description}</Text>
+        <Text style={[ss.catTitle, { color: textColor }]}>{tl(cat.title)}</Text>
+        <Text style={[ss.catDesc,  { color: subColor  }]} numberOfLines={2}>{tl(cat.description)}</Text>
       </View>
       <ChevronRight size={scale(16)} color={subColor} />
     </TouchableOpacity>
@@ -249,11 +257,11 @@ function ViewHome({ isDark, textColor, subColor, borderColor, cardBg, activeTab,
 
       {activeTab === "new" && (
         <>
-          <SectionLabel label="Account & Plan" textColor={subColor} />
+          <SectionLabel label={tx("auto.accountPlan_3c78")} textColor={subColor} />
           {TOP_CATEGORIES.map(renderCat)}
-          <SectionLabel label="Features" textColor={subColor} />
+          <SectionLabel label={tx("auto.features_fc33")} textColor={subColor} />
           {MAIN_CATEGORIES.map(renderCat)}
-          <SectionLabel label="Other" textColor={subColor} />
+          <SectionLabel label={tx("auto.other_6e6a")} textColor={subColor} />
           {BOTTOM_CATEGORIES.map(renderCat)}
         </>
       )}
@@ -262,7 +270,7 @@ function ViewHome({ isDark, textColor, subColor, borderColor, cardBg, activeTab,
         <>
           {ticketsLoading && <ActivityIndicator color={Colors.primary} style={{ marginTop: spacing(24) }} />}
           {!ticketsLoading && tickets.length === 0 && (
-            <Text style={[ss.emptyText, { color: subColor }]}>No tickets yet.</Text>
+            <Text style={[ss.emptyText, { color: subColor }]}>{tx("auto.noTicketsYet_cf98")}</Text>
           )}
           {!ticketsLoading && tickets.map((t: Ticket) => (
             <TouchableOpacity key={t.id} style={[ss.ticketCard, { backgroundColor: cardBg, borderColor }]} onPress={() => onTicketClick(t)} activeOpacity={0.7}>
@@ -271,9 +279,9 @@ function ViewHome({ isDark, textColor, subColor, borderColor, cardBg, activeTab,
                 <Badge status={t.status} isDark={isDark} />
               </View>
               <Text style={[ss.ticketSub, { color: textColor }]}>{t.subIssue}</Text>
-              <Text style={[ss.ticketPreview, { color: subColor }]} numberOfLines={2}>{t.description}</Text>
+              <Text style={[ss.ticketPreview, { color: subColor }]} numberOfLines={2}>{tl(t.description)}</Text>
               <View style={ss.ticketCardBottom}>
-                <Text style={[ss.ticketMeta, { color: subColor }]}>{t.category}</Text>
+                <Text style={[ss.ticketMeta, { color: subColor }]}>{tl(t.category)}</Text>
                 <Text style={[ss.ticketMeta, { color: subColor }]}>{formatDate(t.createdAt)}</Text>
               </View>
             </TouchableOpacity>
@@ -287,12 +295,13 @@ function ViewHome({ isDark, textColor, subColor, borderColor, cardBg, activeTab,
 // ── VIEW: Sub-issues ──────────────────────────────────────────────────────────
 
 function ViewSubIssues({ isDark, textColor, subColor, borderColor, cardBg, category, activeTab, onTabChange, onSelect }: any) {
+  useTranslation(); // re-render when the language changes
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={ss.scrollContent} showsVerticalScrollIndicator={false}>
       <Tabs active={activeTab} onChange={onTabChange} isDark={isDark} borderColor={borderColor} />
       {(category as Category).subIssues.map((s: SubIssue) => (
         <TouchableOpacity key={s.id} style={[ss.catCard, { backgroundColor: cardBg, borderColor }]} onPress={() => onSelect(s)} activeOpacity={0.7}>
-          <Text style={[ss.catTitle, { color: textColor, flex: 1 }]}>{s.title}</Text>
+          <Text style={[ss.catTitle, { color: textColor, flex: 1 }]}>{tl(s.title)}</Text>
           <ChevronRight size={scale(16)} color={subColor} />
         </TouchableOpacity>
       ))}
@@ -303,20 +312,21 @@ function ViewSubIssues({ isDark, textColor, subColor, borderColor, cardBg, categ
 // ── VIEW: Form ────────────────────────────────────────────────────────────────
 
 function ViewForm({ isDark, textColor, subColor, borderColor, inputBg, activeTab, onTabChange, onSubmit, submitting }: any) {
+  const { t: tx } = useTranslation();
   const [date,   setDate]   = useState("");
   const [desc,   setDesc]   = useState("");
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
   const pickImages = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { Alert.alert("Permission required", "Please allow photo access to upload files."); return; }
+    if (!perm.granted) { Alert.alert(tx("auto.permissionRequired_291e"), tx("auto.pleaseAllowPhotoAccessTo_cd8f")); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsMultipleSelection: true, quality: 0.8, selectionLimit: 5 });
     if (!result.canceled) setImages(result.assets.slice(0, 5));
   };
 
   const handleSubmit = () => {
-    if (!date.trim()) { Alert.alert("Required", "Please enter when you noticed this issue."); return; }
-    if (!desc.trim()) { Alert.alert("Required", "Please describe the issue."); return; }
+    if (!date.trim()) { Alert.alert(tx("auto.required_eed6"), tx("auto.pleaseEnterWhenYouNoticed_3044")); return; }
+    if (!desc.trim()) { Alert.alert(tx("auto.required_eed6"), tx("auto.pleaseDescribeTheIssue_a550")); return; }
     onSubmit({ date, desc, images });
   };
 
@@ -327,10 +337,10 @@ function ViewForm({ isDark, textColor, subColor, borderColor, inputBg, activeTab
 
         {/* Date noticed */}
         <View style={ss.formGroup}>
-          <Text style={[ss.formLabel, { color: textColor }]}>When did you notice this? <Text style={{ color: "#ef4444" }}>*</Text></Text>
+          <Text style={[ss.formLabel, { color: textColor }]}>{tx("auto.whenDidYouNoticeThis_04b1")}{" "}<Text style={{ color: "#ef4444" }}>*</Text></Text>
           <TextInput
             style={[ss.input, { backgroundColor: inputBg, borderColor, color: textColor }]}
-            placeholder="YYYY-MM-DD"
+            placeholder={tx("auto.yyyyMmDd_d3f8")}
             placeholderTextColor={subColor}
             value={date}
             onChangeText={setDate}
@@ -339,10 +349,10 @@ function ViewForm({ isDark, textColor, subColor, borderColor, inputBg, activeTab
 
         {/* Description */}
         <View style={ss.formGroup}>
-          <Text style={[ss.formLabel, { color: textColor }]}>Describe the issue <Text style={{ color: "#ef4444" }}>*</Text></Text>
+          <Text style={[ss.formLabel, { color: textColor }]}>{tx("auto.describeTheIssue_f7f5")}{" "}<Text style={{ color: "#ef4444" }}>*</Text></Text>
           <TextInput
             style={[ss.input, ss.textarea, { backgroundColor: inputBg, borderColor, color: textColor }]}
-            placeholder="Describe what happened in detail..."
+            placeholder={tx("auto.describeWhatHappenedInDetail_d058")}
             placeholderTextColor={subColor}
             value={desc}
             onChangeText={setDesc}
@@ -353,11 +363,11 @@ function ViewForm({ isDark, textColor, subColor, borderColor, inputBg, activeTab
 
         {/* Attachments */}
         <View style={ss.formGroup}>
-          <Text style={[ss.formLabel, { color: textColor }]}>Supporting Documents (optional)</Text>
+          <Text style={[ss.formLabel, { color: textColor }]}>{tx("auto.supportingDocumentsOptional_3cd7")}</Text>
           <TouchableOpacity style={[ss.uploadBtn, { borderColor, backgroundColor: inputBg }]} onPress={pickImages} activeOpacity={0.7}>
             <Paperclip size={scale(22)} color={subColor} />
-            <Text style={[ss.uploadTitle, { color: textColor }]}>Upload images</Text>
-            <Text style={[ss.uploadHint,  { color: subColor  }]}>JPG or PNG · max 5</Text>
+            <Text style={[ss.uploadTitle, { color: textColor }]}>{tx("auto.uploadImages_16d6")}</Text>
+            <Text style={[ss.uploadHint,  { color: subColor  }]}>{tx("auto.jpgOrPngMax5_97d9")}</Text>
           </TouchableOpacity>
           {images.length > 0 && (
             <View style={ss.thumbRow}>
@@ -378,9 +388,9 @@ function ViewForm({ isDark, textColor, subColor, borderColor, inputBg, activeTab
           {submitting
             ? <View style={{ flexDirection: "row", alignItems: "center", gap: spacing(8) }}>
                 <ActivityIndicator color="#fff" size="small" />
-                <Text style={ss.submitText}>{images.length > 0 ? "Uploading & submitting…" : "Submitting…"}</Text>
+                <Text style={ss.submitText}>{images.length > 0 ? tx("auto.uploadingSubmitting_1f15") : tx("auto.submitting_25bd")}</Text>
               </View>
-            : <Text style={ss.submitText}>Submit Ticket</Text>
+            : <Text style={ss.submitText}>{tx("auto.submitTicket_b301")}</Text>
           }
         </TouchableOpacity>
       </ScrollView>
@@ -391,27 +401,28 @@ function ViewForm({ isDark, textColor, subColor, borderColor, inputBg, activeTab
 // ── VIEW: Created ─────────────────────────────────────────────────────────────
 
 function ViewCreated({ isDark, textColor, subColor, borderColor, cardBg, ticket, onNewTicket, onViewThread }: any) {
+  const { t: tx } = useTranslation();
   const t = ticket as Ticket;
   return (
     <ScrollView contentContainerStyle={[ss.scrollContent, { alignItems: "center", paddingTop: spacing(32) }]} showsVerticalScrollIndicator={false}>
       <View style={[ss.createdIcon, { borderColor: textColor }]}>
         <CheckCircle size={scale(38)} color={textColor} strokeWidth={1.5} />
       </View>
-      <Text style={[ss.createdTitle, { color: textColor }]}>Ticket Created</Text>
-      <Text style={[ss.createdDesc,  { color: subColor  }]}>Your support ticket has been submitted successfully.</Text>
+      <Text style={[ss.createdTitle, { color: textColor }]}>{tx("auto.ticketCreated_4bd5")}</Text>
+      <Text style={[ss.createdDesc,  { color: subColor  }]}>{tx("auto.yourSupportTicketHasBeen_ecb0")}</Text>
 
       <View style={[ss.metaCard, { backgroundColor: cardBg, borderColor }]}>
-        <View style={ss.metaRow}><Text style={[ss.metaKey, { color: subColor }]}>Ticket ID</Text><Text style={[ss.metaVal, { color: Colors.primary, fontFamily: "medium" }]}>#{t.id}</Text></View>
-        <View style={ss.metaRow}><Text style={[ss.metaKey, { color: subColor }]}>Issue</Text><Text style={[ss.metaVal, { color: textColor }]} numberOfLines={2}>{t.subIssue}</Text></View>
-        <View style={ss.metaRow}><Text style={[ss.metaKey, { color: subColor }]}>Status</Text><Badge status={t.status} isDark={isDark} /></View>
+        <View style={ss.metaRow}><Text style={[ss.metaKey, { color: subColor }]}>{tx("auto.ticketId_ef4b")}</Text><Text style={[ss.metaVal, { color: Colors.primary, fontFamily: "medium" }]}>#{t.id}</Text></View>
+        <View style={ss.metaRow}><Text style={[ss.metaKey, { color: subColor }]}>{tx("auto.issue_7378")}</Text><Text style={[ss.metaVal, { color: textColor }]} numberOfLines={2}>{t.subIssue}</Text></View>
+        <View style={ss.metaRow}><Text style={[ss.metaKey, { color: subColor }]}>{tx("auto.status_bae7")}</Text><Badge status={t.status} isDark={isDark} /></View>
       </View>
 
       <View style={ss.createdActions}>
         <TouchableOpacity style={[ss.outlineBtn, { borderColor, flex: 1 }]} onPress={onNewTicket} activeOpacity={0.7}>
-          <Text style={[ss.outlineBtnText, { color: textColor }]}>New Ticket</Text>
+          <Text style={[ss.outlineBtnText, { color: textColor }]}>{tx("auto.newTicket_dcaa")}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[ss.darkBtn, { flex: 1 }]} onPress={onViewThread} activeOpacity={0.8}>
-          <Text style={ss.darkBtnText}>View Thread</Text>
+          <Text style={ss.darkBtnText}>{tx("auto.viewThread_943d")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -421,6 +432,7 @@ function ViewCreated({ isDark, textColor, subColor, borderColor, cardBg, ticket,
 // ── VIEW: Thread ──────────────────────────────────────────────────────────────
 
 function ViewThread({ isDark, textColor, subColor, borderColor, cardBg, inputBg, ticket, onTicketUpdate }: any) {
+  const { t: tx } = useTranslation();
   const t = ticket as Ticket;
   const [messages, setMessages] = useState<Message[]>(t.messages || []);
   const [input,    setInput]    = useState("");
@@ -453,7 +465,7 @@ function ViewThread({ isDark, textColor, subColor, borderColor, cardBg, inputBg,
       if (onTicketUpdate) onTicketUpdate(data.data);
       setInput("");
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Failed to send message.");
+      Alert.alert(tx("auto.error_7f2f"), err.message || tx("auto.failedToSendMessage_0f22"));
     } finally {
       setSending(false);
     }
@@ -483,7 +495,7 @@ function ViewThread({ isDark, textColor, subColor, borderColor, cardBg, inputBg,
         ListHeaderComponent={
           t.attachments && t.attachments.length > 0 ? (
             <View style={[ss.attachBlock, { backgroundColor: cardBg, borderColor }]}>
-              <Text style={[ss.attachLabel, { color: subColor }]}>ATTACHMENTS</Text>
+              <Text style={[ss.attachLabel, { color: subColor }]}>{tx("auto.attachments_b8ac")}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: spacing(6) }}>
                 {t.attachments.map((url: string, i: number) => (
                   <Image key={i} source={{ uri: url }} style={ss.attachThumb} />
@@ -493,15 +505,15 @@ function ViewThread({ isDark, textColor, subColor, borderColor, cardBg, inputBg,
           ) : null
         }
         ListFooterComponent={
-          <Text style={[ss.threadNotice, { color: subColor }]}>Replies from support will appear here.</Text>
+          <Text style={[ss.threadNotice, { color: subColor }]}>{tx("auto.repliesFromSupportWillAppear_7ce7")}</Text>
         }
         renderItem={({ item: m }) => (
           <View style={[ss.msgWrap, m.sender === "user" ? ss.msgUser : ss.msgSupport]}>
             <Text style={[ss.msgSender, m.sender !== "user" && { color: subColor }]}>
-              {m.sender === "user" ? "You" : "Support"}
+              {m.sender === "user" ? tx("auto.you_905c") : tx("auto.support_f32d")}
             </Text>
             <View style={[ss.msgBubble, m.sender === "user" ? ss.msgBubbleUser : [ss.msgBubbleSupport, { backgroundColor: cardBg, borderColor }]]}>
-              <Text style={[ss.msgText, m.sender !== "user" && { color: textColor }]}>{m.text}</Text>
+              <Text style={[ss.msgText, m.sender !== "user" && { color: textColor }]}>{tl(m.text)}</Text>
             </View>
           </View>
         )}
@@ -512,7 +524,7 @@ function ViewThread({ isDark, textColor, subColor, borderColor, cardBg, inputBg,
         <View style={[ss.inputRow, { borderTopColor: borderColor }]}>
           <TextInput
             style={[ss.chatInput, { backgroundColor: inputBg, borderColor, color: textColor }]}
-            placeholder={resolved ? "This ticket is resolved." : "Type your message…"}
+            placeholder={resolved ? tx("auto.thisTicketIsResolved_dde9") : tx("auto.typeYourMessage_6733")}
             placeholderTextColor={subColor}
             value={input}
             onChangeText={setInput}
@@ -538,6 +550,7 @@ function ViewThread({ isDark, textColor, subColor, borderColor, cardBg, inputBg,
 // ── Main screen ───────────────────────────────────────────────────────────────
 
 export default function TicketingPage() {
+  const { t: tx } = useTranslation();
   const { isDark } = useTheme();
   const { top }    = useSafeAreaInsets();
   const router     = useRouter();
@@ -605,7 +618,7 @@ export default function TicketingPage() {
       await writeCache("store_support_tickets", updated);
       setActiveTicket(data.data);
       setView("created");
-    } catch (e: any) { setError(e.message || "Failed to submit ticket."); }
+    } catch (e: any) { setError(e.message || tx("auto.failedToSubmitTicket_716b")); }
     finally { setSubmitting(false); }
   };
 
@@ -644,8 +657,8 @@ export default function TicketingPage() {
           <ArrowLeft size={scale(18)} color="rgba(255,255,255,0.85)" />
         </TouchableOpacity>
         <View style={ss.headerTextWrap}>
-          <Text style={ss.headerTitle} numberOfLines={1}>{title}</Text>
-          <Text style={ss.headerSub}   numberOfLines={1}>{subtitle}</Text>
+          <Text style={ss.headerTitle} numberOfLines={1}>{tl(title)}</Text>
+          <Text style={ss.headerSub}   numberOfLines={1}>{tl(subtitle)}</Text>
         </View>
         {view === "home" && <Headphones size={scale(18)} color="rgba(255,255,255,0.6)" />}
       </View>

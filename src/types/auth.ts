@@ -1,4 +1,6 @@
 export type RegisterUserData = {
+  /** App language set by the backend: "en" or "fr" */
+  language?: string;
   uid?: string;
   name: string;
   email: string;
@@ -59,7 +61,8 @@ export type BrandSettings = {
   accountName?: string;
   footerText?: string;
   termsAndConditions?: string;
-  inventoryCurrency?: "NGN" | "USD";
+  /** Display currency code, e.g. NGN, USD, CNY */
+  inventoryCurrency?: string;
   updatedAt: string;
   userEmail: string;
 };

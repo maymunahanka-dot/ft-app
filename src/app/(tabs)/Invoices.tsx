@@ -24,7 +24,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 const InvoicesScreen = () => {
+  const { t: tx } = useTranslation();
   const { bottom, top } = useSafeAreaInsets();
   const { isDark } = useTheme();
 
@@ -66,7 +70,7 @@ const InvoicesScreen = () => {
 
       <View style={[styles.headerArea, { backgroundColor: bg }]}>
         <BurgerIcon
-          title="Invoices"
+          title={tx("auto.invoices_35f8")}
           iconColor={isDark ? "white" : undefined}
           textStyle={{
             fontFamily: "medium",
@@ -83,7 +87,7 @@ const InvoicesScreen = () => {
             <TextInput
               value={searchValue}
               onChangeText={setSearchValue}
-              placeholder="Search by client name..."
+              placeholder={tx("auto.searchByClientName_3dbe")}
               placeholderTextColor={placeholderColor}
               style={[styles.input, { color: textColor }]}
             />
@@ -126,7 +130,7 @@ const InvoicesScreen = () => {
         ListEmptyComponent={() => (
           <View style={styles.centered}>
             <Text style={[Styles.med12, { color: isDark ? "rgba(160,160,160,1)" : Colors.text.gray }]}>
-              {loading ? "" : "No invoice found."}
+              {loading ? "" : tx("auto.noInvoiceFound_3307")}
             </Text>
           </View>
         )}

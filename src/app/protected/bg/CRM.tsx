@@ -20,10 +20,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
+import { tl } from "@/src/i18n";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const BOXWIDTH = SCREEN_WIDTH / 2 - 20 - 16;
 
 const RowBoxes = () => {
+  const { t: tx } = useTranslation();
   const members = useCrmStore((state) => state.loyaltyMembers);
   const campaigns = useCrmStore((state) => state.campaigns);
 
@@ -33,7 +38,7 @@ const RowBoxes = () => {
         <View style={[styles.startRow, { paddingBottom: spacing(12) }]}>
           <UsersIcon size={scale(15)} color={"white"} />
           <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>
-            Members
+            {tx("auto.members_1cb4")}
           </Text>
         </View>
 
@@ -44,7 +49,7 @@ const RowBoxes = () => {
         <View style={[styles.startRow, { paddingBottom: spacing(12) }]}>
           <Mail size={scale(15)} color={"white"} />
           <Text style={[Styles.med12, { color: "white", lineHeight: 16 }]}>
-            Campaigns
+            {tx("auto.campaigns_01a2")}
           </Text>
         </View>
 
@@ -70,6 +75,7 @@ const TabsList = [
 ];
 
 const CRMScreen = () => {
+  const { t: tx } = useTranslation();
   const [selectedTab, setSelectedTab] = useState<TAB>("loyalty");
 
   const members = useCrmStore((state) => state.loyaltyMembers);
@@ -141,7 +147,7 @@ const CRMScreen = () => {
                       size={scale(15)}
                       color={isSelected ? "white" : Colors.grey}
                     />
-                    <Text style={textStyle}>{tab.label}</Text>
+                    <Text style={textStyle}>{tl(tab.label)}</Text>
                   </Pressable>
                 );
               })}
@@ -162,7 +168,7 @@ const CRMScreen = () => {
               <TextInput
                 value={searchValue}
                 onChangeText={setSearchValue}
-                placeholder={`Search ${selectedTab}...`}
+                placeholder={tx(`tpl.searchTab_${selectedTab}`, { defaultValue: `Search ${selectedTab}...` })}
                 placeholderTextColor={Colors.grey}
                 style={styles.input}
               />
@@ -171,11 +177,11 @@ const CRMScreen = () => {
             <View style={{ gap: spacing(24) }}>
               {selectedTab === "campaign" ? (
                 <Text style={[Styles.reg16, { color: "rgba(16, 24, 40, 1)" }]}>
-                  {campaigns.length} Email Campaigns
+                  {campaigns.length}{" "}{tx("auto.emailCampaigns_16aa")}
                 </Text>
               ) : (
                 <Text style={[Styles.reg16, { color: "rgba(16, 24, 40, 1)" }]}>
-                  {members.length} Loyalty Members
+                  {members.length}{" "}{tx("auto.loyaltyMembers_d6a9")}
                 </Text>
               )}
               <FlatList
@@ -200,7 +206,7 @@ const CRMScreen = () => {
                   <View style={styles.emptyContainer}>
                     <Text
                       style={[Styles.med12, { color: Colors.text.gray }]}
-                    >{`No ${selectedTab} found.`}</Text>
+                    >{tx(`tpl.noneTab_${selectedTab}`, { defaultValue: `No ${selectedTab} found.` })}</Text>
                   </View>
                 )}
               />

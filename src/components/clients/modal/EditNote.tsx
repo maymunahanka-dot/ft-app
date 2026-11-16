@@ -9,9 +9,13 @@ import React, { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { HapticTab } from "../../haptic-tab";
 
+import { useTranslation } from "react-i18next";
+import { t as tx } from "@/src/i18n";
+
 type Props = { client: Client; visible: boolean; onClose: () => void };
 
 const EditNote: React.FC<Props> = ({ visible, onClose, client }) => {
+  const { t: tx } = useTranslation();
   const [notes, setNotes] = useState(client?.notes ?? "");
   const updateNote = useClientStore((state) => state.editClient);
   const loading = useClientStore((state) => state.loading);
@@ -36,7 +40,7 @@ const EditNote: React.FC<Props> = ({ visible, onClose, client }) => {
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={[styles.modalContainer, { backgroundColor: modalBg }]}>
           <View style={styles.row}>
-            <Text style={[styles.reg14, { color: textColor }]}>Note</Text>
+            <Text style={[styles.reg14, { color: textColor }]}>{tx("auto.note_2c92")}</Text>
             <HapticTab hitSlop={20} onPress={onClose}>
               <X size={scale(18)} color={isDark ? "rgba(160,160,160,1)" : "black"} />
             </HapticTab>
@@ -48,7 +52,7 @@ const EditNote: React.FC<Props> = ({ visible, onClose, client }) => {
                 <TextInput
                   value={notes}
                   onChangeText={setNotes}
-                  placeholder="e.g., about client"
+                  placeholder={tx("auto.eGAboutClient_7e4d")}
                   placeholderTextColor={placeholderColor}
                   style={[Styles.input, { paddingHorizontal: spacing(16), color: inputColor, backgroundColor: "transparent", height: 80, textAlignVertical: "top" }]}
                   multiline
@@ -59,7 +63,7 @@ const EditNote: React.FC<Props> = ({ visible, onClose, client }) => {
           </KeyboardAvoidingView>
 
           <HapticTab onPress={handleEditNote} style={styles.rowBtn}>
-            {loading ? <ActivityIndicator size={scale(18)} color="white" /> : <><Save size={scale(18)} color="white" /><Text style={styles.reg16}>Save</Text></>}
+            {loading ? <ActivityIndicator size={scale(18)} color="white" /> : <><Save size={scale(18)} color="white" /><Text style={styles.reg16}>{tx("auto.save_efc0")}</Text></>}
           </HapticTab>
         </View>
       </View>
