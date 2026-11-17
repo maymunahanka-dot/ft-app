@@ -163,9 +163,7 @@ const AppearanceDetailsScreen = () => {
                 ]}
               >
                 <View style={[styles.iconBox, { backgroundColor: isSelected ? iconBoxSelectedBg : iconBoxBg }]}>
-                  <Text style={{ fontFamily: "semibold", fontSize: scaleFontSize(15), color: Colors.primary }}>
-                    {lang.code.toUpperCase()}
-                  </Text>
+                  <Text style={{ fontSize: scaleFontSize(24) }}>{lang.flag}</Text>
                 </View>
                 <Text style={[styles.cardLabel, { color: isSelected ? Colors.primary : isDark ? "rgba(160,160,160,1)" : Colors.label }]}>
                   {tl(lang.label)}

@@ -16,9 +16,9 @@ import fr from "./locales/fr.json";
 import phrasesFr from "./locales/phrases.fr.json";
 
 export type AppLanguage = "en" | "fr";
-export const LANGUAGES: { code: AppLanguage; label: string }[] = [
-  { code: "en", label: "English" },
-  { code: "fr", label: "Français" },
+export const LANGUAGES: { code: AppLanguage; label: string; flag: string }[] = [
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "fr", label: "Français", flag: "🇫🇷" },
 ];
 const STORAGE_KEY = "ft_language";
 /** Set when the person picks a language themselves (sign-in / sign-up switch). */
