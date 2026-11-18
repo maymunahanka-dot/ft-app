@@ -15,13 +15,25 @@
       "channel": "preview",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "dhofmpabv",
+        "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "fashion-tally-unsigned",
+        "EXPO_PUBLIC_CLOUDINARY_FOLDER": "img",
+        "EXPO_PUBLIC_API_BASE_URL": "https://backend.fashiontally.com/api"
       }
     },
     "production": {
       "autoIncrement": true,
       "channel": "production",
-       "android": {
+      "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "dhofmpabv",
+        "EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET": "fashion-tally-unsigned",
+        "EXPO_PUBLIC_CLOUDINARY_FOLDER": "img",
+        "EXPO_PUBLIC_API_BASE_URL": "https://backend.fashiontally.com/api"
       }
     }
   },
