@@ -183,10 +183,8 @@ const BrandDetailsScreen = () => {
     try {
       // Upload logo if it's a local file / base64
       let finalLogoUrl = clean.logoUrl ?? "";
-      if (
-        finalLogoUrl &&
-        (finalLogoUrl.startsWith("data:") || finalLogoUrl.startsWith("file:"))
-      ) {
+      // (the picker returns plain base64, so anything that isn't already a web link is uploaded)
+      if (finalLogoUrl && !/^https?:\/\//.test(finalLogoUrl)) {
         setLogoUploading(true);
         const uploaded = await uploadImageToCloudinary(finalLogoUrl);
         setLogoUploading(false);

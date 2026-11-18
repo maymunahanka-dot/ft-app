@@ -2,7 +2,8 @@ import {
   confirmPasswordReset,
 } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
+import { imageFileField } from "../utils/uploadImage";
 import * as FileSystem from "expo-file-system/legacy";
 import { auth } from "../context/firebase";
 import { apiFetch, clearSession, getStoredToken, getStoredUser, isTokenExpired, saveSession, setUnauthorizedHandler } from "../lib/apiClient";
@@ -101,6 +102,17 @@ export function useAuth() {
           const preset = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
           console.log("[SIGNUP] Cloudinary cloudName:", cloudName, "preset:", preset);
 
+          let uploadResult: { status: number; body: string };
+          if (Platform.OS === "web") {
+            // Browser: FileSystem.uploadAsync doesn't exist; post the image with fetch instead
+            const logo = userDataInput.logo;
+            const source = logo.startsWith("data:") || logo.startsWith("blob:") ? logo : `data:image/jpeg;base64,${logo}`;
+            const form = new FormData();
+            form.append("file", await imageFileField(source, "logo.jpg", "image/jpeg"));
+            form.append("upload_preset", preset!);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body: form });
+            uploadResult = { status: res.status, body: await res.text() };
+          } else {
           // React Native FormData only accepts { uri, type, name } — Blob is not supported.
           // Write base64 / data URI to a temp file first, then use the file:// URI.
           let fileUri = userDataInput.logo;
@@ -125,7 +137,7 @@ export function useAuth() {
           }
 
           console.log("[SIGNUP] Uploading logo to Cloudinary via FileSystem.uploadAsync...");
-          const uploadResult = await FileSystem.uploadAsync(
+          uploadResult = await FileSystem.uploadAsync(
             `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
             fileUri,
             {
@@ -136,6 +148,7 @@ export function useAuth() {
               parameters: { upload_preset: preset! },
             },
           );
+          }
           console.log("[SIGNUP] Cloudinary upload status:", uploadResult.status, uploadResult.body?.substring(0, 100));
 
           const cloudData = JSON.parse(uploadResult.body);

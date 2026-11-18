@@ -5,6 +5,7 @@ import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
 import { apiFetch, AUTH_USER_KEY } from "@/src/lib/apiClient";
 import { useUserStore } from "@/src/stores/userSlice";
+import { imageFileField } from "@/src/utils/uploadImage";
 import {
   GetInitials,
   scale,
@@ -42,8 +43,7 @@ async function uploadToCloudinary(uri: string): Promise<string> {
   const preset = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
   const formData = new FormData();
-  // @ts-ignore — React Native FormData accepts this object shape
-  formData.append("file", { uri, type: "image/jpeg", name: "profile.jpg" });
+  formData.append("file", await imageFileField(uri, "profile.jpg", "image/jpeg"));
   formData.append("upload_preset", preset!);
 
   const res = await fetch(

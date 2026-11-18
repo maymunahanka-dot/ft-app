@@ -28,6 +28,7 @@ import { t as tx } from "@/src/i18n";
 import { tl } from "@/src/i18n";
 
 import { dateLocale } from "@/src/i18n/dateLocale";
+import { imageFileField } from "@/src/utils/uploadImage";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type SubIssue = { id: string; title: string };
@@ -113,16 +114,17 @@ async function fetchTicket(id: string): Promise<{ data: Ticket }> {
 
 // Upload a single image URI to Cloudinary using XMLHttpRequest.
 // XHR uses the native RN network layer — no Blob/ArrayBuffer issues.
-function uploadToCloudinary(uri: string, index: number): Promise<string> {
+async function uploadToCloudinary(uri: string, index: number): Promise<string> {
   const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME!;
   const preset    = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
   const ext      = uri.split(".").pop()?.split("?")[0]?.toLowerCase() || "jpg";
   const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+  const file     = await imageFileField(uri, `attachment_${index}.${ext}`, mimeType);
 
   return new Promise((resolve, reject) => {
     const form = new FormData();
-    form.append("file",          { uri, name: `attachment_${index}.${ext}`, type: mimeType } as any);
+    form.append("file",          file);
     form.append("upload_preset", preset);
     form.append("folder",        "support_tickets");
 

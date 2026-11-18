@@ -3,6 +3,7 @@ import { apiFetch } from "../lib/apiClient";
 import { Design } from "../types/designs";
 import { readCache, writeCache } from "../utils/storeCache";
 import { ShowToastMessage } from "../utils/random";
+import { imageFileField } from "../utils/uploadImage";
 
 import { t as tx } from "@/src/i18n";
 
@@ -24,16 +25,17 @@ interface DesignState {
  * XHR uses the native RN network layer, which correctly handles
  * { uri, name, type } file objects in FormData without any Blob/ArrayBuffer.
  */
-const uploadDesignImageToCloudinary = (uri: string): Promise<string> => {
+const uploadDesignImageToCloudinary = async (uri: string): Promise<string> => {
   const cloudName = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME!;
   const preset    = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
   const ext      = uri.split(".").pop()?.split("?")[0]?.toLowerCase() || "jpg";
   const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+  const file     = await imageFileField(uri, `design.${ext}`, mimeType);
 
   return new Promise((resolve, reject) => {
     const form = new FormData();
-    form.append("file",          { uri, name: `design.${ext}`, type: mimeType } as any);
+    form.append("file",          file);
     form.append("upload_preset", preset);
     form.append("folder",        "designs");
 
