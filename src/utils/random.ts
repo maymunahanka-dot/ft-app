@@ -2,7 +2,9 @@ import * as Burnt from "burnt";
 import { ToastOptions } from "burnt/build/types";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { Timestamp } from "firebase/firestore";
+/** Firestore-style timestamp (old records may still hold { seconds, nanoseconds } or a toDate()) */
+type Timestamp = { toDate(): Date };
+const isTimestamp = (v: any): v is Timestamp => !!v && typeof v === "object" && typeof v.toDate === "function";
 import { Dimensions, PixelRatio, Platform } from "react-native";
 import { getCurrentUserEmail } from "../lib/auth-utils";
 import { BrandSettings } from "../types/auth";
@@ -403,7 +405,7 @@ export const ConvertToISO = (
     }
 
     // Firestore Timestamp
-    if (input instanceof Timestamp) {
+    if (isTimestamp(input)) {
       return input.toDate().toISOString();
     }
 

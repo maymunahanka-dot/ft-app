@@ -4,7 +4,6 @@ import { MoreSection } from "@/src/constants/config";
 import { Styles } from "@/src/constants/styles";
 import { Colors } from "@/src/constants/theme";
 import { useTheme } from "@/src/context/ThemeContext";
-import { auth } from "@/src/context/firebase";
 import { useAuth } from "@/src/hooks/auth";
 import { apiFetch } from "@/src/lib/apiClient";
 import { useUserStore } from "@/src/stores/userSlice";
@@ -43,8 +42,7 @@ const ProfileCard = () => {
   const user = useUserStore((state) => state.user);
   const brandSetting = useUserStore((state) => state.brandSetting);
 
-  const firebaseEmail = auth.currentUser?.email ?? "";
-  const isSubAdmin = !!(user?.isAdmin && user?.invitedBy && user.invitedBy !== firebaseEmail);
+  const isSubAdmin = !!(user?.isAdmin && user?.invitedBy && user.invitedBy !== user.email);
 
   const displayName = isSubAdmin
     ? (user?.name ?? "Team Member")

@@ -6,7 +6,9 @@ import { InvoiceData } from "@/src/types/Invoice";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
-import { Timestamp } from "firebase/firestore";
+/** Firestore-style timestamp (old records may still hold { seconds, nanoseconds } or a toDate()) */
+type Timestamp = { toDate(): Date };
+const isTimestamp = (v: any): v is Timestamp => !!v && typeof v === "object" && typeof v.toDate === "function";
 
 import { dateLocale } from "@/src/i18n/dateLocale";
 import { tl } from "@/src/i18n";
@@ -24,7 +26,7 @@ export const toDate = (input: AnyDate): Date => {
   if (!input) return new Date();
 
   // Firestore Timestamp instance
-  if (input instanceof Timestamp) return input.toDate();
+  if (isTimestamp(input)) return input.toDate();
 
   // Firestore plain object
   if (typeof input === "object" && "seconds" in input) {

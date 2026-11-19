@@ -51,7 +51,6 @@
     "expo-system-ui": "~56.0.5",
     "expo-updates": "~56.0.17",
     "expo-web-browser": "~56.0.5",
-    "firebase": "^12.7.0",
     "i18next": "^27.1.1",
     "lucide-react-native": "^0.562.0",
     "pressto": "^0.6.0",

@@ -1,11 +1,7 @@
-import {
-  confirmPasswordReset,
-} from "firebase/auth";
 import { useEffect, useState } from "react";
 import { Alert, Platform } from "react-native";
 import { imageFileField } from "../utils/uploadImage";
 import * as FileSystem from "expo-file-system/legacy";
-import { auth } from "../context/firebase";
 import { apiFetch, clearSession, getStoredToken, getStoredUser, isTokenExpired, saveSession, setUnauthorizedHandler } from "../lib/apiClient";
 import { registerFCMToken, removeFCMToken } from "../services/notification.service";
 import { useUserStore } from "../stores/userSlice";
@@ -228,8 +224,6 @@ export function useAuth() {
       await removeFCMToken().catch(() => {});
       await clearSession();
       setUserData(null);
-      // Also sign out of Firebase so legacy Firestore paths don't retain a stale session
-      try { await auth.signOut(); } catch { /* ignore */ }
     } catch (error: any) {
       console.error("Error signing out:", error);
       ShowToastMessage({
@@ -266,17 +260,6 @@ export function useAuth() {
     }
   };
 
-  const confrimResetCode = async (otp: string, newPassword: string) => {
-    setLoading(true);
-    try {
-      await confirmPasswordReset(auth, otp, newPassword);
-    } catch (error) {
-      console.error("Error sending reset password:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const refreshUser = async () => {
     setLoading(true);
     try {
@@ -299,6 +282,5 @@ export function useAuth() {
     signOut,
     signUp,
     sendResetEmail,
-    confrimResetCode,
   };
 }

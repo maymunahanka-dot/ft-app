@@ -1,14 +1,4 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  setDoc,
-  where,
-} from "firebase/firestore";
 import { create } from "zustand";
-import { db } from "../context/firebase";
 import { getCurrentUserEmail, getCurrentUserId } from "../lib/auth-utils";
 import { API_BASE_URL } from "../lib/apiClient";
 import { setEffectiveEmail } from "../lib/effectiveEmail";
@@ -21,7 +11,6 @@ interface UserState {
   user: RegisterUserData | null;
   brandSetting: BrandSettings | null;
   updateUser: (user: RegisterUserData | null) => void;
-  updateUserDetails: (user: RegisterUserData) => Promise<boolean>;
   fetchBrandSettings: () => Promise<void>;
   editBrandSettings(updates: Partial<BrandSettings>): Promise<boolean>;
 }
@@ -39,62 +28,6 @@ export const useUserStore = create<UserState>((set, get) => ({
       setEffectiveEmail(user?.email ?? "");
     }
   },
-  async updateUserDetails(user) {
-    set({ loading: true });
-
-    console.log("user updating", user);
-
-    try {
-      const uid = getCurrentUserId();
-      const email = user.email;
-
-      // Sub-admins don't have a Firebase profile doc — skip Firestore update
-      const currentUser = get().user;
-      if (currentUser?.isAdmin && currentUser?.invitedBy) {
-        set({ user });
-        return true;
-      }
-
-      let userRef = doc(db, "fashiontally_users", uid);
-
-      const snap = await getDoc(userRef);
-
-      if (!snap.exists()) {
-        console.log("UID doc missing, trying email fallback...");
-
-        const q = query(
-          collection(db, "fashiontally_users"),
-          where("email", "==", email),
-        );
-
-        const result = await getDocs(q);
-
-        if (!result.empty) {
-          userRef = result.docs[0].ref;
-          console.log("Found legacy user doc:", userRef.id);
-        }
-      }
-
-      await setDoc(userRef, user, { merge: true });
-
-      set({ user });
-
-      return true;
-    } catch (error) {
-      console.error("error updating profile", error);
-
-      ShowToastMessage({
-        title: tx("auto.errorUpdatingProfile_9c05"),
-        preset: "error",
-        haptic: "error",
-      });
-
-      return false;
-    } finally {
-      set({ loading: false });
-    }
-  },
-
   async fetchBrandSettings() {
     set({ loading: true });
 
@@ -103,27 +36,11 @@ export const useUserStore = create<UserState>((set, get) => ({
       if (!userEmail) return;
 
       // Primary: backend MongoDB (source of truth for brand settings)
-      try {
-        const res = await fetch(
-          `${API_BASE_URL}/brand-setting/get-by-email/${encodeURIComponent(userEmail)}`,
-        );
-        const data = await res.json();
-        if (data.success && data.data) {
-          set({ brandSetting: sanitizeBrandSettings({ ...data.data, userEmail }) });
-          return;
-        }
-      } catch {
-        // fall through to Firebase
-      }
-
-      // Fallback: Firebase Firestore
-      const settingsRef = doc(db, "fashiontally_brand_settings", userEmail);
-      const snap = await getDoc(settingsRef);
-      if (snap.exists()) {
-        set({ brandSetting: snap.data() as BrandSettings });
-      } else {
-        set({ brandSetting: null });
-      }
+      const res = await fetch(
+        `${API_BASE_URL}/brand-setting/get-by-email/${encodeURIComponent(userEmail)}`,
+      );
+      const data = await res.json();
+      set({ brandSetting: data.success && data.data ? sanitizeBrandSettings({ ...data.data, userEmail }) : null });
     } catch (error: any) {
       console.error("Error fetching brand settings:", error);
     } finally {

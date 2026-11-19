@@ -22,6 +22,10 @@ config.resolver.blockList = [
   new RegExp(`^${escapeRegex(path.join(parent, "be"))}.*`),
   new RegExp(`^${escapeRegex(path.join(parent, "backup_backend"))}.*`),
   new RegExp(`^${escapeRegex(path.join(parent, "backuptomongo"))}.*`),
+  // This project's own non-app folders: brag video output (incl. a Chrome profile) and native builds
+  new RegExp(`^${escapeRegex(path.join(__dirname, "brag-output"))}.*`),
+  new RegExp(`^${escapeRegex(path.join(__dirname, "android"))}[\\\\/].*`),
+  new RegExp(`^${escapeRegex(path.join(__dirname, "ios"))}[\\\\/].*`),
 ];
 
 function escapeRegex(str) {
